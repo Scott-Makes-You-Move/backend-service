@@ -15,7 +15,7 @@ public class GreetingController {
 
     @GetMapping
     public String greeting(@RequestParam Optional<String> name) {
-        log.debug("Greeting requested: '{}'", name);
+        name.ifPresent(n -> log.debug("Greeting: {}", n));
         return "Hello " + name.orElse("World");
     }
 }

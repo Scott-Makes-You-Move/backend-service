@@ -9,9 +9,10 @@ server:
 
 logging:
   file:
-    name: backend-service.log
-    path: $CATALINA_HOME/logs/
+    name: $CATALINA_HOME/logs/backend-service.log
+    path: $CATALINA_HOME/logs
   level:
-    org.apache.tomcat: DEBUG
-    org.apache.catalina: DEBUG
-    nl.optifit.backendservice: DEBUG
+    root: info
+    org.apache.tomcat: debug
+    org.apache.catalina: debug
+    nl.optifit.backendservice: debug
