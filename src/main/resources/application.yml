@@ -12,7 +12,7 @@ logging:
     file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
     console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
   file:
-    path: ${CATALINA_HOME}/logs
+    path: ${CATALINA_HOME:/opt/tomcat}/logs
     name: /backend-service.log
   level:
     root: info
