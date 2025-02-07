@@ -9,10 +9,10 @@ server:
 
 logging:
   pattern:
-    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
-    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+    file: "%white(%d{ISO8601}) %highlight(%-5level) [%cyan(%t)] %yellow(%C{1}): %msg%n%throwable"
+    console: "%white(%d{ISO8601}) %highlight(%-5level) [%cyan(%t)] %yellow(%C{1}): %msg%n%throwable"
   file:
-    path: ${CATALINA_HOME:/opt/tomcat}/logs
+    path: /usr/local/tomcat/logs
     name: /backend-service.log
   level:
     root: info
