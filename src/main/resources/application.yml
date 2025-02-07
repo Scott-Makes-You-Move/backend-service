@@ -8,6 +8,9 @@ server:
       enabled: true
 
 logging:
+  pattern:
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
   file:
     path: ${CATALINA_HOME}/logs
     name: /backend-service.log
