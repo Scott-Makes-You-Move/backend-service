@@ -9,7 +9,7 @@ server:
 
 logging:
   file:
-    name: $CATALINA_HOME/logs/backend-service.log
+    name: backend-service.log
     path: $CATALINA_HOME/logs
   level:
     root: info
