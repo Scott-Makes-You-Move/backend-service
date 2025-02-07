@@ -9,7 +9,8 @@ server:
 
 logging:
   file:
-    path: $CATALINA_HOME/logs/backend-service.log
+    path: ${CATALINA_HOME}/logs
+    name: /backend-service.log
   level:
     root: info
     org.apache.tomcat: debug
