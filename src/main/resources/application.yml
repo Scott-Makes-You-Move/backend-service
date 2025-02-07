@@ -8,6 +8,9 @@ server:
       enabled: true
 
 logging:
+  file:
+    name: backend-service.log
+    path: $CATALINA_HOME/logs/
   level:
     org.apache.tomcat: DEBUG
     org.apache.catalina: DEBUG
