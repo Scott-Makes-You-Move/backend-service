@@ -1,0 +1,14 @@
+spring:
+  application:
+    name: backend-service
+
+server:
+  tomcat:
+    accesslog:
+      enabled: true
+
+logging:
+  level:
+    org.apache.tomcat: DEBUG
+    org.apache.catalina: DEBUG
+    nl.optifit.backendservice: DEBUG
