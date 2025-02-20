@@ -1,21 +1,11 @@
 spring:
   application:
     name: backend-service
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
 
-server:
-  tomcat:
-    accesslog:
-      enabled: true
-
-logging:
-  pattern:
-    file: "%white(%d{ISO8601}) %highlight(%-5level) [%cyan(%t)] %yellow(%C{1}): %msg%n%throwable"
-    console: "%white(%d{ISO8601}) %highlight(%-5level) [%cyan(%t)] %yellow(%C{1}): %msg%n%throwable"
-  file:
-    path: /usr/local/tomcat/logs
-    name: /backend-service.log
-  level:
-    root: info
-    org.apache.tomcat: debug
-    org.apache.catalina: debug
-    nl.optifit.backendservice: debug
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html

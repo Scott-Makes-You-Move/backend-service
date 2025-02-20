@@ -4,6 +4,7 @@ target/
 !**/src/main/**/target/
 !**/src/test/**/target/
 *.log
+*-local.yml
 
 ### STS ###
 .apt_generated
@@ -32,3 +33,6 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### Azure ###
+*.azure
