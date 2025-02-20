@@ -1,6 +1,8 @@
 # Getting Started
 
-Create an application-local.yml file and include the following. Add 'local,logging' profile to the run configuration
+## Configuration ##
+
+Create an application-local.yml file and include the following.
 
 ```
 spring:
@@ -17,3 +19,6 @@ jwt:
       resource-id: 
       principal-attribute: 
 ```
+
+## How to run ##
+Include 'local,logging' to the run configurations.
