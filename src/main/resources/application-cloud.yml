@@ -1,17 +1,17 @@
 spring:
   datasource:
-    url: ${AZURE_POSTGRESQL_URL}
-    username: ${AZURE_POSTGRESQL_USERNAME}
-    password: ${AZURE_POSTGRESQL_PASSWORD}
+    url: ${AZURE_POSTGRESQL_URL:jdbc:postgresql://localhost:5432/mydb}
+    username: ${AZURE_POSTGRESQL_USERNAME:username}
+    password: ${AZURE_POSTGRESQL_PASSWORD:password}
   security:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: ${AZURE_JWT_ISSUER_URI}
-          jwk-set-uri: ${AZURE_JWT_PROTOCOL_URI}
+          issuer-uri: ${AZURE_JWT_ISSUER_URI:http://localhost:9000/}
+          jwk-set-uri: ${AZURE_JWT_PROTOCOL_URI:http://localhost:9000/protocol}
 
 jwt:
   auth:
     converter:
-      resource-id: ${JWT_RESOURCE_ID}
-      principal-attribute: ${JWT_PRINCIPAL_ATTRIBUTE}
+      resource-id: ${JWT_RESOURCE_ID:resource}
+      principal-attribute: ${JWT_PRINCIPAL_ATTRIBUTE:attribute}
