@@ -1,17 +1,29 @@
 package nl.optifit.backendservice.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
+import jakarta.persistence.*;
+import lombok.*;
 
+import java.io.Serializable;
+import java.util.UUID;
+
+@Entity
+@Table(name = "leaderboard", indexes = @Index(columnList = "accountId"))
 @Getter
 @Setter
+@NoArgsConstructor
+@AllArgsConstructor
 @Builder
-@Entity
-public class Leaderboard {
+public class Leaderboard implements Serializable {
     @Id
-    private String id;
-    private double streak;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
+    @ManyToOne
+    @JoinColumn(name = "account_id", nullable = false)
+    private Account account;
+    @Column(nullable = false)
+    private Double completionRate;
+    @Column(nullable = false)
+    private Integer currentStreak;
+    @Column(nullable = false)
+    private Integer longestStreak;
 }

@@ -1,19 +1,31 @@
 package nl.optifit.backendservice.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
+import jakarta.persistence.*;
+import lombok.*;
 
-import java.time.LocalDate;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 
+@Entity
+@Table(name = "progress", indexes = @Index(columnList = "accountId"))
 @Getter
 @Setter
+@NoArgsConstructor
+@AllArgsConstructor
 @Builder
-@Entity
-public class Progress {
+public class Progress implements Serializable {
     @Id
-    private String id;
-    private LocalDate date;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
+    @ManyToOne
+    @JoinColumn(name = "account_id", nullable = false)
+    private Account account;
+    @OneToMany(mappedBy = "progress", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Column(name = "biometrics")
+    private List<Biometrics> biometrics = new ArrayList<>();
+    @OneToMany(mappedBy = "progress", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Column(name = "mobilities")
+    private List<Mobility> mobilities = new ArrayList<>();
 }
