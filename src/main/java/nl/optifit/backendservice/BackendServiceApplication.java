@@ -24,11 +24,7 @@ public class BackendServiceApplication implements CommandLineRunner {
     @Autowired
     private AccountRepository accountRepository;
     @Autowired
-    private BiometricsRepository biometricsRepository;
-    @Autowired
     private LeaderboardRepository leaderboardRepository;
-    @Autowired
-    private MobilityRepository mobilityRepository;
     @Autowired
     private ProgressRepository progressRepository;
 
@@ -46,7 +42,7 @@ public class BackendServiceApplication implements CommandLineRunner {
     private void initiateAccount() {
         log.debug("Initiating test account '{}'", TEST_USER_SUB);
         Account savedAccount = accountRepository.save(Account.builder().accountId(TEST_USER_SUB).build());
-        log.debug("Account '{}' saved succesfully", savedAccount.getAccountId());
+        log.debug("Account '{}' saved successfully", savedAccount.getAccountId());
     }
 
     private void initiateProgress() {
@@ -57,18 +53,18 @@ public class BackendServiceApplication implements CommandLineRunner {
             LocalDateTime march = LocalDateTime.of(LocalDate.of(2025, Month.MARCH, 7), LocalTime.of(12, 0, 0));
 
             Progress progressForAccount = Progress.builder()
-                    .accountId(account.getAccountId())
+                    .account(account)
                     .biometrics(new ArrayList<>())
                     .mobilities(new ArrayList<>())
                     .build();
 
-            Biometrics januaryBiometrics = initializeBiometrics(account.getAccountId(), progressForAccount, january, 82.5, 14.2, 7);
-            Biometrics februaryBiometrics = initializeBiometrics(account.getAccountId(), progressForAccount, february, 83.1, 14.3, 7);
-            Biometrics marchBiometrics = initializeBiometrics(account.getAccountId(), progressForAccount, march, 83.1, 14.3, 7);
+            Biometrics januaryBiometrics = initializeBiometrics(account, progressForAccount, january, 82.5, 14.2, 7);
+            Biometrics februaryBiometrics = initializeBiometrics(account, progressForAccount, february, 83.1, 14.4, 7);
+            Biometrics marchBiometrics = initializeBiometrics(account, progressForAccount, march, 82.9, 14.3, 7);
 
-            Mobility januaryMobility = initializeMobility(account.getAccountId(), progressForAccount, january, 2, 1, 2);
-            Mobility februaryMobility = initializeMobility(account.getAccountId(), progressForAccount, february, 2, 2, 2);
-            Mobility marchMobility = initializeMobility(account.getAccountId(), progressForAccount, march, 1, 1, 2);
+            Mobility januaryMobility = initializeMobility(account, progressForAccount, january, 2, 1, 2);
+            Mobility februaryMobility = initializeMobility(account, progressForAccount, february, 2, 2, 2);
+            Mobility marchMobility = initializeMobility(account, progressForAccount, march, 1, 1, 2);
 
 
 
@@ -79,9 +75,9 @@ public class BackendServiceApplication implements CommandLineRunner {
         });
     }
 
-    private Biometrics initializeBiometrics(String accountId, Progress progress, LocalDateTime measuredOn, double weight, double fat, int visceralFat) {
+    private Biometrics initializeBiometrics(Account account, Progress progress, LocalDateTime measuredOn, double weight, double fat, int visceralFat) {
         return Biometrics.builder()
-                .accountId(accountId)
+                .account(account)
                 .progress(progress)
                 .measuredOn(measuredOn)
                 .weight(weight)
@@ -90,9 +86,9 @@ public class BackendServiceApplication implements CommandLineRunner {
                 .build();
     }
 
-    private Mobility initializeMobility(String accountId, Progress progress, LocalDateTime measuredOn, int shoulder, int back, int hip) {
+    private Mobility initializeMobility(Account account, Progress progress, LocalDateTime measuredOn, int shoulder, int back, int hip) {
         return Mobility.builder()
-                .accountId(accountId)
+                .account(account)
                 .progress(progress)
                 .measuredOn(measuredOn)
                 .shoulder(shoulder)
@@ -103,7 +99,12 @@ public class BackendServiceApplication implements CommandLineRunner {
 
     private void initiateLeaderboard() {
         accountRepository.findAll().forEach(account -> {
-            Leaderboard leaderboard = Leaderboard.builder().accountId(account.getAccountId()).streak(96.0).build();
+            Leaderboard leaderboard = Leaderboard.builder()
+                    .account(account)
+                    .completionRate(96.0)
+                    .currentStreak(4)
+                    .longestStreak(4)
+                    .build();
             leaderboardRepository.save(leaderboard);
         });
     }
