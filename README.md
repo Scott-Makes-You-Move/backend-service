@@ -77,8 +77,5 @@ This project is a backend service designed to manage user accounts, biometrics, 
 ## API Documentation
 The application exposes an OpenAPI 3.0 specification for the APIs. Once the application is running, you can view the API documentation at: `http://localhost:9000/swagger-ui.html`
 
-## Bootstrapping Data
-There is an endpoint available for bootstrapping data at: `http://localhost:9000/api/v1/bootstrap`
-
 ---
 Happy developing! 🚀
