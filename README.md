@@ -69,16 +69,23 @@ This project is a backend service designed to manage user accounts, biometrics, 
          resource-id: myclient
          principal-attribute: principal_username
 
+   keycloak:
+     auth-server-url: http://localhost:8080
+     realm: master
+     username: admin
+     password: admin
+     client-id: admin-cli
+
 
 4. Run the application
 
     Add a Spring Boot Run Configuration and include the local,logging profiles. Or run the application using `mvn spring-boot:run -Dspring-boot.run.profiles=local,logging`
 
 ## API Documentation
-The application exposes an OpenAPI 3.0 specification for the APIs. Once the application is running, you can view the API documentation at: `http://localhost:9000/swagger-ui.html`
+The application exposes an OpenAPI 3.0 specification for the APIs. Once the application is running, you can view the API documentation at: `http://localhost:9000/swagger-ui.html`. Otherwise, see Postman API documentation for all available endpoints and how to call them. 
 
 ## Bootstrapping Data
-There is an endpoint available for bootstrapping data at: `http://localhost:9000/api/v1/bootstrap`
+There is an endpoint available for bootstrapping data at: `http://localhost:9000/api/v1/bootstrap`.
 
 ---
 Happy developing! 🚀
