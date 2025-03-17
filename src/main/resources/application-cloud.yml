@@ -15,3 +15,10 @@ jwt:
     converter:
       resource-id: ${JWT_RESOURCE_ID:resource}
       principal-attribute: ${JWT_PRINCIPAL_ATTRIBUTE:attribute}
+
+keycloak:
+  auth-server-url: ${KEYCLOAK_AUTH_SERVER_URL:http://localhost:8080}
+  realm: ${KEYCLOAK_REALM:master}
+  username: ${KEYCLOAK_USERNAME:admin}
+  password: ${KEYCLOAK_PASSWORD:admin}
+  client-id: ${KEYCLOAK_CLIENT_ID:admin-cli}
