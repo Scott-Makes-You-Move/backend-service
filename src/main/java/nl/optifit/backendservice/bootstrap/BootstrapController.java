@@ -9,11 +9,14 @@ import nl.optifit.backendservice.repository.AccountRepository;
 import nl.optifit.backendservice.repository.LeaderboardRepository;
 import nl.optifit.backendservice.repository.ProgressRepository;
 import nl.optifit.backendservice.util.KeycloakService;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Path;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -35,20 +38,20 @@ public class BootstrapController {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    public static final String BOOTSTRAP_PATH = "bootstrap/bootstrap-data.json";
+    public static final ClassPathResource BOOTSTRAP_DATA_RESOURCE = new ClassPathResource("bootstrap/bootstrap-data.json");
     public static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
     public static boolean alreadyInitialized = false;
 
     @PostMapping
-    public String bootstrap() {
+    public String bootstrap() throws IOException {
         if (alreadyInitialized) {
             return "Already Initialized!";
         }
 
-        File jsonFile = new File(BOOTSTRAP_PATH);
+        File bootstrapDataFile = BOOTSTRAP_DATA_RESOURCE.getFile();
 
         try {
-            List<BootstrapDataModel> bootstrapData = objectMapper.readValue(jsonFile, objectMapper.getTypeFactory().constructCollectionType(List.class, BootstrapDataModel.class));
+            List<BootstrapDataModel> bootstrapData = objectMapper.readValue(bootstrapDataFile, objectMapper.getTypeFactory().constructCollectionType(List.class, BootstrapDataModel.class));
             bootstrapData.forEach(data -> {
                 keycloakService.findUserByUsername(data.getUsername()).ifPresent(user -> {
                     Account savedAccount = accountRepository.save(Account.builder().accountId(user.getId()).build());
