@@ -7,6 +7,6 @@ import lombok.*;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class CreateLeaderboardDTO {
-    private String username;
+public class CreateAccountDTO {
+    private String accountId;
 }
