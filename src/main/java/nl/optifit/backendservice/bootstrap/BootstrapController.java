@@ -35,7 +35,7 @@ public class BootstrapController {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    public static final String BOOTSTRAP_PATH = "bootstrap-data.json";
+    public static final String BOOTSTRAP_PATH = "bootstrap/bootstrap-data.json";
     public static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
     public static boolean alreadyInitialized = false;
 
