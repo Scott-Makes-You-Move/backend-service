@@ -3,12 +3,15 @@ package nl.optifit.backendservice.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import nl.optifit.backendservice.dto.CreateLeaderboardDTO;
+import nl.optifit.backendservice.dto.LeaderboardViewDTO;
 import nl.optifit.backendservice.dto.UpdateLeaderboardDTO;
 import nl.optifit.backendservice.model.Account;
 import nl.optifit.backendservice.model.Leaderboard;
 import nl.optifit.backendservice.repository.AccountRepository;
 import nl.optifit.backendservice.repository.LeaderboardRepository;
 import nl.optifit.backendservice.util.KeycloakService;
+import org.keycloak.admin.client.resource.UserResource;
+import org.keycloak.representations.idm.UserRepresentation;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -25,10 +28,15 @@ public class LeaderboardService {
     private final AccountRepository accountRepository;
     private final KeycloakService keycloakService;
 
-    public List<Leaderboard> getLeaderboard(int page, int size, String direction, String sortBy) {
+    public List<LeaderboardViewDTO> getLeaderboard(int page, int size, String direction, String sortBy) {
         log.debug("Retrieving leaderboard with page [{}], size [{}], direction [{}], sortBy [{}]", page, size, direction, sortBy);
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.fromString(direction), sortBy));
-        return leaderboardRepository.findAll(pageable).getContent();
+        List<Leaderboard> leaderboardList = leaderboardRepository.findAll(pageable).getContent();
+        return leaderboardList.stream().map(leaderboard -> {
+            Optional<UserResource> optionalUser = keycloakService.findUserById(leaderboard.getAccount().getAccountId());
+            UserRepresentation user = optionalUser.map(UserResource::toRepresentation).orElseThrow(() -> new RuntimeException("User not found"));
+            return LeaderboardViewDTO.fromLeaderboard(String.format("%s %s", user.getFirstName(), user.getLastName()), leaderboard);
+        }).toList();
     }
 
     public Leaderboard createLeaderBoard(CreateLeaderboardDTO createLeaderboardDTO) {
