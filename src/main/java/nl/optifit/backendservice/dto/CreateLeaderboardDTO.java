@@ -8,5 +8,5 @@ import lombok.*;
 @NoArgsConstructor
 @Builder
 public class CreateLeaderboardDTO {
-    private String username;
+    private String accountId;
 }

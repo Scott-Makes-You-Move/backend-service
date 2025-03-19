@@ -41,4 +41,10 @@ public class LeaderboardController {
         log.info("PUT Leaderboard REST API called");
         return leaderboardService.updateLeaderboard(username, updateLeaderboardDTO);
     }
+
+    @DeleteMapping("/{accountId}")
+    public void deleteLeaderboard(@PathVariable String accountId) {
+        log.info("DELETE Leaderboard REST API called");
+        leaderboardService.deleteLeaderboard(accountId);
+    }
 }

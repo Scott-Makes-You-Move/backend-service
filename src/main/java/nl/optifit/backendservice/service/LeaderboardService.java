@@ -40,21 +40,16 @@ public class LeaderboardService {
     }
 
     public Leaderboard createLeaderBoard(CreateLeaderboardDTO createLeaderboardDTO) {
-        log.debug("Creating leaderboard for user [{}]", createLeaderboardDTO.getUsername());
-
-        return keycloakService.findUserByUsername(createLeaderboardDTO.getUsername())
-                .map(user -> {
-                    Account foundOrCreatedAccount = accountRepository.findByAccountId(user.getId())
-                            .orElseGet(() -> accountRepository.save(Account.builder().accountId(user.getId()).build()));
-
-                    Leaderboard leaderboardToSave = Leaderboard.builder()
-                            .account(foundOrCreatedAccount)
-                            .completionRate(0.0)
-                            .currentStreak(0)
-                            .longestStreak(0)
-                            .build();
-                    return leaderboardRepository.save(leaderboardToSave);
-                }).orElseThrow(() -> new RuntimeException("User doesn't exist in Keycloak"));
+        log.debug("Creating leaderboard for user [{}]", createLeaderboardDTO.getAccountId());
+        Account account = accountRepository.findByAccountId(createLeaderboardDTO.getAccountId())
+                .orElseThrow(() -> new RuntimeException("Account not found"));
+        Leaderboard leaderboard = Leaderboard.builder()
+                .account(account)
+                .completionRate(0.0)
+                .currentStreak(0)
+                .longestStreak(0)
+                .build();
+        return leaderboardRepository.save(leaderboard);
     }
 
     public Leaderboard updateLeaderboard(String username, UpdateLeaderboardDTO updateLeaderboardDTO) {
@@ -76,5 +71,10 @@ public class LeaderboardService {
                 return null;
             });
         }).orElseThrow(() -> new RuntimeException("User not found"));
+    }
+
+    public void deleteLeaderboard(String accountId) {
+        log.debug("Deleting leaderboard for user [{}]", accountId);
+        leaderboardRepository.deleteByAccount_AccountId(accountId);
     }
 }
