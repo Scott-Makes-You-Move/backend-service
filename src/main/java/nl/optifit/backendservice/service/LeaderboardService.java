@@ -2,7 +2,6 @@ package nl.optifit.backendservice.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import nl.optifit.backendservice.dto.CreateLeaderboardDTO;
 import nl.optifit.backendservice.dto.LeaderboardViewDTO;
 import nl.optifit.backendservice.dto.UpdateLeaderboardDTO;
 import nl.optifit.backendservice.model.Account;
@@ -39,10 +38,8 @@ public class LeaderboardService {
         }).toList();
     }
 
-    public Leaderboard createLeaderBoard(CreateLeaderboardDTO createLeaderboardDTO) {
-        log.debug("Creating leaderboard for user [{}]", createLeaderboardDTO.getAccountId());
-        Account account = accountRepository.findByAccountId(createLeaderboardDTO.getAccountId())
-                .orElseThrow(() -> new RuntimeException("Account not found"));
+    public Leaderboard initiateLeaderBoardForAccount(Account account) {
+        log.debug("Creating leaderboard for user [{}]", account.getAccountId());
         Leaderboard leaderboard = Leaderboard.builder()
                 .account(account)
                 .completionRate(0.0)

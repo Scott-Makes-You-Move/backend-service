@@ -6,9 +6,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import nl.optifit.backendservice.model.*;
 import nl.optifit.backendservice.repository.AccountRepository;
+import nl.optifit.backendservice.repository.BiometricsRepository;
 import nl.optifit.backendservice.repository.LeaderboardRepository;
-import nl.optifit.backendservice.repository.ProgressRepository;
 import nl.optifit.backendservice.util.KeycloakService;
+import org.keycloak.representations.idm.UserRepresentation;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -16,7 +17,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Path;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -32,32 +32,22 @@ import java.util.List;
 public class BootstrapController {
 
     private final AccountRepository accountRepository;
-    private final LeaderboardRepository leaderboardRepository;
-    private final ProgressRepository progressRepository;
     private final KeycloakService keycloakService;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     public static final ClassPathResource BOOTSTRAP_DATA_RESOURCE = new ClassPathResource("bootstrap/bootstrap-data.json");
     public static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-    public static boolean alreadyInitialized = false;
 
     @PostMapping
     public String bootstrap() throws IOException {
-        if (alreadyInitialized) {
-            return "Already Initialized!";
-        }
-
         File bootstrapDataFile = BOOTSTRAP_DATA_RESOURCE.getFile();
 
         try {
             List<BootstrapDataModel> bootstrapData = objectMapper.readValue(bootstrapDataFile, objectMapper.getTypeFactory().constructCollectionType(List.class, BootstrapDataModel.class));
             bootstrapData.forEach(data -> {
                 keycloakService.findUserByUsername(data.getUsername()).ifPresent(user -> {
-                    Account savedAccount = accountRepository.save(Account.builder().accountId(user.getId()).build());
-                    initiateLeaderboard(data, savedAccount);
-                    initiateProgress(data, savedAccount);
-                    alreadyInitialized = true;
+                    initiateAccount(user, data);
                 });
             });
         } catch (Exception e) {
@@ -67,25 +57,22 @@ public class BootstrapController {
         return "Data bootstrapped successfully";
     }
 
-    private void initiateLeaderboard(BootstrapDataModel bootstrapData, Account savedAccount) {
-        log.debug("Initiating leaderboard");
+    private void initiateAccount(UserRepresentation user, BootstrapDataModel bootstrapData) {
+        log.info("Initiating account for user '{}'", user.getUsername());
+
+        if (accountRepository.findByAccountId(user.getId()).isPresent()) {
+            log.info("Account for user '{}' was already initialized", user.getUsername());
+            return;
+        }
+
+        Account account = Account.builder().accountId(user.getId()).build();
         Leaderboard leaderboard = Leaderboard.builder()
-                .account(savedAccount)
+                .account(account)
                 .completionRate(bootstrapData.getLeaderboard().getCompletionRate())
                 .currentStreak(bootstrapData.getLeaderboard().getCurrentStreak())
                 .longestStreak(bootstrapData.getLeaderboard().getLongestStreak())
                 .build();
-        leaderboardRepository.save(leaderboard);
-        log.debug("Leaderboard initiated successfully");
-    }
-
-    private void initiateProgress(BootstrapDataModel bootstrapData, Account savedAccount) {
-        log.debug("Initiating progress");
-        Progress progressForAccount = Progress.builder()
-                .account(savedAccount)
-                .biometrics(new ArrayList<>())
-                .mobilities(new ArrayList<>())
-                .build();
+        account.setLeaderboard(leaderboard);
 
         List<Biometrics> biometrics = new ArrayList<>();
         List<Mobility> mobilities = new ArrayList<>();
@@ -94,38 +81,28 @@ public class BootstrapController {
             LocalDate localDate = LocalDate.parse(measurement.getDate(), FORMATTER);
             LocalDateTime localDateTime = LocalDateTime.of(localDate, LocalTime.of(12, 0, 0));
 
-            Biometrics biometric = initiateBiometric(savedAccount, measurement, progressForAccount, localDateTime);
+            Biometrics biometric = Biometrics.builder()
+                    .account(account)
+                    .measuredOn(localDateTime)
+                    .weight(measurement.getWeight())
+                    .fat(measurement.getFat())
+                    .visceralFat(measurement.getVisceralFat())
+                    .build();
             biometrics.add(biometric);
-            Mobility mobility = initiateMobility(savedAccount, measurement, progressForAccount, localDateTime);
+
+            Mobility mobility = Mobility.builder()
+                    .account(account)
+                    .measuredOn(localDateTime)
+                    .shoulder(measurement.getShoulder())
+                    .back(measurement.getBack())
+                    .hip(measurement.getHip())
+                    .build();
             mobilities.add(mobility);
-
-            progressForAccount.getBiometrics().addAll(biometrics);
-            progressForAccount.getMobilities().addAll(mobilities);
-
-            progressRepository.save(progressForAccount);
-            log.debug("Progress initiated successfully");
         });
-    }
+        account.setBiometrics(biometrics);
+        account.setMobilities(mobilities);
 
-    private static Mobility initiateMobility(Account savedAccount, Measurement measurement, Progress progressForAccount, LocalDateTime localDateTime) {
-        return Mobility.builder()
-                .account(savedAccount)
-                .progress(progressForAccount)
-                .measuredOn(localDateTime)
-                .shoulder(measurement.getShoulder())
-                .back(measurement.getBack())
-                .hip(measurement.getHip())
-                .build();
-    }
-
-    private static Biometrics initiateBiometric(Account savedAccount, Measurement measurement, Progress progressForAccount, LocalDateTime localDateTime) {
-        return Biometrics.builder()
-                .account(savedAccount)
-                .progress(progressForAccount)
-                .measuredOn(localDateTime)
-                .weight(measurement.getWeight())
-                .fat(measurement.getFat())
-                .visceralFat(measurement.getVisceralFat())
-                .build();
+        accountRepository.save(account);
+        log.info("Account initiated for user '{}'", user.getUsername());
     }
 }

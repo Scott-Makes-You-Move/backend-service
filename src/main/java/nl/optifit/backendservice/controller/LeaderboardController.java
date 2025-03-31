@@ -29,11 +29,6 @@ public class LeaderboardController {
         return leaderboardService.getLeaderboard(page, size, direction, sortBy);
     }
 
-    @PostMapping
-    public Leaderboard createLeaderboard(@RequestBody CreateLeaderboardDTO createLeaderboardDTO) {
-        log.info("POST Leaderboard REST API called");
-        return leaderboardService.createLeaderBoard(createLeaderboardDTO);
-    }
 
     @PutMapping("/{username}")
     public Leaderboard updateLeaderboard(@PathVariable String username,

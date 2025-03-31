@@ -22,12 +22,9 @@ public class Biometrics implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "account_id", nullable = false)
     private Account account;
-    @ManyToOne
-    @JoinColumn(name = "progress_id", nullable = false)
-    private Progress progress;
     @PastOrPresent(message = "Measured date cannot be in the future")
     private LocalDateTime measuredOn;
     @Min(value = 0, message = "Weight must be positive")

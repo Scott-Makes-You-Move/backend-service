@@ -12,7 +12,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class KeycloakService {
 
-    public static final String REALM = "myrealm";
+    public static final String REALM = "smym-dev";
 
     public Optional<UserResource> findUserById(String id) {
         return Optional.ofNullable(keycloak.realm(REALM)

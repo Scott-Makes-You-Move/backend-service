@@ -60,8 +60,8 @@ This project is a backend service designed to manage user accounts, biometrics, 
        oauth2:
          resourceserver:
            jwt:
-             issuer-uri: http://localhost:8080/realms/myrealm
-             jwk-set-uri: http://localhost:8080/realms/myrealm/protocol/openid-connect/certs
+             issuer-uri: http://localhost:8080/realms/smym-dev
+             jwk-set-uri: http://localhost:8080/realms/smym-dev/protocol/openid-connect/certs
 
    jwt:
      auth:

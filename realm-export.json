@@ -1,6 +1,6 @@
 {
-  "id": "myrealm",
-  "realm": "myrealm",
+  "id": "smym-dev",
+  "realm": "smym-dev",
   "enabled": true,
   "clients": [
     {
