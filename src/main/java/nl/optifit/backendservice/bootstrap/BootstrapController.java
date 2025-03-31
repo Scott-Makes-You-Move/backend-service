@@ -11,6 +11,7 @@ import nl.optifit.backendservice.repository.LeaderboardRepository;
 import nl.optifit.backendservice.util.KeycloakService;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -55,6 +56,12 @@ public class BootstrapController {
         }
 
         return "Data bootstrapped successfully";
+    }
+
+    @DeleteMapping
+    public String deleteExistingData() throws IOException {
+        accountRepository.deleteAll();
+        return "Data deleted successfully";
     }
 
     private void initiateAccount(UserRepresentation user, BootstrapDataModel bootstrapData) {
