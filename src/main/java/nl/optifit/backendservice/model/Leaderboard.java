@@ -1,5 +1,6 @@
 package nl.optifit.backendservice.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -15,10 +16,12 @@ import java.util.UUID;
 @Builder
 public class Leaderboard implements Serializable {
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(name = "account_id")
     private UUID id;
-    @ManyToOne
-    @JoinColumn(name = "account_id", nullable = false)
+    @OneToOne(fetch = FetchType.LAZY)
+    @MapsId
+    @JoinColumn(name = "account_id", nullable = false, unique = true)
+    @JsonBackReference
     private Account account;
     @Column(nullable = false)
     private Double completionRate;

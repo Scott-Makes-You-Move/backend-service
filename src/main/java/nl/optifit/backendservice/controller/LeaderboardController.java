@@ -29,16 +29,17 @@ public class LeaderboardController {
         return leaderboardService.getLeaderboard(page, size, direction, sortBy);
     }
 
-    @PostMapping
-    public Leaderboard createLeaderboard(@RequestBody CreateLeaderboardDTO createLeaderboardDTO) {
-        log.info("POST Leaderboard REST API called");
-        return leaderboardService.createLeaderBoard(createLeaderboardDTO);
-    }
 
     @PutMapping("/{username}")
     public Leaderboard updateLeaderboard(@PathVariable String username,
                                          @RequestBody UpdateLeaderboardDTO updateLeaderboardDTO) {
         log.info("PUT Leaderboard REST API called");
         return leaderboardService.updateLeaderboard(username, updateLeaderboardDTO);
+    }
+
+    @DeleteMapping("/{accountId}")
+    public void deleteLeaderboard(@PathVariable String accountId) {
+        log.info("DELETE Leaderboard REST API called");
+        leaderboardService.deleteLeaderboard(accountId);
     }
 }

@@ -10,4 +10,5 @@ import java.util.UUID;
 @Repository
 public interface LeaderboardRepository extends JpaRepository<Leaderboard, UUID> {
     Leaderboard findByAccount(Account account);
+    void deleteByAccount_AccountId(String accountAccountId);
 }

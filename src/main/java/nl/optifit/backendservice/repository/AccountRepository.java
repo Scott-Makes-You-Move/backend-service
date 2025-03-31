@@ -11,4 +11,5 @@ import java.util.UUID;
 @Repository
 public interface AccountRepository extends JpaRepository<Account, UUID> {
     Optional<Account> findByAccountId(String accountId);
+    void deleteByAccountId(String accountId);
 }
