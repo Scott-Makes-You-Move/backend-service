@@ -58,7 +58,7 @@ public class AccountController {
     @PostMapping("/{accountId}/mobilities")
     public ResponseEntity<Mobility> createBiometrics(@PathVariable String accountId,
                                                      @RequestBody MobilityMeasurementDTO mobilityMeasurementDTO) {
-        log.info("POST Account Biometrics REST API called");
+        log.info("POST Account Mobilities REST API called");
         Mobility mobility = accountService.saveMobilityForAccount(accountId, mobilityMeasurementDTO);
         return ResponseEntity.status(HttpStatus.CREATED).body(mobility);
     }
