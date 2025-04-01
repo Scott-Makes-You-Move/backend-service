@@ -1,5 +1,7 @@
 package nl.optifit.backendservice.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
@@ -22,7 +24,8 @@ public class Mobility implements Serializable {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "account_id", nullable = false)
+    @JoinColumn(name = "accountId", referencedColumnName = "accountId", nullable = false)
+    @JsonIgnore
     private Account account;
     @PastOrPresent(message = "Measured date cannot be in the future")
     private LocalDateTime measuredOn;

@@ -40,6 +40,9 @@ public class BootstrapController {
     public static final ClassPathResource BOOTSTRAP_DATA_RESOURCE = new ClassPathResource("bootstrap/bootstrap-data.json");
     public static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
+    /**
+     * Creates accounts, leaderboard, biometrics and mobilities for users in bootstrap-data.json
+     */
     @PostMapping
     public String bootstrap() throws IOException {
         File bootstrapDataFile = BOOTSTRAP_DATA_RESOURCE.getFile();
@@ -58,6 +61,9 @@ public class BootstrapController {
         return "Data bootstrapped successfully";
     }
 
+    /**
+     * Deletes all accounts and their corresponding leaderboard, biometrics and mobilities.
+     */
     @DeleteMapping
     public String deleteExistingData() throws IOException {
         accountRepository.deleteAll();
