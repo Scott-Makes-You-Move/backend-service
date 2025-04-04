@@ -4,13 +4,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import nl.optifit.backendservice.dto.AccountIdDTO;
 import nl.optifit.backendservice.model.*;
 import nl.optifit.backendservice.repository.AccountRepository;
-import nl.optifit.backendservice.repository.BiometricsRepository;
-import nl.optifit.backendservice.repository.LeaderboardRepository;
 import nl.optifit.backendservice.util.KeycloakService;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -37,14 +38,16 @@ public class BootstrapController {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
+    private static final List<AccountIdDTO> ACCOUNTS_BOOTSTRAPPED = new ArrayList<>();
     public static final ClassPathResource BOOTSTRAP_DATA_RESOURCE = new ClassPathResource("bootstrap/bootstrap-data.json");
     public static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+    public static final DateTimeFormatter FORMATTER_DATETIME = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
 
     /**
      * Creates accounts, leaderboard, biometrics and mobilities for users in bootstrap-data.json
      */
     @PostMapping
-    public String bootstrap() throws IOException {
+    public ResponseEntity<List<AccountIdDTO>> bootstrapAccounts() throws IOException {
         File bootstrapDataFile = BOOTSTRAP_DATA_RESOURCE.getFile();
 
         try {
@@ -58,27 +61,27 @@ public class BootstrapController {
             throw new RuntimeException(e);
         }
 
-        return "Data bootstrapped successfully";
+        return ResponseEntity.status(HttpStatus.CREATED).body(ACCOUNTS_BOOTSTRAPPED);
     }
 
     /**
      * Deletes all accounts and their corresponding leaderboard, biometrics and mobilities.
      */
     @DeleteMapping
-    public String deleteExistingData() throws IOException {
+    public ResponseEntity<Void> deleteExistingData() throws IOException {
         accountRepository.deleteAll();
-        return "Data deleted successfully";
+        return ResponseEntity.noContent().build();
     }
 
     private void initiateAccount(UserRepresentation user, BootstrapDataModel bootstrapData) {
         log.info("Initiating account for user '{}'", user.getUsername());
 
-        if (accountRepository.findByAccountId(user.getId()).isPresent()) {
+        if (accountRepository.findById(user.getId()).isPresent()) {
             log.info("Account for user '{}' was already initialized", user.getUsername());
             return;
         }
 
-        Account account = Account.builder().accountId(user.getId()).build();
+        Account account = Account.builder().id(user.getId()).build();
         Leaderboard leaderboard = Leaderboard.builder()
                 .account(account)
                 .completionRate(bootstrapData.getLeaderboard().getCompletionRate())
@@ -115,7 +118,8 @@ public class BootstrapController {
         account.setBiometrics(biometrics);
         account.setMobilities(mobilities);
 
-        accountRepository.save(account);
+        Account savedAccount = accountRepository.save(account);
+        ACCOUNTS_BOOTSTRAPPED.add(AccountIdDTO.builder().accountId(savedAccount.getId()).build());
         log.info("Account initiated for user '{}'", user.getUsername());
     }
 }

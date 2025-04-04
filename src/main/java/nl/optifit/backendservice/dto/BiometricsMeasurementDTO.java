@@ -1,5 +1,6 @@
 package nl.optifit.backendservice.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Getter;
 import lombok.Setter;
 import nl.optifit.backendservice.model.Account;
@@ -9,6 +10,7 @@ import java.time.LocalDateTime;
 
 @Getter
 @Setter
+@JsonIgnoreProperties
 public class BiometricsMeasurementDTO {
     private Double weight;
     private Double fat;

@@ -33,31 +33,10 @@ public class LeaderboardService {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.fromString(direction), sortBy));
 
         var leaderboardPage = leaderboardRepository.findAll(pageable).map(leaderboard -> {
-            UserResource user = keycloakService.findUserById(leaderboard.getAccount().getAccountId()).orElseThrow(() -> new RuntimeException("User not found"));
+            UserResource user = keycloakService.findUserById(leaderboard.getAccount().getId()).orElseThrow(() -> new RuntimeException("User not found"));
             return LeaderboardViewDTO.fromLeaderboard(String.format("%s %s", user.toRepresentation().getFirstName(), user.toRepresentation().getLastName()), leaderboard);
         });
 
         return  ResponseEntity.ok(leaderboardPage);
-    }
-
-    public Leaderboard updateLeaderboard(String username, UpdateLeaderboardDTO updateLeaderboardDTO) {
-        log.debug("Updating leaderboard for user [{}]", username);
-
-        return keycloakService.findUserByUsername(username).map(user -> {
-            Optional<Account> optionalAccount = accountRepository.findByAccountId(user.getId());
-
-            return optionalAccount.map(foundAccount -> {
-                Leaderboard foundLeaderboard = leaderboardRepository.findByAccount(foundAccount);
-
-                Optional.ofNullable(updateLeaderboardDTO.getCompletionRate()).ifPresent(foundLeaderboard::setCompletionRate);
-                Optional.ofNullable(updateLeaderboardDTO.getCurrentStreak()).ifPresent(foundLeaderboard::setCurrentStreak);
-                Optional.ofNullable(updateLeaderboardDTO.getLongestStreak()).ifPresent(foundLeaderboard::setLongestStreak);
-
-                return leaderboardRepository.save(foundLeaderboard);
-            }).orElseGet(() -> {
-                log.error("Could not update leaderboard for user [{}] - Account not found", username);
-                return null;
-            });
-        }).orElseThrow(() -> new RuntimeException("User not found"));
     }
 }

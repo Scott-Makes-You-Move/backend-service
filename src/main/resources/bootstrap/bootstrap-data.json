@@ -10,7 +10,18 @@
       "completionRate": 90.2,
       "currentStreak": 6,
       "longestStreak": 12
-    }
+    },
+    "sessions": [
+      { "sessionStart":  "2025-03-31'T'10:00:00", "sessionExecutionTime":  "2025-03-31'T'10:01:30", "exerciseType":  "Hip"},
+      { "sessionStart":  "2025-03-31'T'13:30:00", "sessionExecutionTime":  "2025-03-31'T'13:33:00", "exerciseType":  "Shoulder"},
+      { "sessionStart":  "2025-03-31'T'15:00:00", "sessionExecutionTime":  "2025-03-31'T'15:01:00", "exerciseType":  "Back"},
+      { "sessionStart":  "2025-04-01'T'10:00:00", "sessionExecutionTime":  "2025-04-01'T'10:00:30", "exerciseType":  "Hip"},
+      { "sessionStart":  "2025-04-01'T'13:30:00", "sessionExecutionTime":  "2025-04-01'T'13:31:10", "exerciseType":  "Shoulder"},
+      { "sessionStart":  "2025-04-01'T'15:00:00", "sessionExecutionTime":  "2025-04-01'T'15:02:25", "exerciseType":  "Back"},
+      { "sessionStart":  "2025-04-02'T'10:00:00", "sessionExecutionTime":  "2025-04-02'T'10:01:05", "exerciseType":  "Hip"},
+      { "sessionStart":  "2025-04-02'T'13:30:00", "sessionExecutionTime":  "2025-04-02'T'13:34:20", "exerciseType":  "Shoulder"},
+      { "sessionStart":  "2025-04-02'T'15:00:00", "sessionExecutionTime":  "2025-04-02'T'15:00:50", "exerciseType":  "Back"}
+    ]
   },
   {
     "username": "emily",
@@ -23,7 +34,18 @@
       "completionRate": 80.5,
       "currentStreak": 2,
       "longestStreak": 5
-    }
+    },
+    "sessions": [
+      { "sessionStart":  "2025-03-31'T'10:00:00", "sessionExecutionTime":  null, "exerciseType":  "Hip"},
+      { "sessionStart":  "2025-03-31'T'13:30:00", "sessionExecutionTime":  null, "exerciseType":  "Shoulder"},
+      { "sessionStart":  "2025-03-31'T'15:00:00", "sessionExecutionTime":  "2025-03-31'T'15:01:30", "exerciseType":  "Back"},
+      { "sessionStart":  "2025-04-01'T'10:00:00", "sessionExecutionTime":  "2025-04-01'T'10:08:30", "exerciseType":  "Hip"},
+      { "sessionStart":  "2025-04-01'T'13:30:00", "sessionExecutionTime":  "2025-04-01'T'13:32:10", "exerciseType":  "Shoulder"},
+      { "sessionStart":  "2025-04-01'T'15:00:00", "sessionExecutionTime":  null, "exerciseType":  "Back"},
+      { "sessionStart":  "2025-04-02'T'10:00:00", "sessionExecutionTime":  "2025-04-02'T'10:02:05", "exerciseType":  "Hip"},
+      { "sessionStart":  "2025-04-02'T'13:30:00", "sessionExecutionTime":  "2025-04-02'T'13:34:45", "exerciseType":  "Shoulder"},
+      { "sessionStart":  "2025-04-02'T'15:00:00", "sessionExecutionTime":  "2025-04-02'T'15:00:40", "exerciseType":  "Back"}
+    ]
   },
   {
     "username": "daniel",
@@ -36,7 +58,18 @@
       "completionRate": 83.3,
       "currentStreak": 3,
       "longestStreak": 7
-    }
+    },
+    "sessions": [
+      { "sessionStart":  "2025-03-31'T'10:00:00", "sessionExecutionTime":  "2025-03-31'T'10:00:05", "exerciseType":  "Hip"},
+      { "sessionStart":  "2025-03-31'T'13:30:00", "sessionExecutionTime":  null, "exerciseType":  "Shoulder"},
+      { "sessionStart":  "2025-03-31'T'15:00:00", "sessionExecutionTime":  "2025-03-31'T'15:01:30", "exerciseType":  "Back"},
+      { "sessionStart":  "2025-04-01'T'10:00:00", "sessionExecutionTime":  null, "exerciseType":  "Hip"},
+      { "sessionStart":  "2025-04-01'T'13:30:00", "sessionExecutionTime":  "2025-04-01'T'13:34:10", "exerciseType":  "Shoulder"},
+      { "sessionStart":  "2025-04-01'T'15:00:00", "sessionExecutionTime":  "2025-04-01'T'15:02:15", "exerciseType":  "Back"},
+      { "sessionStart":  "2025-04-02'T'10:00:00", "sessionExecutionTime":  "2025-04-02'T'10:02:05", "exerciseType":  "Hip"},
+      { "sessionStart":  "2025-04-02'T'13:30:00", "sessionExecutionTime":  "2025-04-02'T'13:34:10", "exerciseType":  "Shoulder"},
+      { "sessionStart":  "2025-04-02'T'15:00:00", "sessionExecutionTime":  "2025-04-02'T'15:05:50", "exerciseType":  "Back"}
+    ]
   },
   {
     "username": "sophia",
@@ -49,7 +82,18 @@
       "completionRate": 87.5,
       "currentStreak": 5,
       "longestStreak": 10
-    }
+    },
+    "sessions": [
+      { "sessionStart":  "2025-03-31'T'10:00:00", "sessionExecutionTime":  "2025-03-31'T'10:00:30", "exerciseType":  "Hip"},
+      { "sessionStart":  "2025-03-31'T'13:30:00", "sessionExecutionTime":  "2025-03-31'T'13:32:00", "exerciseType":  "Shoulder"},
+      { "sessionStart":  "2025-03-31'T'15:00:00", "sessionExecutionTime":  null, "exerciseType":  "Back"},
+      { "sessionStart":  "2025-04-01'T'10:00:00", "sessionExecutionTime":  "2025-04-01'T'10:00:20", "exerciseType":  "Hip"},
+      { "sessionStart":  "2025-04-01'T'13:30:00", "sessionExecutionTime":  "2025-04-01'T'13:33:10", "exerciseType":  "Shoulder"},
+      { "sessionStart":  "2025-04-01'T'15:00:00", "sessionExecutionTime":  "2025-04-01'T'15:02:55", "exerciseType":  "Back"},
+      { "sessionStart":  "2025-04-02'T'10:00:00", "sessionExecutionTime":  null, "exerciseType":  "Hip"},
+      { "sessionStart":  "2025-04-02'T'13:30:00", "sessionExecutionTime":  null, "exerciseType":  "Shoulder"},
+      { "sessionStart":  "2025-04-02'T'15:00:00", "sessionExecutionTime":  null, "exerciseType":  "Back"}
+    ]
   },
   {
     "username": "james",
@@ -62,7 +106,18 @@
       "completionRate": 83.5,
       "currentStreak": 2,
       "longestStreak": 6
-    }
+    },
+    "sessions": [
+      { "sessionStart":  "2025-03-31'T'10:00:00", "sessionExecutionTime":  "2025-03-31'T'10:01:05", "exerciseType":  "Hip"},
+      { "sessionStart":  "2025-03-31'T'13:30:00", "sessionExecutionTime":  "2025-03-31'T'13:34:00", "exerciseType":  "Shoulder"},
+      { "sessionStart":  "2025-03-31'T'15:00:00", "sessionExecutionTime":  "2025-03-31'T'15:01:20", "exerciseType":  "Back"},
+      { "sessionStart":  "2025-04-01'T'10:00:00", "sessionExecutionTime":  null, "exerciseType":  "Hip"},
+      { "sessionStart":  "2025-04-01'T'13:30:00", "sessionExecutionTime":  null, "exerciseType":  "Shoulder"},
+      { "sessionStart":  "2025-04-01'T'15:00:00", "sessionExecutionTime":  null, "exerciseType":  "Back"},
+      { "sessionStart":  "2025-04-02'T'10:00:00", "sessionExecutionTime":  "2025-04-02'T'10:01:55", "exerciseType":  "Hip"},
+      { "sessionStart":  "2025-04-02'T'13:30:00", "sessionExecutionTime":  "2025-04-02'T'13:32:20", "exerciseType":  "Shoulder"},
+      { "sessionStart":  "2025-04-02'T'15:00:00", "sessionExecutionTime":  "2025-04-02'T'15:00:05", "exerciseType":  "Back"}
+    ]
   },
   {
     "username": "olivia",
@@ -75,7 +130,18 @@
       "completionRate": 95.5,
       "currentStreak": 10,
       "longestStreak": 12
-    }
+    },
+    "sessions": [
+      { "sessionStart":  "2025-03-31'T'10:00:00", "sessionExecutionTime":  "2025-03-31'T'10:02:40", "exerciseType":  "Hip"},
+      { "sessionStart":  "2025-03-31'T'13:30:00", "sessionExecutionTime":  "2025-03-31'T'13:31:00", "exerciseType":  "Shoulder"},
+      { "sessionStart":  "2025-03-31'T'15:00:00", "sessionExecutionTime":  null, "exerciseType":  "Back"},
+      { "sessionStart":  "2025-04-01'T'10:00:00", "sessionExecutionTime":  null, "exerciseType":  "Hip"},
+      { "sessionStart":  "2025-04-01'T'13:30:00", "sessionExecutionTime":  null, "exerciseType":  "Shoulder"},
+      { "sessionStart":  "2025-04-01'T'15:00:00", "sessionExecutionTime":  "2025-04-01'T'15:01:25", "exerciseType":  "Back"},
+      { "sessionStart":  "2025-04-02'T'10:00:00", "sessionExecutionTime":  "2025-04-02'T'10:01:15", "exerciseType":  "Hip"},
+      { "sessionStart":  "2025-04-02'T'13:30:00", "sessionExecutionTime":  "2025-04-02'T'13:33:20", "exerciseType":  "Shoulder"},
+      { "sessionStart":  "2025-04-02'T'15:00:00", "sessionExecutionTime":  "2025-04-02'T'15:10:50", "exerciseType":  "Back"}
+    ]
   },
   {
     "username": "william",
@@ -88,7 +154,18 @@
       "completionRate": 84.5,
       "currentStreak": 3,
       "longestStreak": 5
-    }
+    },
+    "sessions": [
+      { "sessionStart":  "2025-03-31'T'10:00:00", "sessionExecutionTime":  "2025-03-31'T'10:00:40", "exerciseType":  "Hip"},
+      { "sessionStart":  "2025-03-31'T'13:30:00", "sessionExecutionTime":  "2025-03-31'T'13:38:00", "exerciseType":  "Shoulder"},
+      { "sessionStart":  "2025-03-31'T'15:00:00", "sessionExecutionTime":  "2025-03-31'T'15:01:00", "exerciseType":  "Back"},
+      { "sessionStart":  "2025-04-01'T'10:00:00", "sessionExecutionTime":  "2025-04-01'T'10:03:30", "exerciseType":  "Hip"},
+      { "sessionStart":  "2025-04-01'T'13:30:00", "sessionExecutionTime":  "2025-04-01'T'13:31:10", "exerciseType":  "Shoulder"},
+      { "sessionStart":  "2025-04-01'T'15:00:00", "sessionExecutionTime":  "2025-04-01'T'15:02:35", "exerciseType":  "Back"},
+      { "sessionStart":  "2025-04-02'T'10:00:00", "sessionExecutionTime":  null, "exerciseType":  "Hip"},
+      { "sessionStart":  "2025-04-02'T'13:30:00", "sessionExecutionTime":  "2025-04-02'T'13:32:20", "exerciseType":  "Shoulder"},
+      { "sessionStart":  "2025-04-02'T'15:00:00", "sessionExecutionTime":  "2025-04-02'T'15:00:10", "exerciseType":  "Back"}
+    ]
   },
   {
     "username": "mia",
@@ -101,7 +178,18 @@
       "completionRate": 79.5,
       "currentStreak": 1,
       "longestStreak": 4
-    }
+    },
+    "sessions": [
+      { "sessionStart":  "2025-03-31'T'10:00:00", "sessionExecutionTime":  "2025-03-31'T'10:02:30", "exerciseType":  "Hip"},
+      { "sessionStart":  "2025-03-31'T'13:30:00", "sessionExecutionTime":  "2025-03-31'T'13:34:00", "exerciseType":  "Shoulder"},
+      { "sessionStart":  "2025-03-31'T'15:00:00", "sessionExecutionTime":  "2025-03-31'T'15:03:10", "exerciseType":  "Back"},
+      { "sessionStart":  "2025-04-01'T'10:00:00", "sessionExecutionTime":  "2025-04-01'T'10:00:20", "exerciseType":  "Hip"},
+      { "sessionStart":  "2025-04-01'T'13:30:00", "sessionExecutionTime":  "2025-04-01'T'13:32:50", "exerciseType":  "Shoulder"},
+      { "sessionStart":  "2025-04-01'T'15:00:00", "sessionExecutionTime":  null, "exerciseType":  "Back"},
+      { "sessionStart":  "2025-04-02'T'10:00:00", "sessionExecutionTime":  "2025-04-02'T'10:00:05", "exerciseType":  "Hip"},
+      { "sessionStart":  "2025-04-02'T'13:30:00", "sessionExecutionTime":  "2025-04-02'T'13:30:20", "exerciseType":  "Shoulder"},
+      { "sessionStart":  "2025-04-02'T'15:00:00", "sessionExecutionTime":  "2025-04-02'T'15:00:50", "exerciseType":  "Back"}
+    ]
   },
   {
     "username": "ethan",
@@ -114,7 +202,18 @@
       "completionRate": 65.5,
       "currentStreak": 2,
       "longestStreak": 2
-    }
+    },
+    "sessions": [
+      { "sessionStart":  "2025-03-31'T'10:00:00", "sessionExecutionTime":  "2025-03-31'T'10:05:30", "exerciseType":  "Hip"},
+      { "sessionStart":  "2025-03-31'T'13:30:00", "sessionExecutionTime":  null, "exerciseType":  "Shoulder"},
+      { "sessionStart":  "2025-03-31'T'15:00:00", "sessionExecutionTime":  null, "exerciseType":  "Back"},
+      { "sessionStart":  "2025-04-01'T'10:00:00", "sessionExecutionTime":  null, "exerciseType":  "Hip"},
+      { "sessionStart":  "2025-04-01'T'13:30:00", "sessionExecutionTime":  null, "exerciseType":  "Shoulder"},
+      { "sessionStart":  "2025-04-01'T'15:00:00", "sessionExecutionTime":  null, "exerciseType":  "Back"},
+      { "sessionStart":  "2025-04-02'T'10:00:00", "sessionExecutionTime":  null, "exerciseType":  "Hip"},
+      { "sessionStart":  "2025-04-02'T'13:30:00", "sessionExecutionTime":  null, "exerciseType":  "Shoulder"},
+      { "sessionStart":  "2025-04-02'T'15:00:00", "sessionExecutionTime":  "2025-04-02'T'15:00:50", "exerciseType":  "Back"}
+    ]
   },
   {
     "username": "ava",
@@ -127,6 +226,17 @@
       "completionRate": 67.5,
       "currentStreak": 2,
       "longestStreak": 3
-    }
+    },
+    "sessions": [
+      { "sessionStart":  "2025-03-31'T'10:00:00", "sessionExecutionTime":  "2025-03-31'T'10:01:20", "exerciseType":  "Hip"},
+      { "sessionStart":  "2025-03-31'T'13:30:00", "sessionExecutionTime":  "2025-03-31'T'13:33:30", "exerciseType":  "Shoulder"},
+      { "sessionStart":  "2025-03-31'T'15:00:00", "sessionExecutionTime":  "2025-03-31'T'15:01:50", "exerciseType":  "Back"},
+      { "sessionStart":  "2025-04-01'T'10:00:00", "sessionExecutionTime":  "2025-04-01'T'10:10:30", "exerciseType":  "Hip"},
+      { "sessionStart":  "2025-04-01'T'13:30:00", "sessionExecutionTime":  "2025-04-01'T'13:33:10", "exerciseType":  "Shoulder"},
+      { "sessionStart":  "2025-04-01'T'15:00:00", "sessionExecutionTime":  "2025-04-01'T'15:02:35", "exerciseType":  "Back"},
+      { "sessionStart":  "2025-04-02'T'10:00:00", "sessionExecutionTime":  "2025-04-02'T'10:01:45", "exerciseType":  "Hip"},
+      { "sessionStart":  "2025-04-02'T'13:30:00", "sessionExecutionTime":  "2025-04-02'T'13:34:25", "exerciseType":  "Shoulder"},
+      { "sessionStart":  "2025-04-02'T'15:00:00", "sessionExecutionTime":  "2025-04-02'T'15:00:45", "exerciseType":  "Back"}
+    ]
   }
 ]

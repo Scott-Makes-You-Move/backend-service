@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
-@Table(name = "mobility", indexes = @Index(columnList = "accountId"))
+@Table(name = "mobilities", indexes = @Index(columnList = "accountId"))
 @Getter
 @Setter
 @NoArgsConstructor
@@ -24,7 +24,7 @@ public class Mobility implements Serializable {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "accountId", referencedColumnName = "accountId", nullable = false)
+    @JoinColumn(name = "account_id", referencedColumnName = "account_id", nullable = false)
     @JsonIgnore
     private Account account;
     @PastOrPresent(message = "Measured date cannot be in the future")

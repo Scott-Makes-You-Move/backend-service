@@ -25,7 +25,7 @@ public class Biometrics implements Serializable {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "accountId", referencedColumnName = "accountId", nullable = false)
+    @JoinColumn(name = "account_id", referencedColumnName = "account_id", nullable = false)
     @JsonIgnore
     private Account account;
     @PastOrPresent(message = "Measured date cannot be in the future")

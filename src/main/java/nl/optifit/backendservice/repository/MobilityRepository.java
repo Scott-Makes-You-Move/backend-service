@@ -11,5 +11,5 @@ import java.util.UUID;
 
 @Repository
 public interface MobilityRepository extends JpaRepository<Mobility, UUID> {
-    Page<Mobility> findAllByAccountId(Pageable pageable, UUID accountId);
+    Page<Mobility> findAllByAccountId(Pageable pageable, String accountId);
 }

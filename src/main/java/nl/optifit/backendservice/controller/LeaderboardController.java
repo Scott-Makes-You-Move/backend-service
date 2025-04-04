@@ -28,11 +28,4 @@ public class LeaderboardController {
         log.info("GET Leaderboard REST API called");
         return leaderboardService.getLeaderboard(page, size, direction, sortBy);
     }
-
-    @PutMapping("/{username}")
-    public Leaderboard updateLeaderboard(@PathVariable String username,
-                                         @RequestBody UpdateLeaderboardDTO updateLeaderboardDTO) {
-        log.info("PUT Leaderboard REST API called");
-        return leaderboardService.updateLeaderboard(username, updateLeaderboardDTO);
-    }
 }
