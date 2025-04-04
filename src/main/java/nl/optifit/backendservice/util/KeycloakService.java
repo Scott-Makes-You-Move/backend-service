@@ -12,6 +12,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class KeycloakService {
 
+    private final Keycloak keycloak;
     public static final String REALM = "smym-dev";
 
     public Optional<UserResource> findUserById(String id) {
@@ -20,8 +21,6 @@ public class KeycloakService {
                 .get(id)
         );
     }
-
-    private final Keycloak keycloak;
 
     public Optional<UserRepresentation> findUserByUsername(String username) {
         return keycloak.realm(REALM)

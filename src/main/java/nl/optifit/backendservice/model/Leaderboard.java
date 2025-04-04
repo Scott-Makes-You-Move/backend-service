@@ -1,6 +1,7 @@
 package nl.optifit.backendservice.model;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -8,7 +9,7 @@ import java.io.Serializable;
 import java.util.UUID;
 
 @Entity
-@Table(name = "leaderboard", indexes = @Index(columnList = "accountId"))
+@Table(name = "leaderboards", indexes = @Index(columnList = "account_id"))
 @Getter
 @Setter
 @NoArgsConstructor
@@ -16,11 +17,10 @@ import java.util.UUID;
 @Builder
 public class Leaderboard implements Serializable {
     @Id
-    @Column(name = "account_id")
-    private UUID id;
+    private String accountId;
     @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "account_id", nullable = false)
     @MapsId
-    @JoinColumn(name = "account_id", nullable = false, unique = true)
     @JsonBackReference
     private Account account;
     @Column(nullable = false)

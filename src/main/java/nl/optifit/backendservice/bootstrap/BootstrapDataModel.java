@@ -3,7 +3,7 @@ package nl.optifit.backendservice.bootstrap;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.Setter;
-import nl.optifit.backendservice.model.Leaderboard;
+import nl.optifit.backendservice.model.*;
 
 import java.util.List;
 
@@ -18,4 +18,7 @@ public class BootstrapDataModel {
 
     @JsonProperty("leaderboard")
     private Leaderboard leaderboard;
+
+    @JsonProperty("sessions")
+    private List<Session> sessions;
 }
