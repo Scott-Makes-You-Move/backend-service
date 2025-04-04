@@ -4,12 +4,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import nl.optifit.backendservice.dto.AccountIdDTO;
 import nl.optifit.backendservice.model.*;
 import nl.optifit.backendservice.repository.AccountRepository;
 import nl.optifit.backendservice.util.KeycloakService;
 import org.keycloak.representations.idm.UserRepresentation;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -38,29 +36,32 @@ public class BootstrapController {
     private final KeycloakService keycloakService;
     private final ObjectMapper objectMapper;
 
-    private static final List<AccountIdDTO> ACCOUNTS_BOOTSTRAPPED = new ArrayList<>();
     public static final ClassPathResource BOOTSTRAP_DATA_RESOURCE = new ClassPathResource("bootstrap/bootstrap-data.json");
     public static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
     /**
-     * Creates accounts, leaderboard, biometrics and mobilities for users in bootstrap-data.json
+     * Creates accounts, leaderboard, biometrics, mobilities and sessions for users in bootstrap-data.json
      */
     @PostMapping
-    public ResponseEntity<List<AccountIdDTO>> bootstrapAccounts() throws IOException {
+    public ResponseEntity<AccountsBootstrappedData> bootstrapAccounts() throws IOException {
         File bootstrapDataFile = BOOTSTRAP_DATA_RESOURCE.getFile();
+        AccountsBootstrappedData response = new AccountsBootstrappedData();
 
         try {
             List<BootstrapDataModel> bootstrapData = objectMapper.readValue(bootstrapDataFile, objectMapper.getTypeFactory().constructCollectionType(List.class, BootstrapDataModel.class));
             bootstrapData.forEach(data -> {
                 keycloakService.findUserByUsername(data.getUsername()).ifPresent(user -> {
-                    initiateAccount(user, data);
+                    initiateAccount(user, data, response);
                 });
             });
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(ACCOUNTS_BOOTSTRAPPED);
+        int total = response.getAccountIds().size();
+        response.setTotal(total);
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     /**
@@ -72,7 +73,7 @@ public class BootstrapController {
         return ResponseEntity.noContent().build();
     }
 
-    private void initiateAccount(UserRepresentation user, BootstrapDataModel bootstrapData) {
+    private void initiateAccount(UserRepresentation user, BootstrapDataModel bootstrapData, AccountsBootstrappedData response) {
         log.info("Initiating account for user '{}'", user.getUsername());
 
         if (accountRepository.findById(user.getId()).isPresent()) {
@@ -83,6 +84,7 @@ public class BootstrapController {
         Account account = Account.builder().id(user.getId()).build();
         Leaderboard leaderboard = Leaderboard.builder()
                 .account(account)
+                .lastUpdated(LocalDateTime.now())
                 .completionRate(bootstrapData.getLeaderboard().getCompletionRate())
                 .currentStreak(bootstrapData.getLeaderboard().getCurrentStreak())
                 .longestStreak(bootstrapData.getLeaderboard().getLongestStreak())
@@ -130,7 +132,7 @@ public class BootstrapController {
         account.setSessions(sessions);
 
         Account savedAccount = accountRepository.save(account);
-        ACCOUNTS_BOOTSTRAPPED.add(AccountIdDTO.builder().accountId(savedAccount.getId()).build());
+        response.getAccountIds().add(savedAccount.getId());
         log.info("Account initiated for user '{}'", user.getUsername());
     }
 }

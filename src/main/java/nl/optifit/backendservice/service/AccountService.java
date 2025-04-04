@@ -1,24 +1,24 @@
 package nl.optifit.backendservice.service;
 
 import jakarta.transaction.Transactional;
+import jakarta.ws.rs.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import nl.optifit.backendservice.dto.BiometricsMeasurementDTO;
 import nl.optifit.backendservice.dto.MobilityMeasurementDTO;
-import nl.optifit.backendservice.dto.UpdateLeaderboardDTO;
-import nl.optifit.backendservice.model.Account;
-import nl.optifit.backendservice.model.Biometrics;
-import nl.optifit.backendservice.model.Leaderboard;
-import nl.optifit.backendservice.model.Mobility;
-import nl.optifit.backendservice.repository.AccountRepository;
-import nl.optifit.backendservice.repository.BiometricsRepository;
-import nl.optifit.backendservice.repository.LeaderboardRepository;
-import nl.optifit.backendservice.repository.MobilityRepository;
+import nl.optifit.backendservice.model.*;
+import nl.optifit.backendservice.repository.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -28,20 +28,24 @@ public class AccountService {
     private final LeaderboardRepository leaderboardRepository;
     private final BiometricsRepository biometricsRepository;
     private final MobilityRepository mobilityRepository;
+    private final SessionRepository sessionRepository;
 
     @Transactional
     public Account createAccountForId(String accountId) {
         log.info("Creating account for id [{}]", accountId);
 
         Account account = Account.builder().id(accountId).build();
-        Leaderboard leaderboard = Leaderboard.builder().account(account).completionRate(0.0).currentStreak(0).longestStreak(0).build();
+        Leaderboard leaderboard = Leaderboard.builder()
+                .account(account)
+                .lastUpdated(LocalDateTime.now())
+                .completionRate(0.0)
+                .currentStreak(0)
+                .longestStreak(0)
+                .build();
+
         account.setLeaderboard(leaderboard);
 
-        Account savedAccount = accountRepository.save(account);
-
-        log.info("Created account [{}]", savedAccount.getId());
-
-        return savedAccount;
+        return accountRepository.save(account);
     }
 
     @Transactional
@@ -75,21 +79,76 @@ public class AccountService {
 
     public Mobility saveMobilityForAccount(String accountId, MobilityMeasurementDTO mobilityMeasurementDTO) {
         log.debug("Saving mobility for account '{}'", accountId);
-        Account account = accountRepository.findById(accountId).orElseThrow(() -> new RuntimeException("Could not find user"));;
+        Account account = accountRepository.findById(accountId).orElseThrow(() -> new RuntimeException("Could not find user"));
+        ;
         Mobility mobility = MobilityMeasurementDTO.toMobility(account, mobilityMeasurementDTO);
 
         return mobilityRepository.save(mobility);
     }
 
-    public Leaderboard updateLeaderboardForAccount(String accountId, UpdateLeaderboardDTO updateLeaderboardDTO) {
+    @Transactional
+    public Session updateSessionForAccount(String accountId) {
+        log.debug("Updating session for account '{}'", accountId);
+        LocalDateTime now = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
+
+        Session lastSession = sessionRepository.findFirstByAccountIdOrderBySessionStartDesc(accountId)
+                .orElseThrow(() -> new NotFoundException("Could not find session for user"));
+
+        if (Objects.nonNull(lastSession.getSessionExecutionTime())) {
+            log.warn("Session already completed");
+            return null;
+        }
+
+        if (now.isAfter(lastSession.getSessionStart().plusHours(1))) {
+            log.warn("An hour has already passed after session start");
+            return null;
+        }
+        lastSession.setSessionExecutionTime(now);
+        updateLeaderboardForAccount(accountId);
+
+        return sessionRepository.save(lastSession);
+    }
+
+    private void updateLeaderboardForAccount(String accountId) {
         log.debug("Updating leaderboard for account '{}'", accountId);
+        LocalDateTime now = LocalDateTime.now();
 
-        Account account = accountRepository.findById(accountId).orElseThrow(() -> new RuntimeException("Could not find user"));
-        Leaderboard accountLeaderboard = account.getLeaderboard();
-        accountLeaderboard.setCompletionRate(updateLeaderboardDTO.getCompletionRate());
-        accountLeaderboard.setCurrentStreak(updateLeaderboardDTO.getCurrentStreak());
-        accountLeaderboard.setLongestStreak(updateLeaderboardDTO.getLongestStreak());
+        Account account = accountRepository.findAccountWithLeaderboard(accountId)
+                .orElseThrow(() -> new RuntimeException("Could not find user"));
+        Leaderboard leaderboard = account.getLeaderboard();
 
-        return leaderboardRepository.save(accountLeaderboard);
+        sessionRepository.findFirstByAccountIdOrderBySessionStartDesc(accountId).ifPresentOrElse(lastSession -> {
+            boolean lastSessionCompleted = Objects.nonNull(lastSession.getSessionExecutionTime());
+
+            if (leaderboard.getLastUpdated().isAfter(lastSession.getSessionExecutionTime())) {
+                log.warn("Tried to update leaderboard to an invalid state");
+                return;
+            }
+
+            if (lastSessionCompleted) {
+                int newCurrentStreak = leaderboard.getCurrentStreak() + 1;
+                leaderboard.setCurrentStreak(newCurrentStreak);
+                leaderboard.setLongestStreak(Math.max(newCurrentStreak, leaderboard.getLongestStreak()));
+            } else {
+                leaderboard.setCurrentStreak(0);
+            }
+            leaderboard.setCompletionRate(calculateCompletionRate(accountId));
+            leaderboard.setLastUpdated(now);
+        }, () -> log.warn("Could not find leaderboard for account '{}'", accountId));
+    }
+
+    private double calculateCompletionRate(String accountId) {
+        List<Session> sessionsForAccount = sessionRepository.findAllByAccountId(accountId);
+
+        long totalSessions = sessionsForAccount.size();
+        long completedSessions = sessionsForAccount.stream()
+                .map(Session::getSessionExecutionTime)
+                .filter(Objects::nonNull)
+                .count();
+
+        double completionRate = totalSessions > 0
+                ? (double) completedSessions / totalSessions * 100
+                : 0;
+        return completionRate;
     }
 }
