@@ -1,5 +1,6 @@
 package nl.optifit.backendservice.model;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.PastOrPresent;
@@ -25,10 +26,13 @@ public class Session implements Serializable {
     @JsonIgnore
     private Account account;
     @PastOrPresent(message = "Measured date cannot be in the future")
+    @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss")
     private LocalDateTime sessionStart;
     @PastOrPresent(message = "Measured date cannot be in the future")
+    @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss")
     private LocalDateTime sessionExecutionTime;
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
     private ExerciseType exerciseType;
 }

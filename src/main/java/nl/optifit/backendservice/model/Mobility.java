@@ -1,6 +1,7 @@
 package nl.optifit.backendservice.model;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Max;
@@ -28,6 +29,7 @@ public class Mobility implements Serializable {
     @JsonIgnore
     private Account account;
     @PastOrPresent(message = "Measured date cannot be in the future")
+    @JsonFormat(pattern="yyyy-MM-dd")
     private LocalDateTime measuredOn;
     @Min(1) @Max(3)
     private Integer shoulder;

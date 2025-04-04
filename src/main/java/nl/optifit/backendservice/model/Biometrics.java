@@ -2,6 +2,7 @@ package nl.optifit.backendservice.model;
 
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Max;
@@ -29,6 +30,7 @@ public class Biometrics implements Serializable {
     @JsonIgnore
     private Account account;
     @PastOrPresent(message = "Measured date cannot be in the future")
+    @JsonFormat(pattern="yyyy-MM-dd")
     private LocalDateTime measuredOn;
     @Min(value = 0, message = "Weight must be positive")
     private Double weight;

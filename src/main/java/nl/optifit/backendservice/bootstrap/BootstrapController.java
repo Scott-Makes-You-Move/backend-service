@@ -9,6 +9,7 @@ import nl.optifit.backendservice.model.*;
 import nl.optifit.backendservice.repository.AccountRepository;
 import nl.optifit.backendservice.util.KeycloakService;
 import org.keycloak.representations.idm.UserRepresentation;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -35,13 +36,11 @@ public class BootstrapController {
 
     private final AccountRepository accountRepository;
     private final KeycloakService keycloakService;
-
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper;
 
     private static final List<AccountIdDTO> ACCOUNTS_BOOTSTRAPPED = new ArrayList<>();
     public static final ClassPathResource BOOTSTRAP_DATA_RESOURCE = new ClassPathResource("bootstrap/bootstrap-data.json");
-    public static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-    public static final DateTimeFormatter FORMATTER_DATETIME = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
+    public static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
     /**
      * Creates accounts, leaderboard, biometrics and mobilities for users in bootstrap-data.json
@@ -94,7 +93,7 @@ public class BootstrapController {
         List<Mobility> mobilities = new ArrayList<>();
 
         bootstrapData.getMeasurements().forEach(measurement -> {
-            LocalDate localDate = LocalDate.parse(measurement.getDate(), FORMATTER);
+            LocalDate localDate = LocalDate.parse(measurement.getDate(), DATE_FORMATTER);
             LocalDateTime localDateTime = LocalDateTime.of(localDate, LocalTime.of(12, 0, 0));
 
             Biometrics biometric = Biometrics.builder()
@@ -117,6 +116,18 @@ public class BootstrapController {
         });
         account.setBiometrics(biometrics);
         account.setMobilities(mobilities);
+
+        List<Session> sessions = new ArrayList<>();
+        bootstrapData.getSessions().forEach(session -> {
+            Session completedSession = Session.builder()
+                    .account(account)
+                    .sessionStart(session.getSessionStart())
+                    .sessionExecutionTime(session.getSessionExecutionTime())
+                    .exerciseType(session.getExerciseType())
+                    .build();
+            sessions.add(completedSession);
+        });
+        account.setSessions(sessions);
 
         Account savedAccount = accountRepository.save(account);
         ACCOUNTS_BOOTSTRAPPED.add(AccountIdDTO.builder().accountId(savedAccount.getId()).build());

@@ -8,10 +8,7 @@ import nl.optifit.backendservice.dto.CreateAccountDTO;
 import nl.optifit.backendservice.dto.BiometricsMeasurementDTO;
 import nl.optifit.backendservice.dto.MobilityMeasurementDTO;
 import nl.optifit.backendservice.dto.UpdateLeaderboardDTO;
-import nl.optifit.backendservice.model.Account;
-import nl.optifit.backendservice.model.Biometrics;
-import nl.optifit.backendservice.model.Leaderboard;
-import nl.optifit.backendservice.model.Mobility;
+import nl.optifit.backendservice.model.*;
 import nl.optifit.backendservice.service.AccountService;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -27,25 +24,25 @@ public class AccountController {
     private final AccountService accountService;
 
     @GetMapping("/{accountId}/biometrics")
-    public ResponseEntity<Page<Biometrics>> getBiometricsForAccount(@PathVariable String accountId,
-                                                                    @RequestParam(defaultValue = "0") int page,
-                                                                    @RequestParam(defaultValue = "10") int size,
-                                                                    @RequestParam(defaultValue = "DESC") String direction,
-                                                                    @RequestParam(defaultValue = "measuredOn") String sortBy) {
+    public ResponseEntity<PagedResponse<Biometrics>> getBiometricsForAccount(@PathVariable String accountId,
+                                                                             @RequestParam(defaultValue = "0") int page,
+                                                                             @RequestParam(defaultValue = "10") int size,
+                                                                             @RequestParam(defaultValue = "DESC") String direction,
+                                                                             @RequestParam(defaultValue = "measuredOn") String sortBy) {
         log.info("GET Account Biometrics REST API called");
         Page<Biometrics> biometricsForAccount = accountService.getBiometricsForAccount(accountId, page, size, direction, sortBy);
-        return ResponseEntity.ok(biometricsForAccount);
+        return ResponseEntity.ok(new PagedResponse<>(biometricsForAccount));
     }
 
     @GetMapping("/{accountId}/mobilities")
-    public ResponseEntity<Page<Mobility>> getMobilitiesForAccount(@PathVariable String accountId,
+    public ResponseEntity<PagedResponse<Mobility>> getMobilitiesForAccount(@PathVariable String accountId,
                                                                   @RequestParam(defaultValue = "0") int page,
                                                                   @RequestParam(defaultValue = "10") int size,
                                                                   @RequestParam(defaultValue = "DESC") String direction,
                                                                   @RequestParam(defaultValue = "measuredOn") String sortBy) {
         log.info("GET Account Mobilities REST API called");
         Page<Mobility> mobilitiesForAccount = accountService.getMobilitiesForAccount(accountId, page, size, direction, sortBy);
-        return ResponseEntity.ok(mobilitiesForAccount);
+        return ResponseEntity.ok(new PagedResponse<>(mobilitiesForAccount));
     }
 
     @PutMapping("/{accountId}/leaderboard")
