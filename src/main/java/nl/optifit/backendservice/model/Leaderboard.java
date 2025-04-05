@@ -1,11 +1,14 @@
 package nl.optifit.backendservice.model;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.PastOrPresent;
 import lombok.*;
 
 import java.io.Serializable;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
@@ -23,6 +26,9 @@ public class Leaderboard implements Serializable {
     @MapsId
     @JsonBackReference
     private Account account;
+    @PastOrPresent(message = "Measured date cannot be in the future")
+    @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss")
+    private LocalDateTime lastUpdated = LocalDateTime.now();
     @Column(nullable = false)
     private Double completionRate;
     @Column(nullable = false)

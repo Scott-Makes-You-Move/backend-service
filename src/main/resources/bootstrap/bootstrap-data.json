@@ -2,241 +2,193 @@
   {
     "username": "michael",
     "measurements": [
-      { "date": "2025-01-01", "weight": 85.2, "fat": 22.5, "visceralFat": 10, "SHOULDER": 2, "BACK": 3, "HIP": 2 },
-      { "date": "2025-02-01", "weight": 84.7, "fat": 22.2, "visceralFat": 10, "SHOULDER": 2, "BACK": 3, "HIP": 2 },
-      { "date": "2025-03-01", "weight": 84.0, "fat": 21.8, "visceralFat": 9, "SHOULDER": 2, "BACK": 3, "HIP": 2 }
+      { "measuredOn": "2025-01-01", "weight": 85.2, "fat": 22.5, "visceralFat": 10, "SHOULDER": 2, "BACK": 3, "HIP": 2 },
+      { "measuredOn": "2025-02-01", "weight": 84.7, "fat": 22.2, "visceralFat": 10, "SHOULDER": 2, "BACK": 3, "HIP": 2 },
+      { "measuredOn": "2025-03-01", "weight": 84.0, "fat": 21.8, "visceralFat": 9, "SHOULDER": 2, "BACK": 3, "HIP": 2 }
     ],
     "leaderboard": {
-      "completionRate": 90.2,
-      "currentStreak": 6,
-      "longestStreak": 12
+      "completionRate": 100.0,
+      "currentStreak": 9,
+      "longestStreak": 9
     },
     "sessions": [
-      { "sessionStart":  "2025-03-31 10:00:00", "sessionExecutionTime":  "2025-03-31 10:01:30", "exerciseType":  "HIP"},
-      { "sessionStart":  "2025-03-31 13:30:00", "sessionExecutionTime":  "2025-03-31 13:33:00", "exerciseType":  "SHOULDER"},
-      { "sessionStart":  "2025-03-31 15:00:00", "sessionExecutionTime":  "2025-03-31 15:01:00", "exerciseType":  "BACK"},
-      { "sessionStart":  "2025-04-01 10:00:00", "sessionExecutionTime":  "2025-04-01 10:00:30", "exerciseType":  "HIP"},
-      { "sessionStart":  "2025-04-01 13:30:00", "sessionExecutionTime":  "2025-04-01 13:31:10", "exerciseType":  "SHOULDER"},
-      { "sessionStart":  "2025-04-01 15:00:00", "sessionExecutionTime":  "2025-04-01 15:02:25", "exerciseType":  "BACK"},
-      { "sessionStart":  "2025-04-02 10:00:00", "sessionExecutionTime":  "2025-04-02 10:01:05", "exerciseType":  "HIP"},
-      { "sessionStart":  "2025-04-02 13:30:00", "sessionExecutionTime":  "2025-04-02 13:34:20", "exerciseType":  "SHOULDER"},
-      { "sessionStart":  "2025-04-02 15:00:00", "sessionExecutionTime":  "2025-04-02 15:00:50", "exerciseType":  "BACK"}
+      { "sessionStart":  "2025-03-31 10:00:00", "sessionExecutionTime":  "2025-03-31 10:01:30", "exerciseType":  "HIP", "sessionStatus": "COMPLETED"},
+      { "sessionStart":  "2025-03-31 13:30:00", "sessionExecutionTime":  "2025-03-31 13:33:00", "exerciseType":  "SHOULDER", "sessionStatus": "COMPLETED"},
+      { "sessionStart":  "2025-03-31 15:00:00", "sessionExecutionTime":  "2025-03-31 15:01:00", "exerciseType":  "BACK", "sessionStatus": "COMPLETED"},
+      { "sessionStart":  "2025-04-01 10:00:00", "sessionExecutionTime":  "2025-04-01 10:00:30", "exerciseType":  "HIP", "sessionStatus": "COMPLETED"},
+      { "sessionStart":  "2025-04-01 13:30:00", "sessionExecutionTime":  "2025-04-01 13:31:10", "exerciseType":  "SHOULDER", "sessionStatus": "COMPLETED"},
+      { "sessionStart":  "2025-04-01 15:00:00", "sessionExecutionTime":  "2025-04-01 15:02:25", "exerciseType":  "BACK", "sessionStatus": "COMPLETED"},
+      { "sessionStart":  "2025-04-02 10:00:00", "sessionExecutionTime":  "2025-04-02 10:01:05", "exerciseType":  "HIP", "sessionStatus": "COMPLETED"},
+      { "sessionStart":  "2025-04-02 13:30:00", "sessionExecutionTime":  "2025-04-02 13:34:20", "exerciseType":  "SHOULDER", "sessionStatus": "COMPLETED"},
+      { "sessionStart":  "2025-04-02 15:00:00", "sessionExecutionTime":  "2025-04-02 15:00:50", "exerciseType":  "BACK", "sessionStatus": "COMPLETED"}
     ]
   },
   {
     "username": "emily",
     "measurements": [
-      { "date": "2025-01-01", "weight": 62.3, "fat": 28.1, "visceralFat": 5, "SHOULDER": 3, "BACK": 2, "HIP": 3 },
-      { "date": "2025-02-01", "weight": 62.0, "fat": 27.9, "visceralFat": 5, "SHOULDER": 3, "BACK": 2, "HIP": 3 },
-      { "date": "2025-03-01", "weight": 61.5, "fat": 27.5, "visceralFat": 4, "SHOULDER": 3, "BACK": 2, "HIP": 3 }
+      { "measuredOn": "2025-01-01", "weight": 62.3, "fat": 28.1, "visceralFat": 5, "SHOULDER": 3, "BACK": 2, "HIP": 3 },
+      { "measuredOn": "2025-02-01", "weight": 62.0, "fat": 27.9, "visceralFat": 5, "SHOULDER": 3, "BACK": 2, "HIP": 3 },
+      { "measuredOn": "2025-03-01", "weight": 61.5, "fat": 27.5, "visceralFat": 4, "SHOULDER": 3, "BACK": 2, "HIP": 3 }
     ],
     "leaderboard": {
-      "completionRate": 80.5,
-      "currentStreak": 2,
-      "longestStreak": 5
+      "completionRate": 66.67,
+      "currentStreak": 1,
+      "longestStreak": 3
     },
     "sessions": [
-      { "sessionStart":  "2025-03-31 10:00:00", "sessionExecutionTime":  null, "exerciseType":  "HIP"},
-      { "sessionStart":  "2025-03-31 13:30:00", "sessionExecutionTime":  null, "exerciseType":  "SHOULDER"},
-      { "sessionStart":  "2025-03-31 15:00:00", "sessionExecutionTime":  "2025-03-31 15:01:30", "exerciseType":  "BACK"},
-      { "sessionStart":  "2025-04-01 10:00:00", "sessionExecutionTime":  "2025-04-01 10:08:30", "exerciseType":  "HIP"},
-      { "sessionStart":  "2025-04-01 13:30:00", "sessionExecutionTime":  "2025-04-01 13:32:10", "exerciseType":  "SHOULDER"},
-      { "sessionStart":  "2025-04-01 15:00:00", "sessionExecutionTime":  null, "exerciseType":  "BACK"},
-      { "sessionStart":  "2025-04-02 10:00:00", "sessionExecutionTime":  "2025-04-02 10:02:05", "exerciseType":  "HIP"},
-      { "sessionStart":  "2025-04-02 13:30:00", "sessionExecutionTime":  "2025-04-02 13:34:45", "exerciseType":  "SHOULDER"},
-      { "sessionStart":  "2025-04-02 15:00:00", "sessionExecutionTime":  "2025-04-02 15:00:40", "exerciseType":  "BACK"}
-    ]
-  },
-  {
-    "username": "daniel",
-    "measurements": [
-      { "date": "2025-01-01", "weight": 78.4, "fat": 18.2, "visceralFat": 8, "SHOULDER": 2, "BACK": 2, "HIP": 2 },
-      { "date": "2025-02-01", "weight": 77.9, "fat": 18.0, "visceralFat": 7, "SHOULDER": 2, "BACK": 2, "HIP": 2 },
-      { "date": "2025-03-01", "weight": 77.2, "fat": 17.7, "visceralFat": 7, "SHOULDER": 2, "BACK": 2, "HIP": 2 }
-    ],
-    "leaderboard": {
-      "completionRate": 83.3,
-      "currentStreak": 3,
-      "longestStreak": 7
-    },
-    "sessions": [
-      { "sessionStart":  "2025-03-31 10:00:00", "sessionExecutionTime":  "2025-03-31 10:00:05", "exerciseType":  "HIP"},
-      { "sessionStart":  "2025-03-31 13:30:00", "sessionExecutionTime":  null, "exerciseType":  "SHOULDER"},
-      { "sessionStart":  "2025-03-31 15:00:00", "sessionExecutionTime":  "2025-03-31 15:01:30", "exerciseType":  "BACK"},
-      { "sessionStart":  "2025-04-01 10:00:00", "sessionExecutionTime":  null, "exerciseType":  "HIP"},
-      { "sessionStart":  "2025-04-01 13:30:00", "sessionExecutionTime":  "2025-04-01 13:34:10", "exerciseType":  "SHOULDER"},
-      { "sessionStart":  "2025-04-01 15:00:00", "sessionExecutionTime":  "2025-04-01 15:02:15", "exerciseType":  "BACK"},
-      { "sessionStart":  "2025-04-02 10:00:00", "sessionExecutionTime":  "2025-04-02 10:02:05", "exerciseType":  "HIP"},
-      { "sessionStart":  "2025-04-02 13:30:00", "sessionExecutionTime":  "2025-04-02 13:34:10", "exerciseType":  "SHOULDER"},
-      { "sessionStart":  "2025-04-02 15:00:00", "sessionExecutionTime":  "2025-04-02 15:05:50", "exerciseType":  "BACK"}
+      { "sessionStart":  "2025-03-31 10:00:00", "sessionExecutionTime":  null, "exerciseType":  "HIP", "sessionStatus": "OVERDUE"},
+      { "sessionStart":  "2025-03-31 13:30:00", "sessionExecutionTime":  null, "exerciseType":  "SHOULDER", "sessionStatus": "OVERDUE"},
+      { "sessionStart":  "2025-03-31 15:00:00", "sessionExecutionTime":  "2025-03-31 15:01:30", "exerciseType":  "BACK", "sessionStatus": "COMPLETED"},
+      { "sessionStart":  "2025-04-01 10:00:00", "sessionExecutionTime":  "2025-04-01 10:08:30", "exerciseType":  "HIP", "sessionStatus": "COMPLETED"},
+      { "sessionStart":  "2025-04-01 13:30:00", "sessionExecutionTime":  "2025-04-01 13:32:10", "exerciseType":  "SHOULDER", "sessionStatus": "COMPLETED"},
+      { "sessionStart":  "2025-04-01 15:00:00", "sessionExecutionTime":  null, "exerciseType":  "BACK", "sessionStatus": "OVERDUE"},
+      { "sessionStart":  "2025-04-02 10:00:00", "sessionExecutionTime":  "2025-04-02 10:02:05", "exerciseType":  "HIP", "sessionStatus": "COMPLETED"},
+      { "sessionStart":  "2025-04-02 13:30:00", "sessionExecutionTime":  "2025-04-02 13:34:45", "exerciseType":  "SHOULDER", "sessionStatus": "COMPLETED"},
+      { "sessionStart":  "2025-04-02 15:00:00", "sessionExecutionTime":  "2025-04-02 15:00:40", "exerciseType":  "BACK", "sessionStatus": "COMPLETED"}
     ]
   },
   {
     "username": "sophia",
     "measurements": [
-      { "date": "2025-01-01", "weight": 58.6, "fat": 25.7, "visceralFat": 4, "SHOULDER": 3, "BACK": 3, "HIP": 3 },
-      { "date": "2025-02-01", "weight": 58.2, "fat": 25.5, "visceralFat": 4, "SHOULDER": 3, "BACK": 3, "HIP": 3 },
-      { "date": "2025-03-01", "weight": 57.9, "fat": 25.2, "visceralFat": 4, "SHOULDER": 3, "BACK": 3, "HIP": 3 }
+      { "measuredOn": "2025-01-01", "weight": 58.6, "fat": 25.7, "visceralFat": 4, "SHOULDER": 3, "BACK": 3, "HIP": 3 },
+      { "measuredOn": "2025-02-01", "weight": 58.2, "fat": 25.5, "visceralFat": 4, "SHOULDER": 3, "BACK": 3, "HIP": 3 },
+      { "measuredOn": "2025-03-01", "weight": 57.9, "fat": 25.2, "visceralFat": 4, "SHOULDER": 3, "BACK": 3, "HIP": 3 }
     ],
     "leaderboard": {
-      "completionRate": 87.5,
-      "currentStreak": 5,
-      "longestStreak": 10
+      "completionRate": 66.67,
+      "currentStreak": 0,
+      "longestStreak": 3
     },
     "sessions": [
-      { "sessionStart":  "2025-03-31 10:00:00", "sessionExecutionTime":  "2025-03-31 10:00:30", "exerciseType":  "HIP"},
-      { "sessionStart":  "2025-03-31 13:30:00", "sessionExecutionTime":  "2025-03-31 13:32:00", "exerciseType":  "SHOULDER"},
-      { "sessionStart":  "2025-03-31 15:00:00", "sessionExecutionTime":  null, "exerciseType":  "BACK"},
-      { "sessionStart":  "2025-04-01 10:00:00", "sessionExecutionTime":  "2025-04-01 10:00:20", "exerciseType":  "HIP"},
-      { "sessionStart":  "2025-04-01 13:30:00", "sessionExecutionTime":  "2025-04-01 13:33:10", "exerciseType":  "SHOULDER"},
-      { "sessionStart":  "2025-04-01 15:00:00", "sessionExecutionTime":  "2025-04-01 15:02:55", "exerciseType":  "BACK"},
-      { "sessionStart":  "2025-04-02 10:00:00", "sessionExecutionTime":  null, "exerciseType":  "HIP"},
-      { "sessionStart":  "2025-04-02 13:30:00", "sessionExecutionTime":  null, "exerciseType":  "SHOULDER"},
-      { "sessionStart":  "2025-04-02 15:00:00", "sessionExecutionTime":  null, "exerciseType":  "BACK"}
+      { "sessionStart":  "2025-03-31 10:00:00", "sessionExecutionTime":  "2025-03-31 10:00:30", "exerciseType":  "HIP", "sessionStatus": "COMPLETED"},
+      { "sessionStart":  "2025-03-31 13:30:00", "sessionExecutionTime":  "2025-03-31 13:32:00", "exerciseType":  "SHOULDER", "sessionStatus": "COMPLETED"},
+      { "sessionStart":  "2025-03-31 15:00:00", "sessionExecutionTime":  null, "exerciseType":  "BACK", "sessionStatus": "OVERDUE"},
+      { "sessionStart":  "2025-04-01 10:00:00", "sessionExecutionTime":  "2025-04-01 10:00:20", "exerciseType":  "HIP", "sessionStatus": "COMPLETED"},
+      { "sessionStart":  "2025-04-01 13:30:00", "sessionExecutionTime":  "2025-04-01 13:33:10", "exerciseType":  "SHOULDER", "sessionStatus": "COMPLETED"},
+      { "sessionStart":  "2025-04-01 15:00:00", "sessionExecutionTime":  "2025-04-01 15:02:55", "exerciseType":  "BACK", "sessionStatus": "COMPLETED"},
+      { "sessionStart":  "2025-04-02 10:00:00", "sessionExecutionTime":  null, "exerciseType":  "HIP", "sessionStatus": "OVERDUE"},
+      { "sessionStart":  "2025-04-02 13:30:00", "sessionExecutionTime":  null, "exerciseType":  "SHOULDER", "sessionStatus": "OVERDUE"},
+      { "sessionStart":  "2025-04-02 15:00:00", "sessionExecutionTime":  null, "exerciseType":  "BACK", "sessionStatus": "OVERDUE"}
     ]
   },
   {
     "username": "james",
     "measurements": [
-      { "date": "2025-01-01", "weight": 90.5, "fat": 20.1, "visceralFat": 12, "SHOULDER": 2, "BACK": 2, "HIP": 2 },
-      { "date": "2025-02-01", "weight": 89.8, "fat": 19.9, "visceralFat": 11, "SHOULDER": 2, "BACK": 2, "HIP": 2 },
-      { "date": "2025-03-01", "weight": 89.0, "fat": 19.5, "visceralFat": 11, "SHOULDER": 2, "BACK": 2, "HIP": 2 }
+      { "measuredOn": "2025-01-01", "weight": 90.5, "fat": 20.1, "visceralFat": 12, "SHOULDER": 2, "BACK": 2, "HIP": 2 },
+      { "measuredOn": "2025-02-01", "weight": 89.8, "fat": 19.9, "visceralFat": 11, "SHOULDER": 2, "BACK": 2, "HIP": 2 },
+      { "measuredOn": "2025-03-01", "weight": 89.0, "fat": 19.5, "visceralFat": 11, "SHOULDER": 2, "BACK": 2, "HIP": 2 }
     ],
     "leaderboard": {
-      "completionRate": 83.5,
-      "currentStreak": 2,
-      "longestStreak": 6
+      "completionRate": 66.67,
+      "currentStreak": 3,
+      "longestStreak": 3
     },
     "sessions": [
-      { "sessionStart":  "2025-03-31 10:00:00", "sessionExecutionTime":  "2025-03-31 10:01:05", "exerciseType":  "HIP"},
-      { "sessionStart":  "2025-03-31 13:30:00", "sessionExecutionTime":  "2025-03-31 13:34:00", "exerciseType":  "SHOULDER"},
-      { "sessionStart":  "2025-03-31 15:00:00", "sessionExecutionTime":  "2025-03-31 15:01:20", "exerciseType":  "BACK"},
-      { "sessionStart":  "2025-04-01 10:00:00", "sessionExecutionTime":  null, "exerciseType":  "HIP"},
-      { "sessionStart":  "2025-04-01 13:30:00", "sessionExecutionTime":  null, "exerciseType":  "SHOULDER"},
-      { "sessionStart":  "2025-04-01 15:00:00", "sessionExecutionTime":  null, "exerciseType":  "BACK"},
-      { "sessionStart":  "2025-04-02 10:00:00", "sessionExecutionTime":  "2025-04-02 10:01:55", "exerciseType":  "HIP"},
-      { "sessionStart":  "2025-04-02 13:30:00", "sessionExecutionTime":  "2025-04-02 13:32:20", "exerciseType":  "SHOULDER"},
-      { "sessionStart":  "2025-04-02 15:00:00", "sessionExecutionTime":  "2025-04-02 15:00:05", "exerciseType":  "BACK"}
+      { "sessionStart":  "2025-03-31 10:00:00", "sessionExecutionTime":  "2025-03-31 10:01:05", "exerciseType":  "HIP", "sessionStatus": "COMPLETED"},
+      { "sessionStart":  "2025-03-31 13:30:00", "sessionExecutionTime":  "2025-03-31 13:34:00", "exerciseType":  "SHOULDER", "sessionStatus": "COMPLETED"},
+      { "sessionStart":  "2025-03-31 15:00:00", "sessionExecutionTime":  "2025-03-31 15:01:20", "exerciseType":  "BACK", "sessionStatus": "COMPLETED"},
+      { "sessionStart":  "2025-04-01 10:00:00", "sessionExecutionTime":  null, "exerciseType":  "HIP", "sessionStatus": "OVERDUE"},
+      { "sessionStart":  "2025-04-01 13:30:00", "sessionExecutionTime":  null, "exerciseType":  "SHOULDER", "sessionStatus": "OVERDUE"},
+      { "sessionStart":  "2025-04-01 15:00:00", "sessionExecutionTime":  null, "exerciseType":  "BACK", "sessionStatus": "OVERDUE"},
+      { "sessionStart":  "2025-04-02 10:00:00", "sessionExecutionTime":  "2025-04-02 10:01:55", "exerciseType":  "HIP", "sessionStatus": "COMPLETED"},
+      { "sessionStart":  "2025-04-02 13:30:00", "sessionExecutionTime":  "2025-04-02 13:32:20", "exerciseType":  "SHOULDER", "sessionStatus": "COMPLETED"},
+      { "sessionStart":  "2025-04-02 15:00:00", "sessionExecutionTime":  "2025-04-02 15:00:05", "exerciseType":  "BACK", "sessionStatus": "COMPLETED"}
     ]
   },
   {
     "username": "olivia",
     "measurements": [
-      { "date": "2025-01-01", "weight": 60.4, "fat": 26.3, "visceralFat": 5, "SHOULDER": 3, "BACK": 3, "HIP": 3 },
-      { "date": "2025-02-01", "weight": 60.1, "fat": 26.0, "visceralFat": 5, "SHOULDER": 3, "BACK": 3, "HIP": 3 },
-      { "date": "2025-03-01", "weight": 59.7, "fat": 25.8, "visceralFat": 4, "SHOULDER": 3, "BACK": 3, "HIP": 3 }
+      { "measuredOn": "2025-01-01", "weight": 60.4, "fat": 26.3, "visceralFat": 5, "SHOULDER": 3, "BACK": 3, "HIP": 3 },
+      { "measuredOn": "2025-02-01", "weight": 60.1, "fat": 26.0, "visceralFat": 5, "SHOULDER": 3, "BACK": 3, "HIP": 3 },
+      { "measuredOn": "2025-03-01", "weight": 59.7, "fat": 25.8, "visceralFat": 4, "SHOULDER": 3, "BACK": 3, "HIP": 3 }
     ],
     "leaderboard": {
-      "completionRate": 95.5,
-      "currentStreak": 10,
-      "longestStreak": 12
+      "completionRate": 66.67,
+      "currentStreak": 4,
+      "longestStreak": 4
     },
     "sessions": [
-      { "sessionStart":  "2025-03-31 10:00:00", "sessionExecutionTime":  "2025-03-31 10:02:40", "exerciseType":  "HIP"},
-      { "sessionStart":  "2025-03-31 13:30:00", "sessionExecutionTime":  "2025-03-31 13:31:00", "exerciseType":  "SHOULDER"},
-      { "sessionStart":  "2025-03-31 15:00:00", "sessionExecutionTime":  null, "exerciseType":  "BACK"},
-      { "sessionStart":  "2025-04-01 10:00:00", "sessionExecutionTime":  null, "exerciseType":  "HIP"},
-      { "sessionStart":  "2025-04-01 13:30:00", "sessionExecutionTime":  null, "exerciseType":  "SHOULDER"},
-      { "sessionStart":  "2025-04-01 15:00:00", "sessionExecutionTime":  "2025-04-01 15:01:25", "exerciseType":  "BACK"},
-      { "sessionStart":  "2025-04-02 10:00:00", "sessionExecutionTime":  "2025-04-02 10:01:15", "exerciseType":  "HIP"},
-      { "sessionStart":  "2025-04-02 13:30:00", "sessionExecutionTime":  "2025-04-02 13:33:20", "exerciseType":  "SHOULDER"},
-      { "sessionStart":  "2025-04-02 15:00:00", "sessionExecutionTime":  "2025-04-02 15:10:50", "exerciseType":  "BACK"}
+      { "sessionStart":  "2025-03-31 10:00:00", "sessionExecutionTime":  "2025-03-31 10:02:40", "exerciseType":  "HIP", "sessionStatus": "COMPLETED"},
+      { "sessionStart":  "2025-03-31 13:30:00", "sessionExecutionTime":  "2025-03-31 13:31:00", "exerciseType":  "SHOULDER", "sessionStatus": "COMPLETED"},
+      { "sessionStart":  "2025-03-31 15:00:00", "sessionExecutionTime":  null, "exerciseType":  "BACK", "sessionStatus": "OVERDUE"},
+      { "sessionStart":  "2025-04-01 10:00:00", "sessionExecutionTime":  null, "exerciseType":  "HIP", "sessionStatus": "OVERDUE"},
+      { "sessionStart":  "2025-04-01 13:30:00", "sessionExecutionTime":  null, "exerciseType":  "SHOULDER", "sessionStatus": "OVERDUE"},
+      { "sessionStart":  "2025-04-01 15:00:00", "sessionExecutionTime":  "2025-04-01 15:01:25", "exerciseType":  "BACK", "sessionStatus": "COMPLETED"},
+      { "sessionStart":  "2025-04-02 10:00:00", "sessionExecutionTime":  "2025-04-02 10:01:15", "exerciseType":  "HIP", "sessionStatus": "COMPLETED"},
+      { "sessionStart":  "2025-04-02 13:30:00", "sessionExecutionTime":  "2025-04-02 13:33:20", "exerciseType":  "SHOULDER", "sessionStatus": "COMPLETED"},
+      { "sessionStart":  "2025-04-02 15:00:00", "sessionExecutionTime":  "2025-04-02 15:10:50", "exerciseType":  "BACK", "sessionStatus": "COMPLETED"}
     ]
   },
   {
     "username": "william",
     "measurements": [
-      { "date": "2025-01-01", "weight": 82.0, "fat": 21.0, "visceralFat": 9, "SHOULDER": 2, "BACK": 2, "HIP": 2 },
-      { "date": "2025-02-01", "weight": 81.5, "fat": 20.8, "visceralFat": 9, "SHOULDER": 2, "BACK": 2, "HIP": 2 },
-      { "date": "2025-03-01", "weight": 81.0, "fat": 20.5, "visceralFat": 8, "SHOULDER": 2, "BACK": 2, "HIP": 2 }
+      { "measuredOn": "2025-01-01", "weight": 82.0, "fat": 21.0, "visceralFat": 9, "SHOULDER": 2, "BACK": 2, "HIP": 2 },
+      { "measuredOn": "2025-02-01", "weight": 81.5, "fat": 20.8, "visceralFat": 9, "SHOULDER": 2, "BACK": 2, "HIP": 2 },
+      { "measuredOn": "2025-03-01", "weight": 81.0, "fat": 20.5, "visceralFat": 8, "SHOULDER": 2, "BACK": 2, "HIP": 2 }
     ],
     "leaderboard": {
-      "completionRate": 84.5,
-      "currentStreak": 3,
-      "longestStreak": 5
+      "completionRate": 88.89,
+      "currentStreak": 2,
+      "longestStreak": 6
     },
     "sessions": [
-      { "sessionStart":  "2025-03-31 10:00:00", "sessionExecutionTime":  "2025-03-31 10:00:40", "exerciseType":  "HIP"},
-      { "sessionStart":  "2025-03-31 13:30:00", "sessionExecutionTime":  "2025-03-31 13:38:00", "exerciseType":  "SHOULDER"},
-      { "sessionStart":  "2025-03-31 15:00:00", "sessionExecutionTime":  "2025-03-31 15:01:00", "exerciseType":  "BACK"},
-      { "sessionStart":  "2025-04-01 10:00:00", "sessionExecutionTime":  "2025-04-01 10:03:30", "exerciseType":  "HIP"},
-      { "sessionStart":  "2025-04-01 13:30:00", "sessionExecutionTime":  "2025-04-01 13:31:10", "exerciseType":  "SHOULDER"},
-      { "sessionStart":  "2025-04-01 15:00:00", "sessionExecutionTime":  "2025-04-01 15:02:35", "exerciseType":  "BACK"},
-      { "sessionStart":  "2025-04-02 10:00:00", "sessionExecutionTime":  null, "exerciseType":  "HIP"},
-      { "sessionStart":  "2025-04-02 13:30:00", "sessionExecutionTime":  "2025-04-02 13:32:20", "exerciseType":  "SHOULDER"},
-      { "sessionStart":  "2025-04-02 15:00:00", "sessionExecutionTime":  "2025-04-02 15:00:10", "exerciseType":  "BACK"}
+      { "sessionStart":  "2025-03-31 10:00:00", "sessionExecutionTime":  "2025-03-31 10:00:40", "exerciseType":  "HIP", "sessionStatus": "COMPLETED"},
+      { "sessionStart":  "2025-03-31 13:30:00", "sessionExecutionTime":  "2025-03-31 13:38:00", "exerciseType":  "SHOULDER", "sessionStatus": "COMPLETED"},
+      { "sessionStart":  "2025-03-31 15:00:00", "sessionExecutionTime":  "2025-03-31 15:01:00", "exerciseType":  "BACK", "sessionStatus": "COMPLETED"},
+      { "sessionStart":  "2025-04-01 10:00:00", "sessionExecutionTime":  "2025-04-01 10:03:30", "exerciseType":  "HIP", "sessionStatus": "COMPLETED"},
+      { "sessionStart":  "2025-04-01 13:30:00", "sessionExecutionTime":  "2025-04-01 13:31:10", "exerciseType":  "SHOULDER", "sessionStatus": "COMPLETED"},
+      { "sessionStart":  "2025-04-01 15:00:00", "sessionExecutionTime":  "2025-04-01 15:02:35", "exerciseType":  "BACK", "sessionStatus": "COMPLETED"},
+      { "sessionStart":  "2025-04-02 10:00:00", "sessionExecutionTime":  null, "exerciseType":  "HIP", "sessionStatus": "OVERDUE"},
+      { "sessionStart":  "2025-04-02 13:30:00", "sessionExecutionTime":  "2025-04-02 13:32:20", "exerciseType":  "SHOULDER", "sessionStatus": "COMPLETED"},
+      { "sessionStart":  "2025-04-02 15:00:00", "sessionExecutionTime":  "2025-04-02 15:00:10", "exerciseType":  "BACK", "sessionStatus": "COMPLETED"}
     ]
   },
   {
     "username": "mia",
     "measurements": [
-      { "date": "2025-01-01", "weight": 56.3, "fat": 23.5, "visceralFat": 4, "SHOULDER": 3, "BACK": 3, "HIP": 3 },
-      { "date": "2025-02-01", "weight": 56.0, "fat": 23.3, "visceralFat": 4, "SHOULDER": 3, "BACK": 3, "HIP": 3 },
-      { "date": "2025-03-01", "weight": 55.7, "fat": 23.0, "visceralFat": 3, "SHOULDER": 3, "BACK": 3, "HIP": 3 }
+      { "measuredOn": "2025-01-01", "weight": 56.3, "fat": 23.5, "visceralFat": 4, "SHOULDER": 3, "BACK": 3, "HIP": 3 },
+      { "measuredOn": "2025-02-01", "weight": 56.0, "fat": 23.3, "visceralFat": 4, "SHOULDER": 3, "BACK": 3, "HIP": 3 },
+      { "measuredOn": "2025-03-01", "weight": 55.7, "fat": 23.0, "visceralFat": 3, "SHOULDER": 3, "BACK": 3, "HIP": 3 }
     ],
     "leaderboard": {
-      "completionRate": 79.5,
-      "currentStreak": 1,
-      "longestStreak": 4
+      "completionRate": 88.89,
+      "currentStreak": 3,
+      "longestStreak": 5
     },
     "sessions": [
-      { "sessionStart":  "2025-03-31 10:00:00", "sessionExecutionTime":  "2025-03-31 10:02:30", "exerciseType":  "HIP"},
-      { "sessionStart":  "2025-03-31 13:30:00", "sessionExecutionTime":  "2025-03-31 13:34:00", "exerciseType":  "SHOULDER"},
-      { "sessionStart":  "2025-03-31 15:00:00", "sessionExecutionTime":  "2025-03-31 15:03:10", "exerciseType":  "BACK"},
-      { "sessionStart":  "2025-04-01 10:00:00", "sessionExecutionTime":  "2025-04-01 10:00:20", "exerciseType":  "HIP"},
-      { "sessionStart":  "2025-04-01 13:30:00", "sessionExecutionTime":  "2025-04-01 13:32:50", "exerciseType":  "SHOULDER"},
-      { "sessionStart":  "2025-04-01 15:00:00", "sessionExecutionTime":  null, "exerciseType":  "BACK"},
-      { "sessionStart":  "2025-04-02 10:00:00", "sessionExecutionTime":  "2025-04-02 10:00:05", "exerciseType":  "HIP"},
-      { "sessionStart":  "2025-04-02 13:30:00", "sessionExecutionTime":  "2025-04-02 13:30:20", "exerciseType":  "SHOULDER"},
-      { "sessionStart":  "2025-04-02 15:00:00", "sessionExecutionTime":  "2025-04-02 15:00:50", "exerciseType":  "BACK"}
+      { "sessionStart":  "2025-03-31 10:00:00", "sessionExecutionTime":  "2025-03-31 10:02:30", "exerciseType":  "HIP", "sessionStatus": "COMPLETED"},
+      { "sessionStart":  "2025-03-31 13:30:00", "sessionExecutionTime":  "2025-03-31 13:34:00", "exerciseType":  "SHOULDER", "sessionStatus": "COMPLETED"},
+      { "sessionStart":  "2025-03-31 15:00:00", "sessionExecutionTime":  "2025-03-31 15:03:10", "exerciseType":  "BACK", "sessionStatus": "COMPLETED"},
+      { "sessionStart":  "2025-04-01 10:00:00", "sessionExecutionTime":  "2025-04-01 10:00:20", "exerciseType":  "HIP", "sessionStatus": "COMPLETED"},
+      { "sessionStart":  "2025-04-01 13:30:00", "sessionExecutionTime":  "2025-04-01 13:32:50", "exerciseType":  "SHOULDER", "sessionStatus": "COMPLETED"},
+      { "sessionStart":  "2025-04-01 15:00:00", "sessionExecutionTime":  null, "exerciseType":  "BACK", "sessionStatus": "OVERDUE"},
+      { "sessionStart":  "2025-04-02 10:00:00", "sessionExecutionTime":  "2025-04-02 10:00:05", "exerciseType":  "HIP", "sessionStatus": "COMPLETED"},
+      { "sessionStart":  "2025-04-02 13:30:00", "sessionExecutionTime":  "2025-04-02 13:30:20", "exerciseType":  "SHOULDER", "sessionStatus": "COMPLETED"},
+      { "sessionStart":  "2025-04-02 15:00:00", "sessionExecutionTime":  "2025-04-02 15:00:50", "exerciseType":  "BACK", "sessionStatus": "COMPLETED"}
     ]
   },
   {
     "username": "ethan",
     "measurements": [
-      { "date": "2025-01-01", "weight": 75.1, "fat": 19.8, "visceralFat": 7, "SHOULDER": 2, "BACK": 2, "HIP": 2 },
-      { "date": "2025-02-01", "weight": 74.6, "fat": 19.5, "visceralFat": 7, "SHOULDER": 2, "BACK": 2, "HIP": 2 },
-      { "date": "2025-03-01", "weight": 74.0, "fat": 19.2, "visceralFat": 6, "SHOULDER": 2, "BACK": 2, "HIP": 2 }
+      { "measuredOn": "2025-01-01", "weight": 75.1, "fat": 19.8, "visceralFat": 7, "SHOULDER": 2, "BACK": 2, "HIP": 2 },
+      { "measuredOn": "2025-02-01", "weight": 74.6, "fat": 19.5, "visceralFat": 7, "SHOULDER": 2, "BACK": 2, "HIP": 2 },
+      { "measuredOn": "2025-03-01", "weight": 74.0, "fat": 19.2, "visceralFat": 6, "SHOULDER": 2, "BACK": 2, "HIP": 2 }
     ],
     "leaderboard": {
-      "completionRate": 65.5,
-      "currentStreak": 2,
-      "longestStreak": 2
+      "completionRate": 25.0,
+      "currentStreak": 1,
+      "longestStreak": 1
     },
     "sessions": [
-      { "sessionStart":  "2025-03-31 10:00:00", "sessionExecutionTime":  "2025-03-31 10:05:30", "exerciseType":  "HIP"},
-      { "sessionStart":  "2025-03-31 13:30:00", "sessionExecutionTime":  null, "exerciseType":  "SHOULDER"},
-      { "sessionStart":  "2025-03-31 15:00:00", "sessionExecutionTime":  null, "exerciseType":  "BACK"},
-      { "sessionStart":  "2025-04-01 10:00:00", "sessionExecutionTime":  null, "exerciseType":  "HIP"},
-      { "sessionStart":  "2025-04-01 13:30:00", "sessionExecutionTime":  null, "exerciseType":  "SHOULDER"},
-      { "sessionStart":  "2025-04-01 15:00:00", "sessionExecutionTime":  null, "exerciseType":  "BACK"},
-      { "sessionStart":  "2025-04-02 10:00:00", "sessionExecutionTime":  null, "exerciseType":  "HIP"},
-      { "sessionStart":  "2025-04-02 13:30:00", "sessionExecutionTime":  null, "exerciseType":  "SHOULDER"},
-      { "sessionStart":  "2025-04-02 15:00:00", "sessionExecutionTime":  "2025-04-02 15:00:50", "exerciseType":  "BACK"}
-    ]
-  },
-  {
-    "username": "ava",
-    "measurements": [
-      { "date": "2025-01-01", "weight": 54.8, "fat": 22.9, "visceralFat": 3, "SHOULDER": 3, "BACK": 3, "HIP": 3 },
-      { "date": "2025-02-01", "weight": 54.5, "fat": 22.7, "visceralFat": 3, "SHOULDER": 3, "BACK": 3, "HIP": 3 },
-      { "date": "2025-03-01", "weight": 54.2, "fat": 22.5, "visceralFat": 3, "SHOULDER": 3, "BACK": 3, "HIP": 3 }
-    ],
-    "leaderboard": {
-      "completionRate": 67.5,
-      "currentStreak": 2,
-      "longestStreak": 3
-    },
-    "sessions": [
-      { "sessionStart":  "2025-03-31 10:00:00", "sessionExecutionTime":  "2025-03-31 10:01:20", "exerciseType":  "HIP"},
-      { "sessionStart":  "2025-03-31 13:30:00", "sessionExecutionTime":  "2025-03-31 13:33:30", "exerciseType":  "SHOULDER"},
-      { "sessionStart":  "2025-03-31 15:00:00", "sessionExecutionTime":  "2025-03-31 15:01:50", "exerciseType":  "BACK"},
-      { "sessionStart":  "2025-04-01 10:00:00", "sessionExecutionTime":  "2025-04-01 10:10:30", "exerciseType":  "HIP"},
-      { "sessionStart":  "2025-04-01 13:30:00", "sessionExecutionTime":  "2025-04-01 13:33:10", "exerciseType":  "SHOULDER"},
-      { "sessionStart":  "2025-04-01 15:00:00", "sessionExecutionTime":  "2025-04-01 15:02:35", "exerciseType":  "BACK"},
-      { "sessionStart":  "2025-04-02 10:00:00", "sessionExecutionTime":  "2025-04-02 10:01:45", "exerciseType":  "HIP"},
-      { "sessionStart":  "2025-04-02 13:30:00", "sessionExecutionTime":  "2025-04-02 13:34:25", "exerciseType":  "SHOULDER"},
-      { "sessionStart":  "2025-04-02 15:00:00", "sessionExecutionTime":  "2025-04-02 15:00:45", "exerciseType":  "BACK"}
+      { "sessionStart":  "2025-03-31 10:00:00", "sessionExecutionTime":  "2025-03-31 10:05:30", "exerciseType":  "HIP", "sessionStatus": "COMPLETED"},
+      { "sessionStart":  "2025-03-31 13:30:00", "sessionExecutionTime":  null, "exerciseType":  "SHOULDER", "sessionStatus": "OVERDUE"},
+      { "sessionStart":  "2025-03-31 15:00:00", "sessionExecutionTime":  null, "exerciseType":  "BACK", "sessionStatus": "OVERDUE"},
+      { "sessionStart":  "2025-04-01 10:00:00", "sessionExecutionTime":  null, "exerciseType":  "HIP", "sessionStatus": "OVERDUE"},
+      { "sessionStart":  "2025-04-01 13:30:00", "sessionExecutionTime":  null, "exerciseType":  "SHOULDER", "sessionStatus": "OVERDUE"},
+      { "sessionStart":  "2025-04-01 15:00:00", "sessionExecutionTime":  null, "exerciseType":  "BACK", "sessionStatus": "OVERDUE"},
+      { "sessionStart":  "2025-04-02 10:00:00", "sessionExecutionTime":  null, "exerciseType":  "HIP", "sessionStatus": "OVERDUE"},
+      { "sessionStart":  "2025-04-02 13:30:00", "sessionExecutionTime":  null, "exerciseType":  "SHOULDER", "sessionStatus": "OVERDUE"},
+      { "sessionStart":  "2025-04-02 15:00:00", "sessionExecutionTime":  "2025-04-02 15:00:50", "exerciseType":  "BACK", "sessionStatus": "COMPLETED"}
     ]
   }
 ]

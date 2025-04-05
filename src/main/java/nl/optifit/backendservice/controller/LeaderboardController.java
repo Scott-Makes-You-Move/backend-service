@@ -4,17 +4,11 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import nl.optifit.backendservice.dto.LeaderboardViewDTO;
-import nl.optifit.backendservice.dto.ResultListDataRepresentation;
-import nl.optifit.backendservice.dto.UpdateLeaderboardDTO;
-import nl.optifit.backendservice.model.Leaderboard;
 import nl.optifit.backendservice.model.PagedResponse;
 import nl.optifit.backendservice.service.LeaderboardService;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.parameters.P;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @Slf4j
 @RequiredArgsConstructor
