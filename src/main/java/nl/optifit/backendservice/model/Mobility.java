@@ -10,6 +10,7 @@ import jakarta.validation.constraints.PastOrPresent;
 import lombok.*;
 
 import java.io.Serializable;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -30,7 +31,7 @@ public class Mobility implements Serializable {
     private Account account;
     @PastOrPresent(message = "Measured date cannot be in the future")
     @JsonFormat(pattern="yyyy-MM-dd")
-    private LocalDateTime measuredOn;
+    private LocalDate measuredOn;
     @Min(1) @Max(3)
     private Integer shoulder;
     @Min(1) @Max(3)

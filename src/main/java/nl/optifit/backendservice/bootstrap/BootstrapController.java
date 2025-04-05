@@ -95,12 +95,11 @@ public class BootstrapController {
         List<Mobility> mobilities = new ArrayList<>();
 
         bootstrapData.getMeasurements().forEach(measurement -> {
-            LocalDate localDate = LocalDate.parse(measurement.getDate(), DATE_FORMATTER);
-            LocalDateTime localDateTime = LocalDateTime.of(localDate, LocalTime.of(12, 0, 0));
+            LocalDate localDate = LocalDate.parse(measurement.getMeasuredOn(), DATE_FORMATTER);
 
             Biometrics biometric = Biometrics.builder()
                     .account(account)
-                    .measuredOn(localDateTime)
+                    .measuredOn(localDate)
                     .weight(measurement.getWeight())
                     .fat(measurement.getFat())
                     .visceralFat(measurement.getVisceralFat())
@@ -109,7 +108,7 @@ public class BootstrapController {
 
             Mobility mobility = Mobility.builder()
                     .account(account)
-                    .measuredOn(localDateTime)
+                    .measuredOn(localDate)
                     .shoulder(measurement.getShoulder())
                     .back(measurement.getBack())
                     .hip(measurement.getHip())
@@ -126,6 +125,7 @@ public class BootstrapController {
                     .sessionStart(session.getSessionStart())
                     .sessionExecutionTime(session.getSessionExecutionTime())
                     .exerciseType(session.getExerciseType())
+                    .sessionStatus(session.getSessionStatus())
                     .build();
             sessions.add(completedSession);
         });

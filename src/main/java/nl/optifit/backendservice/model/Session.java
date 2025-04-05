@@ -35,4 +35,8 @@ public class Session implements Serializable {
     @Column(nullable = false)
     @JsonFormat(shape = JsonFormat.Shape.STRING)
     private ExerciseType exerciseType;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
+    private SessionStatus sessionStatus;
 }

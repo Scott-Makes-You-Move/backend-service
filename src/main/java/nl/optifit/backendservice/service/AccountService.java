@@ -1,6 +1,5 @@
 package nl.optifit.backendservice.service;
 
-import jakarta.transaction.Transactional;
 import jakarta.ws.rs.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -13,8 +12,12 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Objects;
@@ -31,8 +34,8 @@ public class AccountService {
     private final SessionRepository sessionRepository;
 
     @Transactional
-    public Account createAccountForId(String accountId) {
-        log.info("Creating account for id [{}]", accountId);
+    public Account createAccount(String accountId) {
+        log.info("Creating account '{}'", accountId);
 
         Account account = Account.builder().id(accountId).build();
         Leaderboard leaderboard = Leaderboard.builder()
@@ -50,21 +53,21 @@ public class AccountService {
 
     @Transactional
     public void deleteAccount(String accountId) {
-        log.info("Deleting account [{}]", accountId);
+        log.info("Deleting account '{}'", accountId);
         accountRepository.deleteById(accountId);
-        log.info("Deleted account [{}]", accountId);
+        log.info("Deleted account '{}'", accountId);
         leaderboardRepository.deleteByAccountId(accountId);
-        log.info("Deleted leaderboard for account [{}]", accountId);
+        log.info("Deleted leaderboard for account '{}'", accountId);
     }
 
     public Page<Biometrics> getBiometricsForAccount(String accountId, int page, int size, String direction, String sortBy) {
-        log.debug("Retrieving biometrics with page [{}], size [{}], direction [{}], sortBy [{}]", page, size, direction, sortBy);
+        log.debug("Retrieving biometrics with page '{}', size '{}', direction '{}', sortBy '{}'", page, size, direction, sortBy);
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.fromString(direction), sortBy));
         return biometricsRepository.findAllByAccountId(pageable, accountId);
     }
 
     public Page<Mobility> getMobilitiesForAccount(String accountId, int page, int size, String direction, String sortBy) {
-        log.debug("Retrieving mobilities with page [{}], size [{}], direction [{}], sortBy [{}]", page, size, direction, sortBy);
+        log.debug("Retrieving mobilities with page '{}', size '{}', direction '{}', sortBy '{}'", page, size, direction, sortBy);
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.fromString(direction), sortBy));
         return mobilityRepository.findAllByAccountId(pageable, accountId);
     }
@@ -80,65 +83,98 @@ public class AccountService {
     public Mobility saveMobilityForAccount(String accountId, MobilityMeasurementDTO mobilityMeasurementDTO) {
         log.debug("Saving mobility for account '{}'", accountId);
         Account account = accountRepository.findById(accountId).orElseThrow(() -> new RuntimeException("Could not find user"));
-        ;
+
         Mobility mobility = MobilityMeasurementDTO.toMobility(account, mobilityMeasurementDTO);
 
         return mobilityRepository.save(mobility);
     }
 
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void createSessionsForAllAccounts(LocalDateTime sessionStart) {
+        log.debug("Creating sessions for all accounts");
+        accountRepository.findAll().forEach(account -> {
+            Session newSession = Session.builder()
+                    .account(account)
+                    .sessionStart(sessionStart)
+                    .exerciseType(determineExerciseType(sessionStart))
+                    .sessionStatus(SessionStatus.NEW)
+                    .build();
+            sessionRepository.save(newSession);
+            updateLeaderboardForAccount(account, newSession);
+        });
+    }
+
+    private ExerciseType determineExerciseType(LocalDateTime time) {
+        LocalTime localTime = time.toLocalTime();
+        if (localTime.equals(LocalTime.of(10, 0))) {
+            return ExerciseType.HIP;
+        } else if (localTime.equals(LocalTime.of(13, 30))) {
+            return ExerciseType.SHOULDER;
+        } else {
+            return ExerciseType.BACK;
+        }
+    }
+
     @Transactional
-    public Session updateSessionForAccount(String accountId) {
-        log.debug("Updating session for account '{}'", accountId);
-        LocalDateTime now = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
+    public Session updateSessionForAccount(String accountId, LocalDateTime now) {
+        Session session = sessionRepository.findByAccountIdAndSessionStatus(accountId, SessionStatus.NEW)
+                .orElseThrow(() -> new NotFoundException("No session found for account"));
 
-        Session lastSession = sessionRepository.findFirstByAccountIdOrderBySessionStartDesc(accountId)
-                .orElseThrow(() -> new NotFoundException("Could not find session for user"));
+        return updateSessionForAccount(session, now);
+    }
 
-        if (Objects.nonNull(lastSession.getSessionExecutionTime())) {
-            log.warn("Session already completed");
+    @Transactional
+    public Session updateSessionForAccount(Session lastSession, LocalDateTime now) {
+        log.debug("Updating session '{}'", lastSession.getId());
+
+        if (!lastSession.getSessionStatus().equals(SessionStatus.NEW)) {
+            log.warn("Trying to update a session '{}' that is already finished", lastSession.getId());
             return null;
         }
 
-        if (now.isAfter(lastSession.getSessionStart().plusHours(1))) {
+        updateSessionStatus(lastSession, now);
+        updateLeaderboardForAccount(lastSession.getAccount(), lastSession);
+
+        return lastSession;
+    }
+
+    private void updateSessionStatus(Session lastSession, LocalDateTime now) {
+        LocalDateTime lastSessionStart = lastSession.getSessionStart().truncatedTo(ChronoUnit.SECONDS);
+
+        long differenceBetweenSessionStartAndNow = Duration.between(lastSessionStart, now).toMinutes();
+
+        if (differenceBetweenSessionStartAndNow >= 60) {
             log.warn("An hour has already passed after session start");
-            return null;
+            lastSession.setSessionStatus(SessionStatus.OVERDUE);
+            lastSession.setSessionExecutionTime(null);
+        } else {
+            lastSession.setSessionStatus(SessionStatus.COMPLETED);
+            lastSession.setSessionExecutionTime(now);
         }
-        lastSession.setSessionExecutionTime(now);
-        updateLeaderboardForAccount(accountId);
-
-        return sessionRepository.save(lastSession);
+        sessionRepository.save(lastSession);
     }
 
-    private void updateLeaderboardForAccount(String accountId) {
-        log.debug("Updating leaderboard for account '{}'", accountId);
-        LocalDateTime now = LocalDateTime.now();
+    @Transactional
+    protected void updateLeaderboardForAccount(Account account, Session lastSession) {
+        log.debug("Updating leaderboard for account '{}'", account.getId());
+        Leaderboard leaderboard = leaderboardRepository.findByAccountId(account.getId())
+                .orElseThrow(() -> new NotFoundException("No leaderboard found for account"));
 
-        Account account = accountRepository.findAccountWithLeaderboard(accountId)
-                .orElseThrow(() -> new RuntimeException("Could not find user"));
-        Leaderboard leaderboard = account.getLeaderboard();
+        if (lastSession.getSessionStatus().equals(SessionStatus.COMPLETED)) {
+            leaderboard.setCurrentStreak(leaderboard.getCurrentStreak() + 1);
+            leaderboard.setLongestStreak(Math.max(leaderboard.getCurrentStreak(), leaderboard.getLongestStreak()));
+        }
+        if (lastSession.getSessionStatus().equals(SessionStatus.OVERDUE)) {
+            leaderboard.setCurrentStreak(0);
+        }
+        leaderboard.setCompletionRate(calculateCompletionRate(account));
+        leaderboard.setLastUpdated(LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS));
 
-        sessionRepository.findFirstByAccountIdOrderBySessionStartDesc(accountId).ifPresentOrElse(lastSession -> {
-            boolean lastSessionCompleted = Objects.nonNull(lastSession.getSessionExecutionTime());
-
-            if (leaderboard.getLastUpdated().isAfter(lastSession.getSessionExecutionTime())) {
-                log.warn("Tried to update leaderboard to an invalid state");
-                return;
-            }
-
-            if (lastSessionCompleted) {
-                int newCurrentStreak = leaderboard.getCurrentStreak() + 1;
-                leaderboard.setCurrentStreak(newCurrentStreak);
-                leaderboard.setLongestStreak(Math.max(newCurrentStreak, leaderboard.getLongestStreak()));
-            } else {
-                leaderboard.setCurrentStreak(0);
-            }
-            leaderboard.setCompletionRate(calculateCompletionRate(accountId));
-            leaderboard.setLastUpdated(now);
-        }, () -> log.warn("Could not find leaderboard for account '{}'", accountId));
+        leaderboardRepository.save(leaderboard);
     }
 
-    private double calculateCompletionRate(String accountId) {
-        List<Session> sessionsForAccount = sessionRepository.findAllByAccountId(accountId);
+    private double calculateCompletionRate(Account account) {
+        List<Session> sessionsForAccount = sessionRepository.findAllByAccountId(account.getId());
 
         long totalSessions = sessionsForAccount.size();
         long completedSessions = sessionsForAccount.stream()
@@ -146,9 +182,8 @@ public class AccountService {
                 .filter(Objects::nonNull)
                 .count();
 
-        double completionRate = totalSessions > 0
+        return totalSessions > 0
                 ? (double) completedSessions / totalSessions * 100
                 : 0;
-        return completionRate;
     }
 }

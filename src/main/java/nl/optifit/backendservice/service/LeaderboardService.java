@@ -17,7 +17,7 @@ public class LeaderboardService {
     private final KeycloakService keycloakService;
 
     public Page<LeaderboardViewDTO> getLeaderboard(int page, int size, String direction, String sortBy) {
-        log.debug("Retrieving leaderboard with page [{}], size [{}], direction [{}], sortBy [{}]", page, size, direction, sortBy);
+        log.debug("Retrieving leaderboard with page '{}', size '{}', direction '{}', sortBy '{}'", page, size, direction, sortBy);
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.fromString(direction), sortBy));
 
         return leaderboardRepository.findAll(pageable).map(leaderboard -> {

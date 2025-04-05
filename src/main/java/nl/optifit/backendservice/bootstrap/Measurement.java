@@ -7,8 +7,8 @@ import lombok.Setter;
 @Getter
 @Setter
 public class Measurement {
-    @JsonProperty("date")
-    private String date;
+    @JsonProperty("measuredOn")
+    private String measuredOn;
 
     @JsonProperty("weight")
     private Double weight;

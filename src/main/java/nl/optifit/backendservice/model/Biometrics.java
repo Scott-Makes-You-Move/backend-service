@@ -11,6 +11,7 @@ import jakarta.validation.constraints.PastOrPresent;
 import lombok.*;
 
 import java.io.Serializable;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -31,7 +32,7 @@ public class Biometrics implements Serializable {
     private Account account;
     @PastOrPresent(message = "Measured date cannot be in the future")
     @JsonFormat(pattern="yyyy-MM-dd")
-    private LocalDateTime measuredOn;
+    private LocalDate measuredOn;
     @Min(value = 0, message = "Weight must be positive")
     private Double weight;
     @Min(value = 1, message = "Fat percentage must be positive")

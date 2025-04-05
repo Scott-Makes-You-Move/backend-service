@@ -7,7 +7,6 @@ import lombok.extern.slf4j.Slf4j;
 import nl.optifit.backendservice.dto.CreateAccountDTO;
 import nl.optifit.backendservice.dto.BiometricsMeasurementDTO;
 import nl.optifit.backendservice.dto.MobilityMeasurementDTO;
-import nl.optifit.backendservice.dto.SessionDTO;
 import nl.optifit.backendservice.model.*;
 import nl.optifit.backendservice.service.AccountService;
 import org.springframework.data.domain.Page;
@@ -16,6 +15,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.Objects;
 
 @Slf4j
@@ -52,10 +53,11 @@ public class AccountController {
     @PutMapping("/{accountId}/session")
     public ResponseEntity<Session> updateSession(@PathVariable String accountId) {
         log.info("PUT Account Session REST API called");
-        Session session = accountService.updateSessionForAccount(accountId);
+        LocalDateTime now = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
+        Session session = accountService.updateSessionForAccount(accountId, now);
         return Objects.nonNull(session)
                 ? ResponseEntity.status(HttpStatus.NO_CONTENT).body(session)
-                : ResponseEntity.internalServerError().build();
+                : ResponseEntity.status(HttpStatus.CONFLICT).build();
     }
 
     @PostMapping("/{accountId}/biometrics")
@@ -77,7 +79,7 @@ public class AccountController {
     @PostMapping
     public ResponseEntity<Account> createAccount(@RequestBody CreateAccountDTO createAccountDTO) {
         log.info("POST Account REST API called");
-        Account createdAccount = accountService.createAccountForId(createAccountDTO.getAccountId());
+        Account createdAccount = accountService.createAccount(createAccountDTO.getAccountId());
         return ResponseEntity.status(HttpStatus.CREATED).body(createdAccount);
     }
 

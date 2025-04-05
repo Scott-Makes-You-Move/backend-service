@@ -9,23 +9,22 @@ import nl.optifit.backendservice.model.Account;
 import nl.optifit.backendservice.model.Biometrics;
 import nl.optifit.backendservice.model.Mobility;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Getter
 @Setter
 @JsonIgnoreProperties
 public class MobilityMeasurementDTO {
-    @Min(1) @Max(3)
+    private LocalDate measuredOn;
     private Integer shoulder;
-    @Min(1) @Max(3)
     private Integer back;
-    @Min(1) @Max(3)
     private Integer hip;
 
     public static Mobility toMobility(Account account, MobilityMeasurementDTO mobilityMeasurementDTO) {
         return Mobility.builder()
                 .account(account)
-                .measuredOn(LocalDateTime.now())
+                .measuredOn(mobilityMeasurementDTO.getMeasuredOn())
                 .shoulder(mobilityMeasurementDTO.getShoulder())
                 .back(mobilityMeasurementDTO.getBack())
                 .hip(mobilityMeasurementDTO.getHip())

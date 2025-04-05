@@ -6,12 +6,14 @@ import lombok.Setter;
 import nl.optifit.backendservice.model.Account;
 import nl.optifit.backendservice.model.Biometrics;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Getter
 @Setter
 @JsonIgnoreProperties
 public class BiometricsMeasurementDTO {
+    private LocalDate measuredOn;
     private Double weight;
     private Double fat;
     private Integer visceralFat;
@@ -19,7 +21,7 @@ public class BiometricsMeasurementDTO {
     public static Biometrics toBiometrics(Account account, BiometricsMeasurementDTO biometricsMeasurementDTO) {
         return Biometrics.builder()
                 .account(account)
-                .measuredOn(LocalDateTime.now())
+                .measuredOn(biometricsMeasurementDTO.getMeasuredOn())
                 .weight(biometricsMeasurementDTO.getWeight())
                 .fat(biometricsMeasurementDTO.getFat())
                 .visceralFat(biometricsMeasurementDTO.getVisceralFat())
