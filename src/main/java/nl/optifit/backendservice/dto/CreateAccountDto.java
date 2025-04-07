@@ -7,6 +7,6 @@ import lombok.*;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class CreateAccountDTO {
+public class CreateAccountDto {
     private String accountId;
 }

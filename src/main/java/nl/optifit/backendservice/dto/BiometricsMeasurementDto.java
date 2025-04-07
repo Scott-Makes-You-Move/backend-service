@@ -7,18 +7,17 @@ import nl.optifit.backendservice.model.Account;
 import nl.optifit.backendservice.model.Biometrics;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 
 @Getter
 @Setter
 @JsonIgnoreProperties
-public class BiometricsMeasurementDTO {
+public class BiometricsMeasurementDto {
     private LocalDate measuredOn;
     private Double weight;
     private Double fat;
     private Integer visceralFat;
 
-    public static Biometrics toBiometrics(Account account, BiometricsMeasurementDTO biometricsMeasurementDTO) {
+    public static Biometrics toBiometrics(Account account, BiometricsMeasurementDto biometricsMeasurementDTO) {
         return Biometrics.builder()
                 .account(account)
                 .measuredOn(biometricsMeasurementDTO.getMeasuredOn())

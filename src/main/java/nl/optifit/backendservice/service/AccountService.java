@@ -3,12 +3,11 @@ package nl.optifit.backendservice.service;
 import jakarta.ws.rs.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import nl.optifit.backendservice.dto.BiometricsMeasurementDTO;
-import nl.optifit.backendservice.dto.MobilityMeasurementDTO;
+import nl.optifit.backendservice.dto.BiometricsMeasurementDto;
+import nl.optifit.backendservice.dto.MobilityMeasurementDto;
 import nl.optifit.backendservice.model.*;
 import nl.optifit.backendservice.repository.*;
 import org.apache.commons.lang3.StringUtils;
-import org.aspectj.weaver.ast.Not;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -25,7 +24,6 @@ import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -38,6 +36,7 @@ public class AccountService {
     private final SessionRepository sessionRepository;
 
     private final NotificationPushService notificationPushService;
+    private final NotificationRepository notificationRepository;
 
     @Transactional
     public Account createAccount(String accountId) {
@@ -93,19 +92,19 @@ public class AccountService {
     }
 
 
-    public Biometrics saveBiometricForAccount(String accountId, BiometricsMeasurementDTO biometricsMeasurementDTO) {
+    public Biometrics saveBiometricForAccount(String accountId, BiometricsMeasurementDto biometricsMeasurementDTO) {
         log.debug("Saving biometric for account '{}'", accountId);
         Account account = accountRepository.findById(accountId).orElseThrow(() -> new RuntimeException("Could not find user"));
-        Biometrics biometrics = BiometricsMeasurementDTO.toBiometrics(account, biometricsMeasurementDTO);
+        Biometrics biometrics = BiometricsMeasurementDto.toBiometrics(account, biometricsMeasurementDTO);
 
         return biometricsRepository.save(biometrics);
     }
 
-    public Mobility saveMobilityForAccount(String accountId, MobilityMeasurementDTO mobilityMeasurementDTO) {
+    public Mobility saveMobilityForAccount(String accountId, MobilityMeasurementDto mobilityMeasurementDTO) {
         log.debug("Saving mobility for account '{}'", accountId);
         Account account = accountRepository.findById(accountId).orElseThrow(() -> new RuntimeException("Could not find user"));
 
-        Mobility mobility = MobilityMeasurementDTO.toMobility(account, mobilityMeasurementDTO);
+        Mobility mobility = MobilityMeasurementDto.toMobility(account, mobilityMeasurementDTO);
 
         return mobilityRepository.save(mobility);
     }
@@ -167,6 +166,7 @@ public class AccountService {
 
         updateSessionStatus(lastSession, now);
         updateLeaderboardForAccount(lastSession.getAccount(), lastSession);
+        deleteNotification(lastSession);
 
         return lastSession;
     }
@@ -204,6 +204,10 @@ public class AccountService {
         leaderboard.setLastUpdated(LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS));
 
         leaderboardRepository.save(leaderboard);
+    }
+
+    private void deleteNotification(Session lastSession) {
+        notificationRepository.deleteById(lastSession.getId());
     }
 
     private double calculateCompletionRate(Account account) {
