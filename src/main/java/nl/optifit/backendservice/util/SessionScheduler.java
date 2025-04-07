@@ -20,6 +20,8 @@ public class SessionScheduler {
     private final AccountService accountService;
     private final SessionService sessionService;
 
+    // 0 42 13 * * ?
+    // 0 0 10,13,15 ? * MON-FRI
     @Scheduled(cron = "0 0 10,13,15 ? * MON-FRI", zone = "Europe/Amsterdam")
     public void createDailySessions() {
         LocalDateTime now = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
@@ -30,6 +32,7 @@ public class SessionScheduler {
         }
     }
 
+    // 0 0 11,14,16 ? * MON-FRI
     @Scheduled(cron = "0 0 11,14,16 ? * MON-FRI", zone = "Europe/Amsterdam")
     public void updateLastSessionStatus() {
         LocalDateTime now = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
