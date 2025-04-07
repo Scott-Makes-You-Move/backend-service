@@ -43,5 +43,6 @@ public class Session implements Serializable {
     @OneToOne(mappedBy = "session", cascade = CascadeType.ALL, orphanRemoval = true)
     @PrimaryKeyJoinColumn
     @JsonManagedReference
+    @JsonIgnore
     private Notification notification;
 }

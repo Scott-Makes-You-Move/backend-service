@@ -4,9 +4,9 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import nl.optifit.backendservice.dto.CreateAccountDTO;
-import nl.optifit.backendservice.dto.BiometricsMeasurementDTO;
-import nl.optifit.backendservice.dto.MobilityMeasurementDTO;
+import nl.optifit.backendservice.dto.CreateAccountDto;
+import nl.optifit.backendservice.dto.BiometricsMeasurementDto;
+import nl.optifit.backendservice.dto.MobilityMeasurementDto;
 import nl.optifit.backendservice.model.*;
 import nl.optifit.backendservice.service.AccountService;
 import org.springframework.data.domain.Page;
@@ -74,7 +74,7 @@ public class AccountController {
 
     @PostMapping("/{accountId}/biometrics")
     public ResponseEntity<Biometrics> createBiometric(@PathVariable String accountId,
-                                                      @RequestBody @Valid BiometricsMeasurementDTO biometricsMeasurementDTO) {
+                                                      @RequestBody @Valid BiometricsMeasurementDto biometricsMeasurementDTO) {
         log.info("POST Account Biometrics REST API called");
         Biometrics biometrics = accountService.saveBiometricForAccount(accountId, biometricsMeasurementDTO);
         return ResponseEntity.status(HttpStatus.CREATED).body(biometrics);
@@ -82,14 +82,14 @@ public class AccountController {
 
     @PostMapping("/{accountId}/mobilities")
     public ResponseEntity<Mobility> createMobility(@PathVariable String accountId,
-                                                   @RequestBody @Valid MobilityMeasurementDTO mobilityMeasurementDTO) {
+                                                   @RequestBody @Valid MobilityMeasurementDto mobilityMeasurementDTO) {
         log.info("POST Account Mobilities REST API called");
         Mobility mobility = accountService.saveMobilityForAccount(accountId, mobilityMeasurementDTO);
         return ResponseEntity.status(HttpStatus.CREATED).body(mobility);
     }
 
     @PostMapping
-    public ResponseEntity<Account> createAccount(@RequestBody CreateAccountDTO createAccountDTO) {
+    public ResponseEntity<Account> createAccount(@RequestBody CreateAccountDto createAccountDTO) {
         log.info("POST Account REST API called");
         Account createdAccount = accountService.createAccount(createAccountDTO.getAccountId());
         return ResponseEntity.status(HttpStatus.CREATED).body(createdAccount);

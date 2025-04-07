@@ -1,12 +1,13 @@
 package nl.optifit.backendservice.model;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.PastOrPresent;
 import lombok.*;
 
 import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
 import java.util.UUID;
 
 @Entity
@@ -28,9 +29,10 @@ public class Notification {
     @MapsId
     @JsonBackReference
     private Session session;
-    @Builder.Default
-    private LocalDateTime createdAt = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
-    private LocalDateTime expiresAt = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS).plusHours(1);
-    private Boolean pushed = false;
-    private LocalDateTime pushedAt;
+    @PastOrPresent(message = "Measured date cannot be in the future")
+    @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss")
+    private LocalDateTime createdAt;
+    @PastOrPresent(message = "Measured date cannot be in the future")
+    @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss")
+    private LocalDateTime expiresAt;
 }
