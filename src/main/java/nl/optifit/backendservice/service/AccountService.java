@@ -7,6 +7,7 @@ import nl.optifit.backendservice.dto.BiometricsMeasurementDTO;
 import nl.optifit.backendservice.dto.MobilityMeasurementDTO;
 import nl.optifit.backendservice.model.*;
 import nl.optifit.backendservice.repository.*;
+import org.apache.commons.lang3.StringUtils;
 import org.aspectj.weaver.ast.Not;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -17,8 +18,10 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Objects;
@@ -74,6 +77,21 @@ public class AccountService {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.fromString(direction), sortBy));
         return mobilityRepository.findAllByAccountId(pageable, accountId);
     }
+    public Page<Session> getSessionsForAccount(String accountId, String sessionStartDateString, int page, int size, String direction, String sortBy) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.fromString(direction), sortBy));
+
+        if (StringUtils.isNotBlank(sessionStartDateString)) {
+            log.debug("Retrieving sessions on date '{}'  with page '{}', size '{}', direction '{}', sortBy '{}'", sessionStartDateString, page, size, direction, sortBy);
+            LocalDate sessionDay = LocalDate.parse(sessionStartDateString, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+            LocalDateTime start = sessionDay.atTime(LocalTime.MIN);
+            LocalDateTime end = sessionDay.atTime(LocalTime.MAX);
+            return sessionRepository.findByAccountIdAndSessionStartBetween(accountId, start, end, pageable);
+        } else {
+            log.debug("Retrieving sessions with page '{}', size '{}', direction '{}', sortBy '{}'", page, size, direction, sortBy);
+            return sessionRepository.findAllByAccountId(pageable, accountId);
+        }
+    }
+
 
     public Biometrics saveBiometricForAccount(String accountId, BiometricsMeasurementDTO biometricsMeasurementDTO) {
         log.debug("Saving biometric for account '{}'", accountId);
