@@ -40,17 +40,29 @@ public class AccountController {
 
     @GetMapping("/{accountId}/mobilities")
     public ResponseEntity<PagedResponse<Mobility>> getMobilitiesForAccount(@PathVariable String accountId,
-                                                                  @RequestParam(defaultValue = "0") int page,
-                                                                  @RequestParam(defaultValue = "10") int size,
-                                                                  @RequestParam(defaultValue = "DESC") String direction,
-                                                                  @RequestParam(defaultValue = "measuredOn") String sortBy) {
+                                                                           @RequestParam(defaultValue = "0") int page,
+                                                                           @RequestParam(defaultValue = "10") int size,
+                                                                           @RequestParam(defaultValue = "DESC") String direction,
+                                                                           @RequestParam(defaultValue = "measuredOn") String sortBy) {
         log.info("GET Account Mobilities REST API called");
         Page<Mobility> mobilitiesForAccount = accountService.getMobilitiesForAccount(accountId, page, size, direction, sortBy);
         return ResponseEntity.ok(new PagedResponse<>(mobilitiesForAccount));
     }
 
+    @GetMapping("/{accountId}/sessions")
+    public ResponseEntity<PagedResponse<Session>> getSessionsForAccount(@PathVariable String accountId,
+                                                                        @RequestParam(required = false) String sessionStartDate,
+                                                                        @RequestParam(defaultValue = "0") int page,
+                                                                        @RequestParam(defaultValue = "10") int size,
+                                                                        @RequestParam(defaultValue = "DESC") String direction,
+                                                                        @RequestParam(defaultValue = "sessionStart") String sortBy) {
+        log.info("GET Account Sessions REST API called");
+        Page<Session> sessionsForAccount = accountService.getSessionsForAccount(accountId, sessionStartDate, page, size, direction, sortBy);
+        return ResponseEntity.ok(new PagedResponse<>(sessionsForAccount));
+    }
+
     @PreAuthorize("#accountId == authentication.principal.id")
-    @PutMapping("/{accountId}/session")
+    @PutMapping("/{accountId}/sessions")
     public ResponseEntity<Session> updateSession(@PathVariable String accountId) {
         log.info("PUT Account Session REST API called");
         LocalDateTime now = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
