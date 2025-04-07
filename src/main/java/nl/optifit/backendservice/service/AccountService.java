@@ -7,6 +7,7 @@ import nl.optifit.backendservice.dto.BiometricsMeasurementDTO;
 import nl.optifit.backendservice.dto.MobilityMeasurementDTO;
 import nl.optifit.backendservice.model.*;
 import nl.optifit.backendservice.repository.*;
+import org.aspectj.weaver.ast.Not;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -32,6 +33,8 @@ public class AccountService {
     private final BiometricsRepository biometricsRepository;
     private final MobilityRepository mobilityRepository;
     private final SessionRepository sessionRepository;
+
+    private final NotificationPushService notificationPushService;
 
     @Transactional
     public Account createAccount(String accountId) {
@@ -92,6 +95,7 @@ public class AccountService {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void createSessionsForAllAccounts(LocalDateTime sessionStart) {
         log.debug("Creating sessions for all accounts");
+
         accountRepository.findAll().forEach(account -> {
             Session newSession = Session.builder()
                     .account(account)
@@ -99,9 +103,20 @@ public class AccountService {
                     .exerciseType(determineExerciseType(sessionStart))
                     .sessionStatus(SessionStatus.NEW)
                     .build();
+
+            Notification notification = Notification.builder()
+                    .title(newSession.getExerciseType().getDisplayName())
+                    .session(newSession)
+                    .createdAt(sessionStart)
+                    .expiresAt(sessionStart.plusHours(1))
+                    .linkToVideo("https://somelink.com/example-vid")
+                    .build();
+
+            newSession.setNotification(notification);
             sessionRepository.save(newSession);
             updateLeaderboardForAccount(account, newSession);
         });
+        notificationPushService.broadcast("New session has been created");
     }
 
     private ExerciseType determineExerciseType(LocalDateTime time) {
