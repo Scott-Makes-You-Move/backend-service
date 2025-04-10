@@ -148,7 +148,7 @@ public class AccountService {
 
         if (!lastSession.getSessionStatus().equals(SessionStatus.NEW)) {
             log.warn("Trying to update a session '{}' that is already finished", lastSession.getId());
-            return null;
+            throw new IllegalStateException("Session is already finished");
         }
 
         updateSessionStatus(lastSession, now);

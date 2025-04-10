@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import nl.optifit.backendservice.exception.*;
 import nl.optifit.backendservice.model.*;
 import nl.optifit.backendservice.repository.AccountRepository;
 import nl.optifit.backendservice.util.KeycloakService;
@@ -55,7 +56,8 @@ public class BootstrapController {
                 });
             });
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            log.error("Exception occurred during bootstrap", e);
+            throw new BootstrapException("Something went wrong while bootstrapping", e);
         }
 
         int total = response.getAccountIds().size();
