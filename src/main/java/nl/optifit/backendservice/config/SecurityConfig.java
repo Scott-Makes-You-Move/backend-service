@@ -29,8 +29,7 @@ public class SecurityConfig {
                             "/v3/api-docs",
                             "/webjars/**",
                             "/h2-console/**",
-                            "/api/v1/notification/**",
-                            "/ws/**"
+                            "/api/v1/notification/**"
                     ).permitAll()
                     .anyRequest().authenticated();
         });

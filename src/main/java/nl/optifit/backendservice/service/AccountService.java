@@ -35,9 +35,6 @@ public class AccountService {
     private final MobilityRepository mobilityRepository;
     private final SessionRepository sessionRepository;
 
-    private final NotificationPushService notificationPushService;
-    private final NotificationRepository notificationRepository;
-
     @Transactional
     public Account createAccount(String accountId) {
         log.info("Creating account '{}'", accountId);
@@ -121,19 +118,9 @@ public class AccountService {
                     .sessionStatus(SessionStatus.NEW)
                     .build();
 
-            Notification notification = Notification.builder()
-                    .title(newSession.getExerciseType().getDisplayName())
-                    .session(newSession)
-                    .createdAt(sessionStart)
-                    .expiresAt(sessionStart.plusHours(1))
-                    .linkToVideo("https://somelink.com/example-vid")
-                    .build();
-
-            newSession.setNotification(notification);
             sessionRepository.save(newSession);
             updateLeaderboardForAccount(account, newSession);
         });
-        notificationPushService.broadcast("New session has been created");
     }
 
     private ExerciseType determineExerciseType(LocalDateTime time) {
@@ -166,7 +153,6 @@ public class AccountService {
 
         updateSessionStatus(lastSession, now);
         updateLeaderboardForAccount(lastSession.getAccount(), lastSession);
-        deleteNotification(lastSession);
 
         return lastSession;
     }
@@ -204,10 +190,6 @@ public class AccountService {
         leaderboard.setLastUpdated(LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS));
 
         leaderboardRepository.save(leaderboard);
-    }
-
-    private void deleteNotification(Session lastSession) {
-        notificationRepository.deleteById(lastSession.getId());
     }
 
     private double calculateCompletionRate(Account account) {

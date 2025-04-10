@@ -40,9 +40,4 @@ public class Session implements Serializable {
     @Column(nullable = false)
     @JsonFormat(shape = JsonFormat.Shape.STRING)
     private SessionStatus sessionStatus;
-    @OneToOne(mappedBy = "session", cascade = CascadeType.ALL, orphanRemoval = true)
-    @PrimaryKeyJoinColumn
-    @JsonManagedReference
-    @JsonIgnore
-    private Notification notification;
 }
