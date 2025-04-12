@@ -101,4 +101,10 @@ public class AccountController {
         accountService.deleteAccount(accountId);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
+
+    @GetMapping("/test")
+    public ResponseEntity<Void> testEndpoint() {
+        accountService.createSessionsForAllAccounts();
+        return ResponseEntity.status(HttpStatus.OK).build();
+    }
 }
