@@ -1,6 +1,7 @@
 package nl.optifit.backendservice.controller;
 
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.*;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,31 +24,10 @@ import java.util.Objects;
 @RequiredArgsConstructor
 @SecurityRequirement(name = "Bearer Authentication")
 @RequestMapping("/api/v1/account")
+@Tag(name = "Account", description = "Operations related to accounts")
 @RestController
 public class AccountController {
     private final AccountService accountService;
-
-    @GetMapping("/{accountId}/biometrics")
-    public ResponseEntity<PagedResponse<Biometrics>> getBiometricsForAccount(@PathVariable String accountId,
-                                                                             @RequestParam(defaultValue = "0") int page,
-                                                                             @RequestParam(defaultValue = "10") int size,
-                                                                             @RequestParam(defaultValue = "DESC") String direction,
-                                                                             @RequestParam(defaultValue = "measuredOn") String sortBy) {
-        log.info("GET Account Biometrics REST API called");
-        Page<Biometrics> biometricsForAccount = accountService.getBiometricsForAccount(accountId, page, size, direction, sortBy);
-        return ResponseEntity.ok(new PagedResponse<>(biometricsForAccount));
-    }
-
-    @GetMapping("/{accountId}/mobilities")
-    public ResponseEntity<PagedResponse<Mobility>> getMobilitiesForAccount(@PathVariable String accountId,
-                                                                           @RequestParam(defaultValue = "0") int page,
-                                                                           @RequestParam(defaultValue = "10") int size,
-                                                                           @RequestParam(defaultValue = "DESC") String direction,
-                                                                           @RequestParam(defaultValue = "measuredOn") String sortBy) {
-        log.info("GET Account Mobilities REST API called");
-        Page<Mobility> mobilitiesForAccount = accountService.getMobilitiesForAccount(accountId, page, size, direction, sortBy);
-        return ResponseEntity.ok(new PagedResponse<>(mobilitiesForAccount));
-    }
 
     @GetMapping("/{accountId}/sessions")
     public ResponseEntity<PagedResponse<Session>> getSessionsForAccount(@PathVariable String accountId,
@@ -61,23 +41,31 @@ public class AccountController {
         return ResponseEntity.ok(new PagedResponse<>(sessionsForAccount));
     }
 
-    @PreAuthorize("#accountId == authentication.principal.id")
     @PutMapping("/{accountId}/sessions")
     public ResponseEntity<Session> updateSession(@PathVariable String accountId) {
         log.info("PUT Account Session REST API called");
-        LocalDateTime now = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
-        Session session = accountService.updateSessionForAccount(accountId, now);
+        Session session = accountService.updateSessionForAccount(accountId);
         return Objects.nonNull(session)
                 ? ResponseEntity.status(HttpStatus.NO_CONTENT).body(session)
                 : ResponseEntity.status(HttpStatus.CONFLICT).build();
     }
 
-    @PostMapping("/{accountId}/biometrics")
-    public ResponseEntity<Biometrics> createBiometric(@PathVariable String accountId,
-                                                      @RequestBody @Valid BiometricsMeasurementDto biometricsMeasurementDTO) {
-        log.info("POST Account Biometrics REST API called");
-        Biometrics biometrics = accountService.saveBiometricForAccount(accountId, biometricsMeasurementDTO);
-        return ResponseEntity.status(HttpStatus.CREATED).body(biometrics);
+    @PostMapping
+    public ResponseEntity<Account> createAccount(@RequestBody CreateAccountDto createAccountDTO) {
+        log.info("POST Account REST API called");
+        Account createdAccount = accountService.createAccount(createAccountDTO.getAccountId());
+        return ResponseEntity.status(HttpStatus.CREATED).body(createdAccount);
+    }
+
+    @GetMapping("/{accountId}/mobilities")
+    public ResponseEntity<PagedResponse<Mobility>> getMobilitiesForAccount(@PathVariable String accountId,
+                                                                           @RequestParam(defaultValue = "0") int page,
+                                                                           @RequestParam(defaultValue = "10") int size,
+                                                                           @RequestParam(defaultValue = "DESC") String direction,
+                                                                           @RequestParam(defaultValue = "measuredOn") String sortBy) {
+        log.info("GET Account Mobilities REST API called");
+        Page<Mobility> mobilitiesForAccount = accountService.getMobilitiesForAccount(accountId, page, size, direction, sortBy);
+        return ResponseEntity.ok(new PagedResponse<>(mobilitiesForAccount));
     }
 
     @PostMapping("/{accountId}/mobilities")
@@ -88,11 +76,23 @@ public class AccountController {
         return ResponseEntity.status(HttpStatus.CREATED).body(mobility);
     }
 
-    @PostMapping
-    public ResponseEntity<Account> createAccount(@RequestBody CreateAccountDto createAccountDTO) {
-        log.info("POST Account REST API called");
-        Account createdAccount = accountService.createAccount(createAccountDTO.getAccountId());
-        return ResponseEntity.status(HttpStatus.CREATED).body(createdAccount);
+    @GetMapping("/{accountId}/biometrics")
+    public ResponseEntity<PagedResponse<Biometrics>> getBiometricsForAccount(@PathVariable String accountId,
+                                                                             @RequestParam(defaultValue = "0") int page,
+                                                                             @RequestParam(defaultValue = "10") int size,
+                                                                             @RequestParam(defaultValue = "DESC") String direction,
+                                                                             @RequestParam(defaultValue = "measuredOn") String sortBy) {
+        log.info("GET Account Biometrics REST API called");
+        Page<Biometrics> biometricsForAccount = accountService.getBiometricsForAccount(accountId, page, size, direction, sortBy);
+        return ResponseEntity.ok(new PagedResponse<>(biometricsForAccount));
+    }
+
+    @PostMapping("/{accountId}/biometrics")
+    public ResponseEntity<Biometrics> createBiometric(@PathVariable String accountId,
+                                                      @RequestBody @Valid BiometricsMeasurementDto biometricsMeasurementDTO) {
+        log.info("POST Account Biometrics REST API called");
+        Biometrics biometrics = accountService.saveBiometricForAccount(accountId, biometricsMeasurementDTO);
+        return ResponseEntity.status(HttpStatus.CREATED).body(biometrics);
     }
 
     @DeleteMapping("/{accountId}")
@@ -100,11 +100,5 @@ public class AccountController {
         log.info("DELETE Account REST API called");
         accountService.deleteAccount(accountId);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
-    }
-
-    @GetMapping("/test")
-    public ResponseEntity<Void> testEndpoint() {
-        accountService.createSessionsForAllAccounts();
-        return ResponseEntity.status(HttpStatus.OK).build();
     }
 }

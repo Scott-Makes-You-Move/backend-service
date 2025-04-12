@@ -1,7 +1,9 @@
 package nl.optifit.backendservice.bootstrap;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.swagger.v3.oas.annotations.*;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import nl.optifit.backendservice.exception.*;
@@ -30,6 +32,8 @@ import java.util.List;
 @RequiredArgsConstructor
 @SecurityRequirement(name = "Bearer Authentication")
 @RequestMapping("/api/v1/bootstrap")
+@Hidden
+@Tag(name = "Bootstrap", description = "Operations related to bootstrapping")
 @RestController
 public class BootstrapController {
 
