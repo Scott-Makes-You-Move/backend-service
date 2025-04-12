@@ -68,6 +68,9 @@ This project is a backend service designed to manage user accounts, biometrics, 
        converter:
          resource-id: myclient
          principal-attribute: principal_username
+   
+   zapier:
+     webhook-url: http://localhost:9999
 
    keycloak:
      auth-server-url: http://localhost:8080

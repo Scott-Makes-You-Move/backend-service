@@ -24,6 +24,9 @@ jwt:
       resource-id: ${JWT_RESOURCE_ID:resource}
       principal-attribute: ${JWT_PRINCIPAL_ATTRIBUTE:attribute}
 
+zapier:
+  webhook-url: ${ZAPIER_WEBHOOK_URL:http://localhost:9999}
+
 keycloak:
   auth-server-url: ${KEYCLOAK_AUTH_SERVER_URL:http://localhost:8080}
   realm: ${KEYCLOAK_REALM:master}

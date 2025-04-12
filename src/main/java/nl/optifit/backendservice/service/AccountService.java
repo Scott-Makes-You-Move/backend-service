@@ -3,11 +3,13 @@ package nl.optifit.backendservice.service;
 import jakarta.ws.rs.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import nl.optifit.backendservice.dto.BiometricsMeasurementDto;
-import nl.optifit.backendservice.dto.MobilityMeasurementDto;
+import nl.optifit.backendservice.dto.*;
 import nl.optifit.backendservice.model.*;
 import nl.optifit.backendservice.repository.*;
+import nl.optifit.backendservice.util.*;
 import org.apache.commons.lang3.StringUtils;
+import org.keycloak.admin.client.resource.*;
+import org.keycloak.representations.idm.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -15,6 +17,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import reactor.core.publisher.*;
 
 import java.time.Duration;
 import java.time.LocalDate;
@@ -22,18 +25,21 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
+import java.util.stream.*;
 
 @Slf4j
 @RequiredArgsConstructor
 @Service
 public class AccountService {
+    private final ZapierService zapierService;
+
     private final AccountRepository accountRepository;
     private final LeaderboardRepository leaderboardRepository;
     private final BiometricsRepository biometricsRepository;
     private final MobilityRepository mobilityRepository;
     private final SessionRepository sessionRepository;
+    private final KeycloakService keycloakService;
 
     @Transactional
     public Account createAccount(String accountId) {
@@ -73,6 +79,7 @@ public class AccountService {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.fromString(direction), sortBy));
         return mobilityRepository.findAllByAccountId(pageable, accountId);
     }
+
     public Page<Session> getSessionsForAccount(String accountId, String sessionStartDateString, int page, int size, String direction, String sortBy) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.fromString(direction), sortBy));
 
@@ -87,7 +94,6 @@ public class AccountService {
             return sessionRepository.findAllByAccountId(pageable, accountId);
         }
     }
-
 
     public Biometrics saveBiometricForAccount(String accountId, BiometricsMeasurementDto biometricsMeasurementDTO) {
         log.debug("Saving biometric for account '{}'", accountId);
@@ -107,27 +113,53 @@ public class AccountService {
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void createSessionsForAllAccounts(LocalDateTime sessionStart) {
+    public void createSessionsForAllAccounts() {
         log.debug("Creating sessions for all accounts");
 
-        accountRepository.findAll().forEach(account -> {
-            Session newSession = Session.builder()
-                    .account(account)
-                    .sessionStart(sessionStart)
-                    .exerciseType(determineExerciseType(sessionStart))
-                    .sessionStatus(SessionStatus.NEW)
-                    .build();
+        List<UsersWithMobilitiesDto> list = accountRepository.findAll().stream()
+                .map(account -> {
+                    Session createdSession = createAndSaveSession(account);
+                    updateLeaderboardForAccount(createdSession);
+                    return createdSession;
+                })
+                .map(this::createUserWithMobilityScoreDto)
+                .toList();
+        log.info("Created sessions for all accounts");
+        Mono<String> stringMono = zapierService.triggerZapierWebhook(list);
+        log.info("Created zapier notifications for all accounts '{}'", stringMono.block());
+    }
 
-            sessionRepository.save(newSession);
-            updateLeaderboardForAccount(account, newSession);
-        });
+    private UsersWithMobilitiesDto createUserWithMobilityScoreDto(Session session) {
+        UserResource userResource = keycloakService.findUserById(session.getAccount().getId())
+                .orElseThrow(() -> new RuntimeException("Could not find user"));
+        UserRepresentation user = userResource.toRepresentation();
+
+        int relevantScore = getRelevantScore(session);
+
+        return UsersWithMobilitiesDto.builder()
+                .name(user.getFirstName())
+                .email(user.getEmail())
+                .score(relevantScore)
+                .exerciseType(session.getExerciseType().getDisplayName().toLowerCase())
+                .build();
+    }
+
+    private int getRelevantScore(Session session) {
+        Mobility mostRecent = mobilityRepository.findTopByAccountIdOrderByMeasuredOnDesc(session.getAccount().getId())
+                .orElseThrow(() -> new RuntimeException("Could not find most recent mobility measurement"));
+
+        return switch (session.getExerciseType()) {
+            case HIP -> mostRecent.getHip();
+            case BACK -> mostRecent.getBack();
+            case SHOULDER -> mostRecent.getShoulder();
+        };
     }
 
     private ExerciseType determineExerciseType(LocalDateTime time) {
         LocalTime localTime = time.toLocalTime();
         if (localTime.equals(LocalTime.of(10, 0))) {
             return ExerciseType.HIP;
-        } else if (localTime.equals(LocalTime.of(13, 30))) {
+        } else if (localTime.equals(LocalTime.of(13, 0))) {
             return ExerciseType.SHOULDER;
         } else {
             return ExerciseType.BACK;
@@ -152,7 +184,7 @@ public class AccountService {
         }
 
         updateSessionStatus(lastSession, now);
-        updateLeaderboardForAccount(lastSession.getAccount(), lastSession);
+        updateLeaderboardForAccount(lastSession);
 
         return lastSession;
     }
@@ -174,22 +206,24 @@ public class AccountService {
     }
 
     @Transactional
-    protected void updateLeaderboardForAccount(Account account, Session lastSession) {
+    protected Leaderboard updateLeaderboardForAccount(Session session) {
+        Account account = session.getAccount();
+
         log.debug("Updating leaderboard for account '{}'", account.getId());
         Leaderboard leaderboard = leaderboardRepository.findByAccountId(account.getId())
                 .orElseThrow(() -> new NotFoundException("No leaderboard found for account"));
 
-        if (lastSession.getSessionStatus().equals(SessionStatus.COMPLETED)) {
+        if (session.getSessionStatus().equals(SessionStatus.COMPLETED)) {
             leaderboard.setCurrentStreak(leaderboard.getCurrentStreak() + 1);
             leaderboard.setLongestStreak(Math.max(leaderboard.getCurrentStreak(), leaderboard.getLongestStreak()));
         }
-        if (lastSession.getSessionStatus().equals(SessionStatus.OVERDUE)) {
+        if (session.getSessionStatus().equals(SessionStatus.OVERDUE)) {
             leaderboard.setCurrentStreak(0);
         }
         leaderboard.setCompletionRate(calculateCompletionRate(account));
         leaderboard.setLastUpdated(LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS));
 
-        leaderboardRepository.save(leaderboard);
+        return leaderboardRepository.save(leaderboard);
     }
 
     private double calculateCompletionRate(Account account) {
@@ -204,5 +238,17 @@ public class AccountService {
         return totalSessions > 0
                 ? (double) completedSessions / totalSessions * 100
                 : 0;
+    }
+
+    private Session createAndSaveSession(Account account) {
+        LocalDateTime now = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
+        Session session = Session.builder()
+                .account(account)
+                .sessionStart(now)
+                .exerciseType(determineExerciseType(now))
+                .sessionStatus(SessionStatus.NEW)
+                .build();
+
+        return sessionRepository.save(session);
     }
 }
