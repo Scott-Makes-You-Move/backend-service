@@ -37,17 +37,17 @@ public class SessionScheduler {
 
     @Scheduled(cron = "0 0 11 ? * MON-FRI", zone = "Europe/Amsterdam")
     public void updateMorningSession() {
-        updateSessionStatusForAllAccounts(LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS));
+        updateSessionStatusForAllAccounts();
     }
 
     @Scheduled(cron = "0 30 14 ? * MON-FRI", zone = "Europe/Amsterdam")
     public void updateLunchSession() {
-        updateSessionStatusForAllAccounts(LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS));
+        updateSessionStatusForAllAccounts();
     }
 
     @Scheduled(cron = "0 0 16 ? * MON-FRI", zone = "Europe/Amsterdam")
     public void updateAfternoonSession() {
-        updateSessionStatusForAllAccounts(LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS));
+        updateSessionStatusForAllAccounts();
     }
 
     private void createSessionsForAllAccounts() {
@@ -55,10 +55,8 @@ public class SessionScheduler {
         accountService.createSessionsForAllAccounts();
     }
 
-    private void updateSessionStatusForAllAccounts(LocalDateTime now) {
-        log.info("Updating session status for all accounts at '{}'", now);
-        sessionService.getByStatus(SessionStatus.NEW).forEach(session -> {
-            accountService.updateSessionForAccount(session, now);
-        });
+    private void updateSessionStatusForAllAccounts() {
+        sessionService.getByStatus(SessionStatus.NEW)
+                .forEach(accountService::updateSessionForAccount);
     }
 }

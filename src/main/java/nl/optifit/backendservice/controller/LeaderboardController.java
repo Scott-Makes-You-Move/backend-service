@@ -1,6 +1,7 @@
 package nl.optifit.backendservice.controller;
 
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import nl.optifit.backendservice.dto.LeaderboardViewDto;
@@ -14,10 +15,12 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 @SecurityRequirement(name = "Bearer Authentication")
 @RequestMapping("/api/v1/leaderboard")
+@Tag(name = "Leaderboard", description = "Operations related to leaderboards")
 @RestController
 public class LeaderboardController {
     private final LeaderboardService leaderboardService;
 
+    @Tag(name = "getLeaderboard", description = "Get leaderboard")
     @GetMapping
     public ResponseEntity<PagedResponse<LeaderboardViewDto>> getLeaderboard(@RequestParam(defaultValue = "0") int page,
                                                                             @RequestParam(defaultValue = "10") int size,
