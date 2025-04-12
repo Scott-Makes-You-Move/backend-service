@@ -9,7 +9,6 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
 
 @Slf4j
@@ -21,17 +20,34 @@ public class SessionScheduler {
     private final SessionService sessionService;
 
     // 0 42 13 * * ? For testing purposes
-    // 0 0 10,13,15 ? * MON-FRI
-    @Scheduled(cron = "0 0 10,13,15 ? * MON-FRI", zone = "Europe/Amsterdam")
-    public void createDailySessions() {
+    @Scheduled(cron = "0 0 10 ? * MON-FRI", zone = "Europe/Amsterdam")
+    public void createMorningSession() {
         createSessionsForAllAccounts();
     }
 
-    // 0 0 11,14,16 ? * MON-FRI
-    @Scheduled(cron = "0 0 11,14,16 ? * MON-FRI", zone = "Europe/Amsterdam")
-    public void updateLastSessionStatus() {
-        LocalDateTime now = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
-        updateSessionStatusForAllAccounts(now);
+    @Scheduled(cron = "0 30 13 ? * MON-FRI", zone = "Europe/Amsterdam")
+    public void createLunchSession() {
+        createSessionsForAllAccounts();
+    }
+
+    @Scheduled(cron = "0 0 15 ? * MON-FRI", zone = "Europe/Amsterdam")
+    public void createAfternoonSession() {
+        createSessionsForAllAccounts();
+    }
+
+    @Scheduled(cron = "0 0 11 ? * MON-FRI", zone = "Europe/Amsterdam")
+    public void updateMorningSession() {
+        updateSessionStatusForAllAccounts(LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS));
+    }
+
+    @Scheduled(cron = "0 30 14 ? * MON-FRI", zone = "Europe/Amsterdam")
+    public void updateLunchSession() {
+        updateSessionStatusForAllAccounts(LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS));
+    }
+
+    @Scheduled(cron = "0 0 16 ? * MON-FRI", zone = "Europe/Amsterdam")
+    public void updateAfternoonSession() {
+        updateSessionStatusForAllAccounts(LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS));
     }
 
     private void createSessionsForAllAccounts() {
