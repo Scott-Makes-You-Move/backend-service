@@ -114,19 +114,13 @@ public class AccountService {
         log.debug("Creating sessions for all accounts");
 
         List<UsersWithMobilitiesDto> list = accountRepository.findAll().stream()
-                .map(this::createSessionForAccount)
+                .map(this::createNewSessionForAccount)
                 .map(this::createUserWithMobilityScoreDto)
                 .toList();
 
         log.info("Created sessions for all accounts");
         Mono<String> stringMono = zapierService.triggerZapierWebhook(list);
         log.info("Created zapier notifications for all accounts '{}'", stringMono.block());
-    }
-
-    private Session createSessionForAccount(Account account) {
-        Session createdSession = createAndSaveSession(account);
-        updateLeaderboardForAccount(createdSession);
-        return createdSession;
     }
 
     @Transactional
@@ -145,8 +139,23 @@ public class AccountService {
         return updatedSession;
     }
 
-    @Transactional
-    protected void updateLeaderboardForAccount(Session session) {
+    private static Leaderboard createNewLeaderboard(Account account) {
+        return Leaderboard.builder()
+                .account(account)
+                .lastUpdated(LocalDateTime.now())
+                .completionRate(0.0)
+                .currentStreak(0)
+                .longestStreak(0)
+                .build();
+    }
+
+    private Session createNewSessionForAccount(Account account) {
+        Session createdSession = createAndSaveSession(account);
+        updateLeaderboardForAccount(createdSession);
+        return createdSession;
+    }
+
+    private void updateLeaderboardForAccount(Session session) {
         Account account = session.getAccount();
 
         log.debug("Updating leaderboard for account '{}'", account.getId());
@@ -164,16 +173,6 @@ public class AccountService {
         leaderboard.setLastUpdated(LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS));
 
         leaderboardRepository.save(leaderboard);
-    }
-
-    private static Leaderboard createNewLeaderboard(Account account) {
-        return Leaderboard.builder()
-                .account(account)
-                .lastUpdated(LocalDateTime.now())
-                .completionRate(0.0)
-                .currentStreak(0)
-                .longestStreak(0)
-                .build();
     }
 
     private Session updateSessionStatus(Session lastSession, LocalDateTime now) {
@@ -194,7 +193,7 @@ public class AccountService {
 
     private UsersWithMobilitiesDto createUserWithMobilityScoreDto(Session session) {
         UserResource userResource = keycloakService.findUserById(session.getAccount().getId())
-                .orElseThrow(() -> new RuntimeException("Could not find user"));
+                .orElseThrow(() -> new NotFoundException("Could not find user"));
         UserRepresentation user = userResource.toRepresentation();
 
         int relevantScore = getRelevantScore(session);
