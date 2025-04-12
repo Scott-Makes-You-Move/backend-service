@@ -20,40 +20,18 @@ public class SessionScheduler {
     private final AccountService accountService;
     private final SessionService sessionService;
 
-    // 0 42 13 * * ?
+    // 0 42 13 * * ? For testing purposes
     // 0 0 10,13,15 ? * MON-FRI
     @Scheduled(cron = "0 0 10,13,15 ? * MON-FRI", zone = "Europe/Amsterdam")
     public void createDailySessions() {
-        LocalTime currentTime = LocalDateTime.now()
-                .truncatedTo(ChronoUnit.SECONDS)
-                .toLocalTime();
-
-        if (isCreateSessionScheduledTime(currentTime)) {
-            createSessionsForAllAccounts();
-        }
+        createSessionsForAllAccounts();
     }
 
     // 0 0 11,14,16 ? * MON-FRI
     @Scheduled(cron = "0 0 11,14,16 ? * MON-FRI", zone = "Europe/Amsterdam")
     public void updateLastSessionStatus() {
         LocalDateTime now = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
-        LocalTime currentTime = now.toLocalTime();
-
-        if (isUpdateSessionStatusScheduledTime(currentTime)) {
-            updateSessionStatusForAllAccounts(now);
-        }
-    }
-
-    private boolean isCreateSessionScheduledTime(LocalTime currentTime) {
-        return currentTime.truncatedTo(ChronoUnit.MINUTES).equals(LocalTime.of(10, 0)) ||
-                currentTime.truncatedTo(ChronoUnit.MINUTES).equals(LocalTime.of(13, 0)) ||
-                currentTime.truncatedTo(ChronoUnit.MINUTES).equals(LocalTime.of(15, 0));
-    }
-
-    private boolean isUpdateSessionStatusScheduledTime(LocalTime currentTime) {
-        return currentTime.truncatedTo(ChronoUnit.MINUTES).equals(LocalTime.of(11, 0)) ||
-                currentTime.truncatedTo(ChronoUnit.MINUTES).equals(LocalTime.of(14, 0)) ||
-                currentTime.truncatedTo(ChronoUnit.MINUTES).equals(LocalTime.of(16, 0));
+        updateSessionStatusForAllAccounts(now);
     }
 
     private void createSessionsForAllAccounts() {

@@ -159,7 +159,7 @@ public class AccountService {
         LocalTime localTime = time.toLocalTime();
         if (localTime.equals(LocalTime.of(10, 0))) {
             return ExerciseType.HIP;
-        } else if (localTime.equals(LocalTime.of(13, 30))) {
+        } else if (localTime.equals(LocalTime.of(13, 0))) {
             return ExerciseType.SHOULDER;
         } else {
             return ExerciseType.BACK;
