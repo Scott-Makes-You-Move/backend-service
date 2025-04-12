@@ -20,7 +20,6 @@ import org.springframework.web.bind.annotation.*;
 public class LeaderboardController {
     private final LeaderboardService leaderboardService;
 
-    @Tag(name = "getLeaderboard", description = "Get leaderboard")
     @GetMapping
     public ResponseEntity<PagedResponse<LeaderboardViewDto>> getLeaderboard(@RequestParam(defaultValue = "0") int page,
                                                                             @RequestParam(defaultValue = "10") int size,

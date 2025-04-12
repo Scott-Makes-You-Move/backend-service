@@ -29,7 +29,6 @@ import java.util.Objects;
 public class AccountController {
     private final AccountService accountService;
 
-    @Tag(name = "getSessions", description = "Get sessions for account")
     @GetMapping("/{accountId}/sessions")
     public ResponseEntity<PagedResponse<Session>> getSessionsForAccount(@PathVariable String accountId,
                                                                         @RequestParam(required = false) String sessionStartDate,
@@ -42,7 +41,6 @@ public class AccountController {
         return ResponseEntity.ok(new PagedResponse<>(sessionsForAccount));
     }
 
-    @Tag(name = "updateLatestSession", description = "Update session for account")
     @PutMapping("/{accountId}/sessions")
     public ResponseEntity<Session> updateSession(@PathVariable String accountId) {
         log.info("PUT Account Session REST API called");
@@ -52,7 +50,6 @@ public class AccountController {
                 : ResponseEntity.status(HttpStatus.CONFLICT).build();
     }
 
-    @Tag(name = "createAccount", description = "Create account")
     @PostMapping
     public ResponseEntity<Account> createAccount(@RequestBody CreateAccountDto createAccountDTO) {
         log.info("POST Account REST API called");
@@ -60,7 +57,6 @@ public class AccountController {
         return ResponseEntity.status(HttpStatus.CREATED).body(createdAccount);
     }
 
-    @Tag(name = "getMobilities", description = "Get mobilities for account")
     @GetMapping("/{accountId}/mobilities")
     public ResponseEntity<PagedResponse<Mobility>> getMobilitiesForAccount(@PathVariable String accountId,
                                                                            @RequestParam(defaultValue = "0") int page,
@@ -72,7 +68,6 @@ public class AccountController {
         return ResponseEntity.ok(new PagedResponse<>(mobilitiesForAccount));
     }
 
-    @Tag(name = "createMobility", description = "Create mobility for account")
     @PostMapping("/{accountId}/mobilities")
     public ResponseEntity<Mobility> createMobility(@PathVariable String accountId,
                                                    @RequestBody @Valid MobilityMeasurementDto mobilityMeasurementDTO) {
@@ -80,7 +75,7 @@ public class AccountController {
         Mobility mobility = accountService.saveMobilityForAccount(accountId, mobilityMeasurementDTO);
         return ResponseEntity.status(HttpStatus.CREATED).body(mobility);
     }
-    @Tag(name = "getBiometrics", description = "Get biometrics for account")
+
     @GetMapping("/{accountId}/biometrics")
     public ResponseEntity<PagedResponse<Biometrics>> getBiometricsForAccount(@PathVariable String accountId,
                                                                              @RequestParam(defaultValue = "0") int page,
@@ -92,7 +87,6 @@ public class AccountController {
         return ResponseEntity.ok(new PagedResponse<>(biometricsForAccount));
     }
 
-    @Tag(name = "createBiometric", description = "Create biometric for account")
     @PostMapping("/{accountId}/biometrics")
     public ResponseEntity<Biometrics> createBiometric(@PathVariable String accountId,
                                                       @RequestBody @Valid BiometricsMeasurementDto biometricsMeasurementDTO) {
@@ -101,7 +95,6 @@ public class AccountController {
         return ResponseEntity.status(HttpStatus.CREATED).body(biometrics);
     }
 
-    @Tag(name = "deleteAccount", description = "Delete account")
     @DeleteMapping("/{accountId}")
     public ResponseEntity<Void> deleteAccount(@PathVariable String accountId) {
         log.info("DELETE Account REST API called");
