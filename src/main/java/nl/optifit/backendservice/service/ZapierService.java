@@ -2,7 +2,7 @@ package nl.optifit.backendservice.service;
 
 import lombok.*;
 import nl.optifit.backendservice.dto.*;
-import org.springframework.http.MediaType;
+import org.springframework.http.*;
 import org.springframework.stereotype.*;
 import org.springframework.web.reactive.function.client.*;
 import reactor.core.publisher.*;
@@ -15,11 +15,11 @@ public class ZapierService {
 
     private final WebClient webClient;
 
-    public Mono<String> triggerZapierWebhook(List<UsersWithMobilitiesDto> usersWithMobilitiesDto) {
+    public Mono<ResponseEntity<String>> triggerZapierWebhook(UsersWithMobilitiesDto userWithMobilityScoreDto) {
         return webClient.post()
                 .contentType(MediaType.APPLICATION_JSON)
-                .bodyValue(usersWithMobilitiesDto)
+                .bodyValue(userWithMobilityScoreDto)
                 .retrieve()
-                .bodyToMono(String.class);
+                .toEntity(String.class);
     }
 }
