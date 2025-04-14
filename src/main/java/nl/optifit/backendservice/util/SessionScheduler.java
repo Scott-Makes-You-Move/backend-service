@@ -2,7 +2,7 @@ package nl.optifit.backendservice.util;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import nl.optifit.backendservice.model.SessionStatus;
+import nl.optifit.backendservice.model.*;
 import nl.optifit.backendservice.service.AccountService;
 import nl.optifit.backendservice.service.SessionService;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -10,6 +10,8 @@ import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+
+import static nl.optifit.backendservice.model.ExerciseType.*;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -22,17 +24,17 @@ public class SessionScheduler {
     // 0 42 13 * * ? For testing purposes
     @Scheduled(cron = "0 0 10 ? * MON-FRI", zone = "Europe/Amsterdam")
     public void createMorningSession() {
-        createSessionsForAllAccounts();
+        createSessionsForAllAccounts(HIP);
     }
 
     @Scheduled(cron = "0 30 13 ? * MON-FRI", zone = "Europe/Amsterdam")
     public void createLunchSession() {
-        createSessionsForAllAccounts();
+        createSessionsForAllAccounts(SHOULDER);
     }
 
     @Scheduled(cron = "0 0 15 ? * MON-FRI", zone = "Europe/Amsterdam")
     public void createAfternoonSession() {
-        createSessionsForAllAccounts();
+        createSessionsForAllAccounts(BACK);
     }
 
     @Scheduled(cron = "0 0 11 ? * MON-FRI", zone = "Europe/Amsterdam")
@@ -50,9 +52,9 @@ public class SessionScheduler {
         updateSessionStatusForAllAccounts();
     }
 
-    private void createSessionsForAllAccounts() {
+    private void createSessionsForAllAccounts(ExerciseType exerciseType) {
         accountService.findAllAccounts()
-                .forEach(accountService::createSessionForAccount);
+                .forEach(account -> accountService.createSessionForAccount(account, exerciseType));
     }
 
     private void updateSessionStatusForAllAccounts() {
