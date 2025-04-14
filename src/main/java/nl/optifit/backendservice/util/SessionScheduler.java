@@ -51,8 +51,8 @@ public class SessionScheduler {
     }
 
     private void createSessionsForAllAccounts() {
-        log.info("Creating new sessions for all accounts");
-        accountService.createSessionsForAllAccounts();
+        accountService.findAllAccounts()
+                .forEach(accountService::createSessionForAccount);
     }
 
     private void updateSessionStatusForAllAccounts() {

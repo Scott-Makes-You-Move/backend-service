@@ -14,6 +14,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -110,17 +111,20 @@ public class AccountService {
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void createSessionsForAllAccounts() {
-        log.debug("Creating sessions for all accounts");
+    public void createSessionForAccount(Account account) {
+        log.debug("Creating session for account '{}'", account.getId());
 
-        List<UsersWithMobilitiesDto> list = accountRepository.findAll().stream()
-                .map(this::createNewSessionForAccount)
-                .map(this::createUserWithMobilityScoreDto)
-                .toList();
+        Session newSession = createNewSessionForAccount(account);
+        UsersWithMobilitiesDto userWithMobilityScoreDto = createUserWithMobilityScoreDto(newSession);
 
-        log.info("Created sessions for all accounts");
-        Mono<String> stringMono = zapierService.triggerZapierWebhook(list);
-        log.info("Created zapier notifications for all accounts '{}'", stringMono.block());
+        Mono<ResponseEntity<String>> mono = zapierService.triggerZapierWebhook(userWithMobilityScoreDto);
+        ResponseEntity<String> response = mono.block();
+
+        String logMessage = Objects.nonNull(response) ?
+                String.format("Created zapier notification status '%s'", response.getStatusCode().value()) :
+                "Zapier webhook returned null response code";
+
+        log.info(logMessage);
     }
 
     @Transactional
@@ -137,6 +141,10 @@ public class AccountService {
         updateLeaderboardForAccount(lastSession);
 
         return updatedSession;
+    }
+
+    public List<Account> findAllAccounts() {
+        return accountRepository.findAll();
     }
 
     private static Leaderboard createNewLeaderboard(Account account) {
