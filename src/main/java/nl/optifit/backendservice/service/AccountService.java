@@ -111,10 +111,11 @@ public class AccountService {
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void createSessionForAccount(Account account) {
+    public void createSessionForAccount(Account account, ExerciseType exerciseType) {
         log.debug("Creating session for account '{}'", account.getId());
 
-        Session newSession = createNewSessionForAccount(account);
+        Session newSession = createNewSession(account, exerciseType);
+        updateLeaderboardForAccount(newSession);
         UsersWithMobilitiesDto userWithMobilityScoreDto = createUserWithMobilityScoreDto(newSession);
 
         Mono<ResponseEntity<String>> mono = zapierService.triggerZapierWebhook(userWithMobilityScoreDto);
@@ -155,12 +156,6 @@ public class AccountService {
                 .currentStreak(0)
                 .longestStreak(0)
                 .build();
-    }
-
-    private Session createNewSessionForAccount(Account account) {
-        Session createdSession = createAndSaveSession(account);
-        updateLeaderboardForAccount(createdSession);
-        return createdSession;
     }
 
     private void updateLeaderboardForAccount(Session session) {
@@ -225,17 +220,6 @@ public class AccountService {
         };
     }
 
-    private ExerciseType determineExerciseType(LocalDateTime time) {
-        LocalTime localTime = time.toLocalTime();
-        if (localTime.equals(LocalTime.of(10, 0))) {
-            return ExerciseType.HIP;
-        } else if (localTime.equals(LocalTime.of(13, 30))) {
-            return ExerciseType.SHOULDER;
-        } else {
-            return ExerciseType.BACK;
-        }
-    }
-
     private double calculateCompletionRate(Account account) {
         List<Session> sessionsForAccount = sessionRepository.findAllByAccountId(account.getId());
 
@@ -250,12 +234,12 @@ public class AccountService {
                 : 0;
     }
 
-    private Session createAndSaveSession(Account account) {
+    private Session createNewSession(Account account, ExerciseType exerciseType) {
         LocalDateTime now = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
         Session session = Session.builder()
                 .account(account)
                 .sessionStart(now)
-                .exerciseType(determineExerciseType(now))
+                .exerciseType(exerciseType)
                 .sessionStatus(SessionStatus.NEW)
                 .build();
 
