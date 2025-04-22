@@ -8,7 +8,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import nl.optifit.backendservice.exception.*;
 import nl.optifit.backendservice.model.*;
-import nl.optifit.backendservice.repository.AccountRepository;
+import nl.optifit.backendservice.repository.*;
 import nl.optifit.backendservice.util.KeycloakService;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.springframework.core.io.ClassPathResource;
@@ -23,21 +23,23 @@ import java.io.File;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
+import static nl.optifit.backendservice.model.ExerciseType.*;
+
+@Hidden
 @Slf4j
 @RequiredArgsConstructor
 @SecurityRequirement(name = "Bearer Authentication")
 @RequestMapping("/api/v1/bootstrap")
-@Hidden
 @Tag(name = "Bootstrap", description = "Operations related to bootstrapping")
 @RestController
 public class BootstrapController {
 
     private final AccountRepository accountRepository;
+    private final SessionVideoRepository sessionVideoRepository;
     private final KeycloakService keycloakService;
     private final ObjectMapper objectMapper;
 
@@ -48,7 +50,7 @@ public class BootstrapController {
      * Creates accounts, leaderboard, biometrics, mobilities and sessions for users in bootstrap-data.json
      */
     @PostMapping
-    public ResponseEntity<AccountsBootstrappedData> bootstrapAccounts() throws IOException {
+    public ResponseEntity<AccountsBootstrappedData> bootstrapData() throws IOException {
         File bootstrapDataFile = BOOTSTRAP_DATA_RESOURCE.getFile();
         AccountsBootstrappedData response = new AccountsBootstrappedData();
 
@@ -66,6 +68,8 @@ public class BootstrapController {
 
         int total = response.getAccountIds().size();
         response.setTotal(total);
+
+        bootstrapSessionVideos();
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
@@ -140,5 +144,23 @@ public class BootstrapController {
         Account savedAccount = accountRepository.save(account);
         response.getAccountIds().add(savedAccount.getId());
         log.info("Account initiated for user '{}'", user.getUsername());
+    }
+
+    private void bootstrapSessionVideos() {
+        log.info("Bootstrap session videos");
+        SessionVideo hipLow = SessionVideo.builder().exerciseType(HIP).score(1).videoUrl("https://www.youtube.com/watch?v=glbLJEHfoa4").build();
+        SessionVideo hipMedium = SessionVideo.builder().exerciseType(HIP).score(2).videoUrl("https://www.youtube.com/watch?v=ef0iIL20rMA").build();
+        SessionVideo hipHigh = SessionVideo.builder().exerciseType(HIP).score(3).videoUrl("https://www.youtube.com/watch?v=fHLyMY828Jg").build();
+
+        SessionVideo shoulderLow = SessionVideo.builder().exerciseType(SHOULDER).score(1).videoUrl("https://www.youtube.com/watch?v=glbLJEHfoa4").build();
+        SessionVideo shoulderMedium = SessionVideo.builder().exerciseType(SHOULDER).score(2).videoUrl("https://www.youtube.com/watch?v=ef0iIL20rMA").build();
+        SessionVideo shoulderHigh = SessionVideo.builder().exerciseType(SHOULDER).score(3).videoUrl("https://www.youtube.com/watch?v=fHLyMY828Jg").build();
+
+        SessionVideo backLow = SessionVideo.builder().exerciseType(BACK).score(1).videoUrl("https://www.youtube.com/watch?v=buyuA7moFP4").build();
+        SessionVideo backMedium = SessionVideo.builder().exerciseType(BACK).score(2).videoUrl("https://www.youtube.com/watch?v=zWH9v5Ge7Ao").build();
+        SessionVideo backHigh = SessionVideo.builder().exerciseType(BACK).score(3).videoUrl("https://www.youtube.com/watch?v=fHLyMY828Jg").build();
+
+        List<SessionVideo> sessionVideos = List.of(hipLow, hipMedium, hipHigh, shoulderLow, shoulderMedium, shoulderHigh, backLow, backMedium, backHigh);
+        sessionVideoRepository.saveAll(sessionVideos);
     }
 }

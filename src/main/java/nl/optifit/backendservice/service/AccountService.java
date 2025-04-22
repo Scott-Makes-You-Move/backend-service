@@ -1,5 +1,6 @@
 package nl.optifit.backendservice.service;
 
+import jakarta.persistence.criteria.*;
 import jakarta.ws.rs.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -42,19 +43,28 @@ public class AccountService {
     private final SessionRepository sessionRepository;
     private final KeycloakService keycloakService;
 
-    public Page<Session> getSessionsForAccount(String accountId, String sessionStartDateString, int page, int size, String direction, String sortBy) {
+    public Page<Session> getSessionsForAccount(String accountId, String sessionStartDateString,
+                                               SessionStatus sessionStatus, int page, int size, String direction, String sortBy) {
+
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.fromString(direction), sortBy));
 
-        if (StringUtils.isNotBlank(sessionStartDateString)) {
-            log.debug("Retrieving sessions on date '{}'  with page '{}', size '{}', direction '{}', sortBy '{}'", sessionStartDateString, page, size, direction, sortBy);
-            LocalDate sessionDay = LocalDate.parse(sessionStartDateString, ISO_LOCAL_DATE);
-            LocalDateTime start = sessionDay.atTime(LocalTime.MIN);
-            LocalDateTime end = sessionDay.atTime(LocalTime.MAX);
-            return sessionRepository.findByAccountIdAndSessionStartBetween(accountId, start, end, pageable);
-        } else {
-            log.debug("Retrieving sessions with page '{}', size '{}', direction '{}', sortBy '{}'", page, size, direction, sortBy);
-            return sessionRepository.findAllByAccountId(pageable, accountId);
-        }
+        return sessionRepository.findAll((root, query, cb) -> {
+            List<Predicate> predicates = new ArrayList<>();
+            predicates.add(cb.equal(root.get("account").get("id"), accountId));
+
+            if (StringUtils.isNotBlank(sessionStartDateString)) {
+                LocalDate sessionDay = LocalDate.parse(sessionStartDateString, ISO_LOCAL_DATE);
+                predicates.add(cb.between(root.get("sessionStart"),
+                        sessionDay.atTime(LocalTime.MIN),
+                        sessionDay.atTime(LocalTime.MAX)));
+            }
+
+            if (sessionStatus != null) {
+                predicates.add(cb.equal(root.get("sessionStatus"), sessionStatus));
+            }
+
+            return cb.and(predicates.toArray(new Predicate[0]));
+        }, pageable);
     }
 
     @Transactional
