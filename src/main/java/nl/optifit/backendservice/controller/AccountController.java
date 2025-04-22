@@ -32,12 +32,13 @@ public class AccountController {
     @GetMapping("/{accountId}/sessions")
     public ResponseEntity<PagedResponse<Session>> getSessionsForAccount(@PathVariable String accountId,
                                                                         @RequestParam(required = false) String sessionStartDate,
+                                                                        @RequestParam(required = false) SessionStatus sessionStatus,
                                                                         @RequestParam(defaultValue = "0") int page,
                                                                         @RequestParam(defaultValue = "10") int size,
                                                                         @RequestParam(defaultValue = "DESC") String direction,
                                                                         @RequestParam(defaultValue = "sessionStart") String sortBy) {
         log.info("GET Account Sessions REST API called");
-        Page<Session> sessionsForAccount = accountService.getSessionsForAccount(accountId, sessionStartDate, page, size, direction, sortBy);
+        Page<Session> sessionsForAccount = accountService.getSessionsForAccount(accountId, sessionStartDate, sessionStatus, page, size, direction, sortBy);
         return ResponseEntity.ok(new PagedResponse<>(sessionsForAccount));
     }
 
