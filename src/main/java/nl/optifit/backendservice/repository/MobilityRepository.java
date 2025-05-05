@@ -1,6 +1,5 @@
 package nl.optifit.backendservice.repository;
 
-import nl.optifit.backendservice.model.Biometrics;
 import nl.optifit.backendservice.model.Mobility;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

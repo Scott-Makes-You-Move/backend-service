@@ -21,9 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.io.File;
 import java.io.IOException;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -39,12 +37,11 @@ import static nl.optifit.backendservice.model.ExerciseType.*;
 public class BootstrapController {
 
     private final AccountRepository accountRepository;
-    private final SessionVideoRepository sessionVideoRepository;
+    private final ExerciseVideoRepository exerciseVideoRepository;
     private final KeycloakService keycloakService;
     private final ObjectMapper objectMapper;
 
     public static final ClassPathResource BOOTSTRAP_DATA_RESOURCE = new ClassPathResource("bootstrap/bootstrap-data.json");
-    public static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
     /**
      * Creates accounts, leaderboard, biometrics, mobilities and sessions for users in bootstrap-data.json
@@ -56,11 +53,9 @@ public class BootstrapController {
 
         try {
             List<BootstrapDataModel> bootstrapData = objectMapper.readValue(bootstrapDataFile, objectMapper.getTypeFactory().constructCollectionType(List.class, BootstrapDataModel.class));
-            bootstrapData.forEach(data -> {
-                keycloakService.findUserByUsername(data.getUsername()).ifPresent(user -> {
-                    initiateAccount(user, data, response);
-                });
-            });
+            bootstrapData.forEach(data -> keycloakService.findUserByUsername(data.getUsername()).ifPresent(user -> {
+                initiateAccount(user, data, response);
+            }));
         } catch (Exception e) {
             log.error("Exception occurred during bootstrap", e);
             throw new BootstrapException("Something went wrong while bootstrapping", e);
@@ -69,7 +64,7 @@ public class BootstrapController {
         int total = response.getAccountIds().size();
         response.setTotal(total);
 
-        bootstrapSessionVideos();
+        bootstrapExerciseVideos();
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
@@ -78,7 +73,7 @@ public class BootstrapController {
      * Deletes all accounts and their corresponding leaderboard, biometrics and mobilities.
      */
     @DeleteMapping
-    public ResponseEntity<Void> deleteExistingData() throws IOException {
+    public ResponseEntity<Void> deleteExistingData() {
         accountRepository.deleteAll();
         return ResponseEntity.noContent().build();
     }
@@ -105,11 +100,10 @@ public class BootstrapController {
         List<Mobility> mobilities = new ArrayList<>();
 
         bootstrapData.getMeasurements().forEach(measurement -> {
-            LocalDate localDate = LocalDate.parse(measurement.getMeasuredOn(), DATE_FORMATTER);
 
             Biometrics biometric = Biometrics.builder()
                     .account(account)
-                    .measuredOn(localDate)
+                    .measuredOn(measurement.getMeasuredOn())
                     .weight(measurement.getWeight())
                     .fat(measurement.getFat())
                     .visceralFat(measurement.getVisceralFat())
@@ -118,7 +112,7 @@ public class BootstrapController {
 
             Mobility mobility = Mobility.builder()
                     .account(account)
-                    .measuredOn(localDate)
+                    .measuredOn(measurement.getMeasuredOn())
                     .shoulder(measurement.getShoulder())
                     .back(measurement.getBack())
                     .hip(measurement.getHip())
@@ -146,21 +140,21 @@ public class BootstrapController {
         log.info("Account initiated for user '{}'", user.getUsername());
     }
 
-    private void bootstrapSessionVideos() {
+    private void bootstrapExerciseVideos() {
         log.info("Bootstrap session videos");
-        SessionVideo hipLow = SessionVideo.builder().exerciseType(HIP).score(1).videoUrl("https://www.youtube.com/watch?v=glbLJEHfoa4").build();
-        SessionVideo hipMedium = SessionVideo.builder().exerciseType(HIP).score(2).videoUrl("https://www.youtube.com/watch?v=ef0iIL20rMA").build();
-        SessionVideo hipHigh = SessionVideo.builder().exerciseType(HIP).score(3).videoUrl("https://www.youtube.com/watch?v=fHLyMY828Jg").build();
+        ExerciseVideo hipLow = ExerciseVideo.builder().exerciseType(HIP).score(1).videoUrl("https://www.youtube.com/watch?v=glbLJEHfoa4").build();
+        ExerciseVideo hipMedium = ExerciseVideo.builder().exerciseType(HIP).score(2).videoUrl("https://www.youtube.com/watch?v=ef0iIL20rMA").build();
+        ExerciseVideo hipHigh = ExerciseVideo.builder().exerciseType(HIP).score(3).videoUrl("https://www.youtube.com/watch?v=fHLyMY828Jg").build();
 
-        SessionVideo shoulderLow = SessionVideo.builder().exerciseType(SHOULDER).score(1).videoUrl("https://www.youtube.com/watch?v=glbLJEHfoa4").build();
-        SessionVideo shoulderMedium = SessionVideo.builder().exerciseType(SHOULDER).score(2).videoUrl("https://www.youtube.com/watch?v=ef0iIL20rMA").build();
-        SessionVideo shoulderHigh = SessionVideo.builder().exerciseType(SHOULDER).score(3).videoUrl("https://www.youtube.com/watch?v=fHLyMY828Jg").build();
+        ExerciseVideo shoulderLow = ExerciseVideo.builder().exerciseType(SHOULDER).score(1).videoUrl("https://www.youtube.com/watch?v=glbLJEHfoa4").build();
+        ExerciseVideo shoulderMedium = ExerciseVideo.builder().exerciseType(SHOULDER).score(2).videoUrl("https://www.youtube.com/watch?v=ef0iIL20rMA").build();
+        ExerciseVideo shoulderHigh = ExerciseVideo.builder().exerciseType(SHOULDER).score(3).videoUrl("https://www.youtube.com/watch?v=fHLyMY828Jg").build();
 
-        SessionVideo backLow = SessionVideo.builder().exerciseType(BACK).score(1).videoUrl("https://www.youtube.com/watch?v=buyuA7moFP4").build();
-        SessionVideo backMedium = SessionVideo.builder().exerciseType(BACK).score(2).videoUrl("https://www.youtube.com/watch?v=zWH9v5Ge7Ao").build();
-        SessionVideo backHigh = SessionVideo.builder().exerciseType(BACK).score(3).videoUrl("https://www.youtube.com/watch?v=fHLyMY828Jg").build();
+        ExerciseVideo backLow = ExerciseVideo.builder().exerciseType(BACK).score(1).videoUrl("https://www.youtube.com/watch?v=buyuA7moFP4").build();
+        ExerciseVideo backMedium = ExerciseVideo.builder().exerciseType(BACK).score(2).videoUrl("https://www.youtube.com/watch?v=zWH9v5Ge7Ao").build();
+        ExerciseVideo backHigh = ExerciseVideo.builder().exerciseType(BACK).score(3).videoUrl("https://www.youtube.com/watch?v=fHLyMY828Jg").build();
 
-        List<SessionVideo> sessionVideos = List.of(hipLow, hipMedium, hipHigh, shoulderLow, shoulderMedium, shoulderHigh, backLow, backMedium, backHigh);
-        sessionVideoRepository.saveAll(sessionVideos);
+        List<ExerciseVideo> exerciseVideos = List.of(hipLow, hipMedium, hipHigh, shoulderLow, shoulderMedium, shoulderHigh, backLow, backMedium, backHigh);
+        exerciseVideoRepository.saveAll(exerciseVideos);
     }
 }

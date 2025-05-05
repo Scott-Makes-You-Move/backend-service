@@ -7,6 +7,6 @@ import org.springframework.stereotype.*;
 import java.util.*;
 
 @Repository
-public interface SessionVideoRepository extends JpaRepository<SessionVideo, UUID> {
-    SessionVideo findByExerciseTypeAndScoreEquals(ExerciseType exerciseTypeString, int score);
+public interface ExerciseVideoRepository extends JpaRepository<ExerciseVideo, UUID> {
+    ExerciseVideo findByExerciseTypeAndScoreEquals(ExerciseType exerciseTypeString, int score);
 }

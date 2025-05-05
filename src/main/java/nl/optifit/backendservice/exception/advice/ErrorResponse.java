@@ -2,7 +2,6 @@ package nl.optifit.backendservice.exception.advice;
 
 import com.fasterxml.jackson.annotation.*;
 import lombok.*;
-import org.springframework.http.*;
 
 import java.time.*;
 

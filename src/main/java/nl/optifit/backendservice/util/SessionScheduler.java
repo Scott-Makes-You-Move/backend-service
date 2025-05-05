@@ -1,15 +1,13 @@
 package nl.optifit.backendservice.util;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import lombok.*;
+import lombok.extern.slf4j.*;
 import nl.optifit.backendservice.model.*;
-import nl.optifit.backendservice.service.AccountService;
-import nl.optifit.backendservice.service.SessionService;
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Component;
+import nl.optifit.backendservice.service.*;
+import org.springframework.scheduling.annotation.*;
+import org.springframework.stereotype.*;
 
-import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
+import java.util.*;
 
 import static nl.optifit.backendservice.model.ExerciseType.*;
 
@@ -54,11 +52,14 @@ public class SessionScheduler {
 
     private void createSessionsForAllAccounts(ExerciseType exerciseType) {
         accountService.findAllAccounts()
-                .forEach(account -> accountService.createSessionForAccount(account, exerciseType));
+                .forEach(account -> sessionService.createSessionForAccount(account, exerciseType));
     }
 
     private void updateSessionStatusForAllAccounts() {
         sessionService.getByStatus(SessionStatus.NEW)
-                .forEach(accountService::updateSessionForAccount);
+                .stream()
+                .map(Session::getId)
+                .map(UUID::toString)
+                .forEach(sessionService::updateSessionForAccount);
     }
 }
