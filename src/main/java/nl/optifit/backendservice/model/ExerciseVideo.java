@@ -7,6 +7,8 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 import org.hibernate.validator.constraints.*;
 
+import java.io.*;
+import java.util.*;
 import java.util.UUID;
 
 @Entity
@@ -16,7 +18,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class SessionVideo {
+public class ExerciseVideo implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
@@ -24,9 +26,12 @@ public class SessionVideo {
     @Column(nullable = false)
     @JsonFormat(shape = JsonFormat.Shape.STRING)
     private ExerciseType exerciseType;
-    @Min(1) @Max(3)
+    @Min(1)
+    @Max(3)
     private Integer score;
     @URL(message = "Invalid URL format")
     @NotBlank(message = "Video URL must not be blank")
     private String videoUrl;
+    @OneToMany(mappedBy = "exerciseVideo", fetch = FetchType.LAZY)
+    private List<Session> sessions;
 }

@@ -1,8 +1,6 @@
 package nl.optifit.backendservice.model;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.*;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.PastOrPresent;
 import lombok.*;
@@ -24,7 +22,6 @@ public class Session implements Serializable {
     private UUID id;
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "account_id", referencedColumnName = "account_id", nullable = false)
-    @JsonIgnore
     private Account account;
     @PastOrPresent(message = "Measured date cannot be in the future")
     @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss")
@@ -34,10 +31,11 @@ public class Session implements Serializable {
     private LocalDateTime sessionExecutionTime;
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    @JsonFormat(shape = JsonFormat.Shape.STRING)
     private ExerciseType exerciseType;
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    @JsonFormat(shape = JsonFormat.Shape.STRING)
     private SessionStatus sessionStatus;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "exercise_video_id", referencedColumnName = "id")
+    private ExerciseVideo exerciseVideo;
 }

@@ -1,15 +1,13 @@
 package nl.optifit.backendservice.util;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import lombok.*;
+import lombok.extern.slf4j.*;
 import nl.optifit.backendservice.model.*;
-import nl.optifit.backendservice.service.AccountService;
-import nl.optifit.backendservice.service.SessionService;
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Component;
+import nl.optifit.backendservice.service.*;
+import org.springframework.scheduling.annotation.*;
+import org.springframework.stereotype.*;
 
-import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
+import java.util.*;
 
 import static nl.optifit.backendservice.model.ExerciseType.*;
 
@@ -22,7 +20,7 @@ public class SessionScheduler {
     private final SessionService sessionService;
 
     // 0 42 13 * * ? For testing purposes
-    @Scheduled(cron = "0 0 10 ? * MON-FRI", zone = "Europe/Amsterdam")
+    @Scheduled(cron = "0 8 17 * * ?", zone = "Europe/Amsterdam")
     public void createMorningSession() {
         createSessionsForAllAccounts(HIP);
     }
@@ -54,11 +52,14 @@ public class SessionScheduler {
 
     private void createSessionsForAllAccounts(ExerciseType exerciseType) {
         accountService.findAllAccounts()
-                .forEach(account -> accountService.createSessionForAccount(account, exerciseType));
+                .forEach(account -> sessionService.createSessionForAccount(account, exerciseType));
     }
 
     private void updateSessionStatusForAllAccounts() {
         sessionService.getByStatus(SessionStatus.NEW)
-                .forEach(accountService::updateSessionForAccount);
+                .stream()
+                .map(Session::getId)
+                .map(UUID::toString)
+                .forEach(sessionService::updateSessionForAccount);
     }
 }

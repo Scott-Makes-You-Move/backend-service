@@ -8,14 +8,14 @@ import nl.optifit.backendservice.model.Leaderboard;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class LeaderboardViewDto {
+public class LeaderboardDto {
     private String fullName;
     private Double completionRate;
     private Integer currentStreak;
     private Integer longestStreak;
 
-    public static LeaderboardViewDto fromLeaderboard(String fullName, Leaderboard leaderboard) {
-        return LeaderboardViewDto.builder()
+    public static LeaderboardDto fromLeaderboard(String fullName, Leaderboard leaderboard) {
+        return LeaderboardDto.builder()
                 .fullName(fullName)
                 .completionRate(leaderboard.getCompletionRate())
                 .currentStreak(leaderboard.getCurrentStreak())

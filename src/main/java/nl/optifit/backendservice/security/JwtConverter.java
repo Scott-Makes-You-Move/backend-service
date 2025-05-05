@@ -11,9 +11,7 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.stereotype.Component;
 
-import java.util.Collection;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -26,31 +24,45 @@ public class JwtConverter implements Converter<Jwt, AbstractAuthenticationToken>
 
     @Override
     public AbstractAuthenticationToken convert(Jwt jwt) {
+        Collection<GrantedAuthority> defaultAuthorities = jwtGrantedAuthoritiesConverter.convert(jwt);
+        Collection<GrantedAuthority> resourceRoles = extractResourceRoles(jwt);
+
         Collection<GrantedAuthority> authorities = Stream.concat(
-                jwtGrantedAuthoritiesConverter.convert(jwt).stream(),
-                extractResourceRoles(jwt).stream()).collect(Collectors.toSet());
-        return new JwtAuthenticationToken(jwt, authorities, getPrincipalClaimName(jwt));
+                        defaultAuthorities.stream(),
+                        resourceRoles.stream())
+                .collect(Collectors.toSet());
+
+        String principal = getPrincipalClaim(jwt);
+        return new JwtAuthenticationToken(jwt, authorities, principal);
     }
 
-    private String getPrincipalClaimName(Jwt jwt) {
-        String claimName = JwtClaimNames.SUB;
-        if (jwtConverterProperties.getPrincipalAttribute() != null) {
-            claimName = jwtConverterProperties.getPrincipalAttribute();
-        }
-        return jwt.getClaim(claimName);
+    private String getPrincipalClaim(Jwt jwt) {
+        String claimName = Optional.ofNullable(jwtConverterProperties.getPrincipalAttribute())
+                .orElse(JwtClaimNames.SUB);
+        return jwt.getClaimAsString(claimName);
     }
 
-    private Collection<? extends GrantedAuthority> extractResourceRoles(Jwt jwt) {
-        Map<String, Object> resourceAccess = jwt.getClaim("resource_access");
-        Map<String, Object> resource;
-        Collection<String> resourceRoles;
+    @SuppressWarnings("unchecked")
+    private Collection<GrantedAuthority> extractResourceRoles(Jwt jwt) {
+        Object resourceAccessObj = jwt.getClaim("resource_access");
 
-        if (resourceAccess == null
-                || (resource = (Map<String, Object>) resourceAccess.get(jwtConverterProperties.getResourceId())) == null
-                || (resourceRoles = (Collection<String>) resource.get("roles")) == null) {
+        if (!(resourceAccessObj instanceof Map<?, ?> resourceAccess)) {
             return Set.of();
         }
-        return resourceRoles.stream()
+
+        Object resourceObj = resourceAccess.get(jwtConverterProperties.getResourceId());
+        if (!(resourceObj instanceof Map<?, ?> resource)) {
+            return Set.of();
+        }
+
+        Object rolesObj = resource.get("roles");
+        if (!(rolesObj instanceof Collection<?> roles)) {
+            return Set.of();
+        }
+
+        return roles.stream()
+                .filter(Objects::nonNull)
+                .map(Object::toString)
                 .map(role -> new SimpleGrantedAuthority("ROLE_" + role))
                 .collect(Collectors.toSet());
     }

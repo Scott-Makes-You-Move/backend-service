@@ -2,14 +2,12 @@ package nl.optifit.backendservice.model;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.PastOrPresent;
 import lombok.*;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 @Entity
 @Table(name = "leaderboards", indexes = @Index(columnList = "account_id"))

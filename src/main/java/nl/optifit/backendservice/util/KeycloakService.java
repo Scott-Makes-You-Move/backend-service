@@ -12,8 +12,9 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class KeycloakService {
 
-    private final Keycloak keycloak;
     public static final String REALM = "smym-dev";
+
+    private final Keycloak keycloak;
 
     public Optional<UserResource> findUserById(String id) {
         return Optional.ofNullable(keycloak.realm(REALM)

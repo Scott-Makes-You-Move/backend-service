@@ -3,7 +3,6 @@ package nl.optifit.backendservice.model;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
 
 @Getter
 public enum ExerciseType {

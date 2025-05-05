@@ -8,6 +8,7 @@ class BackendServiceApplicationTests {
 
     @Test
     void contextLoads() {
+        // only loads spring context
     }
 
 }
