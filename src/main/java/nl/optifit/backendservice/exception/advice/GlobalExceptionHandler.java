@@ -4,6 +4,7 @@ import jakarta.ws.rs.*;
 import lombok.extern.slf4j.*;
 import nl.optifit.backendservice.exception.*;
 import org.springframework.http.*;
+import org.springframework.security.authorization.*;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.*;
@@ -30,6 +31,12 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleNotFound(NotFoundException ex) {
         log.error("Handling not found error", ex);
         return new ResponseEntity<>(ErrorResponse.of(NOT_FOUND.value(), ex), NOT_FOUND);
+    }
+
+    @ExceptionHandler(value = {AuthorizationDeniedException.class})
+    public ResponseEntity<ErrorResponse> handleAuthorizationDenied(AuthorizationDeniedException ex) {
+        log.error("Handling authorization denied error", ex);
+        return new ResponseEntity<>(ErrorResponse.of(FORBIDDEN.value(), ex), FORBIDDEN);
     }
 
     @ExceptionHandler(value = { IOException.class })

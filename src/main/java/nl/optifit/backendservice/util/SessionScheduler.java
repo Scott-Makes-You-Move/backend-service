@@ -20,7 +20,7 @@ public class SessionScheduler {
     private final SessionService sessionService;
 
     // 0 42 13 * * ? For testing purposes
-    @Scheduled(cron = "0 8 17 * * ?", zone = "Europe/Amsterdam")
+    @Scheduled(cron = "0 0 10 ? * MON-FRI", zone = "Europe/Amsterdam")
     public void createMorningSession() {
         createSessionsForAllAccounts(HIP);
     }

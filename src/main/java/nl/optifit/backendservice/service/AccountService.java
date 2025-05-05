@@ -5,6 +5,9 @@ import lombok.extern.slf4j.Slf4j;
 import nl.optifit.backendservice.dto.*;
 import nl.optifit.backendservice.model.*;
 import nl.optifit.backendservice.repository.*;
+import nl.optifit.backendservice.security.*;
+import org.springframework.security.core.*;
+import org.springframework.security.core.context.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,6 +19,7 @@ import java.util.*;
 public class AccountService {
     private final LeaderboardService leaderboardService;
     private final AccountRepository accountRepository;
+    private final JwtConverter jwtConverter;
 
     @Transactional
     public AccountDto createAccount(String accountId) {

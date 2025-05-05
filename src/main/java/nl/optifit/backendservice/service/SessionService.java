@@ -130,4 +130,12 @@ public class SessionService {
     public List<Session> getByStatus(SessionStatus sessionStatus) {
         return sessionRepository.findAllBySessionStatusEquals(sessionStatus);
     }
+
+    public boolean sessionBelongsToAccount(String sessionId, String accountId) {
+        log.debug("Checking if session '{}' belongs to account '{}'", sessionId, accountId);
+        Session session = sessionRepository.findById(UUID.fromString(sessionId))
+                .orElseThrow(() -> new NotFoundException(String.format("Could not find session '%s'", sessionId)));
+
+        return session.getAccount().getId().equals(accountId);
+    }
 }

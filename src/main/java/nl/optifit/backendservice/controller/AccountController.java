@@ -10,6 +10,7 @@ import nl.optifit.backendservice.model.*;
 import nl.optifit.backendservice.service.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.*;
 import org.springframework.web.bind.annotation.*;
 
 @Slf4j
@@ -37,6 +38,7 @@ public class AccountController {
         return ResponseEntity.ok(accountSessions);
     }
 
+    @PreAuthorize("@jwtConverter.isAccountCurrentUser(#accountId) and @sessionService.sessionBelongsToAccount(#sessionId, #accountId)")
     @PutMapping("/{accountId}/sessions/{sessionId}")
     public ResponseEntity<SessionDto> updateSession(@PathVariable String accountId,
                                                     @PathVariable String sessionId) {

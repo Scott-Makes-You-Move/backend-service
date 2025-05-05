@@ -4,6 +4,7 @@ import lombok.*;
 import nl.optifit.backendservice.model.*;
 import org.keycloak.representations.idm.*;
 
+import java.time.*;
 import java.util.regex.*;
 
 @Getter
@@ -14,15 +15,17 @@ import java.util.regex.*;
 public class ZapierWorkflowDto {
     private String name;
     private String email;
-    private String exerciseType;
+    private String startTime;
+    private String endTime;
     private String videoId;
 
-    public static ZapierWorkflowDto fromUserSession(UserRepresentation userRepresentation, Session session) {
+    public static ZapierWorkflowDto fromUserSession(UserRepresentation userRepresentation, Session newSession) {
         return ZapierWorkflowDto.builder()
                 .name(userRepresentation.getFirstName())
                 .email(userRepresentation.getEmail())
-                .exerciseType(session.getExerciseType().getDisplayName().toLowerCase())
-                .videoId(getVideoIdFromUrl(session.getExerciseVideo().getVideoUrl()))
+                .startTime(newSession.getSessionStart().toLocalTime().toString())
+                .endTime(newSession.getSessionStart().plusHours(1).toLocalTime().toString())
+                .videoId(getVideoIdFromUrl(newSession.getExerciseVideo().getVideoUrl()))
                 .build();
     }
 
