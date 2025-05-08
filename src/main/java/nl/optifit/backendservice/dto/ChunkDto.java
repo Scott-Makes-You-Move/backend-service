@@ -30,4 +30,14 @@ public class ChunkDto {
         chunk.setEmbedding(chunkDto.getEmbedding());
         return chunk;
     }
+
+    public static ChunkDto fromChunk(Chunk chunk) {
+        return ChunkDto.builder()
+                .id(chunk.getId())
+                .topic(chunk.getTopic())
+                .subtopic(chunk.getSubtopic())
+                .content(chunk.getContent())
+                .embedding(chunk.getEmbedding())
+                .build();
+    }
 }

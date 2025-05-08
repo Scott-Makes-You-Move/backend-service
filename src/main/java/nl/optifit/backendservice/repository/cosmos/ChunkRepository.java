@@ -1,4 +1,4 @@
-package nl.optifit.backendservice.repository;
+package nl.optifit.backendservice.repository.cosmos;
 
 import com.azure.spring.data.cosmos.repository.CosmosRepository;
 import com.azure.spring.data.cosmos.repository.Query;

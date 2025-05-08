@@ -7,9 +7,8 @@ import com.azure.spring.data.cosmos.repository.config.EnableCosmosRepositories;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-
 @Configuration
-@EnableCosmosRepositories
+@EnableCosmosRepositories(basePackages = "nl.optifit.backendservice.repository.cosmos")
 public class CosmosConfiguration extends AbstractCosmosConfiguration {
 
     //    @Value("${CONFIGURATION__AZURECOSMOSDB__ENDPOINT}")
