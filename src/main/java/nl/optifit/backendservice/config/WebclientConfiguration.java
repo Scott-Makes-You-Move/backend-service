@@ -5,7 +5,7 @@ import org.springframework.context.annotation.*;
 import org.springframework.web.reactive.function.client.*;
 
 @Configuration
-public class WebclientConfig {
+public class WebclientConfiguration {
 
     @Value("${zapier.webhook-url}")
     private String zapierWebhookUrl;
