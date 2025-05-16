@@ -4,6 +4,7 @@ import com.azure.cosmos.CosmosClientBuilder;
 import com.azure.spring.data.cosmos.config.AbstractCosmosConfiguration;
 import com.azure.spring.data.cosmos.config.CosmosConfig;
 import com.azure.spring.data.cosmos.repository.config.EnableCosmosRepositories;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -11,17 +12,18 @@ import org.springframework.context.annotation.Configuration;
 @EnableCosmosRepositories(basePackages = "nl.optifit.backendservice.repository.cosmos")
 public class CosmosConfiguration extends AbstractCosmosConfiguration {
 
-    //    @Value("${CONFIGURATION__AZURECOSMOSDB__ENDPOINT}")
-    private final String endpoint = "https://smym-cosmos-nosql.documents.azure.com:443/";
-
-    //    @Value("${CONFIGURATION__AZURECOSMOSDB__DATABASENAME}")
-    private final String databaseName = "products";
+    @Value("${spring.cloud.azure.cosmos.endpoint}")
+    private String endpoint;
+    @Value("${spring.cloud.azure.cosmos.key}")
+    private String key;
+    @Value("${spring.cloud.azure.cosmos.database}")
+    private String databaseName;
 
     @Bean
     public CosmosClientBuilder getCosmosClientBuilder() {
         return new CosmosClientBuilder()
-                .endpoint("https://smym-cosmos-nosql.documents.azure.com:443/")
-                .key("KzZi7PBx8WAVswmm38nmwCr39wYHbmIRFBVcyjOL157dyvAFHbS6QxhZ0DJffPOhrYOqIz0uTN9zACDbnafUug==");
+                .endpoint(endpoint)
+                .key(key);
     }
 
     @Override
@@ -33,6 +35,6 @@ public class CosmosConfiguration extends AbstractCosmosConfiguration {
 
     @Override
     protected String getDatabaseName() {
-        return databaseName != null ? databaseName : "cosmicworks";
+        return databaseName != null ? databaseName : "default";
     }
 }

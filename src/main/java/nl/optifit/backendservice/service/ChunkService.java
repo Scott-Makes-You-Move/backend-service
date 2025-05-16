@@ -4,25 +4,24 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import nl.optifit.backendservice.dto.ChunkDto;
-import nl.optifit.backendservice.dto.VectorSearchRequestDto;
+import nl.optifit.backendservice.dto.zapier.ChatbotResponseDto;
+import nl.optifit.backendservice.dto.zapier.UserMessageDto;
 import nl.optifit.backendservice.model.Chunk;
 import nl.optifit.backendservice.repository.cosmos.ChunkRepository;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.AbstractMap;
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 
 @Slf4j
 @RequiredArgsConstructor
 @Service
-public class EmbeddingService {
+public class ChunkService {
     private final ObjectMapper objectMapper;
     private final ChunkRepository chunkRepository;
+    private final ZapierService zapierService;
 
     public ChunkDto storeChunk(ChunkDto chunkDto) {
         Chunk chunk = ChunkDto.toChunk(chunkDto);
@@ -49,33 +48,7 @@ public class EmbeddingService {
         }
     }
 
-    public List<ChunkDto> searchSimilarChunks(VectorSearchRequestDto vectorSearchRequest) {
-        Iterable<Chunk> all = chunkRepository.findAll();
-
-        return StreamSupport.stream(all.spliterator(), false)
-                .map(chunk -> {
-                    double similarity = cosineSimilarity(vectorSearchRequest.getEmbedding(), chunk.getEmbedding());
-                    return new AbstractMap.SimpleEntry<>(chunk, similarity);
-                }).sorted((e1, e2) -> Double.compare(e2.getValue(), e1.getValue()))
-                .limit(vectorSearchRequest.getTopK())
-                .map(chunkEntry -> ChunkDto.fromChunk(chunkEntry.getKey()))
-                .toList();
-    }
-
-    private double cosineSimilarity(List<Float> vec1, List<Float> vec2) {
-        if (vec1.size() != vec2.size()) {
-            throw new IllegalArgumentException("Vectors must be of same length");
-        }
-
-        double dot = 0.0, normVec1 = 0.0, normVec2 = 0.0;
-        for (int i = 0; i < vec1.size(); i++) {
-            double v1 = vec1.get(i);
-            double v2 = vec2.get(i);
-            dot += v1 * v2;
-            normVec1 += v1 * v1;
-            normVec2 += v2 * v2;
-        }
-
-        return dot / (Math.sqrt(normVec1) * Math.sqrt(normVec2));
+    public ResponseEntity<ChatbotResponseDto> sendChatbotMessage(UserMessageDto userMessageDto) {
+        return zapierService.sendChatbotMessage(userMessageDto);
     }
 }

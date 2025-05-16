@@ -14,7 +14,7 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Container(containerName = "cosmicworks")
+@Container(containerName = "chunks")
 public class Chunk {
     private String id;
     @PartitionKey

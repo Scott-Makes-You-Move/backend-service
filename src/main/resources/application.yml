@@ -1,6 +1,8 @@
 spring:
   application:
     name: backend-service
+  jpa:
+    open-in-view: false
 
 server:
   port: 9000
@@ -8,6 +10,3 @@ server:
 springdoc:
   swagger-ui:
     path: /swagger-ui.html
-
-zapier:
-  webhook-url: https://hooks.zapier.com/hooks/catch/22404938/20gzgac/
