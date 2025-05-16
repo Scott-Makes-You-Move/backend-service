@@ -18,6 +18,8 @@ spring:
       cosmos:
         endpoint: ${AZURE_COSMOS_ENDPOINT:https://somendpoint.documents.azure.com:443}
         key: ${AZURE_COSMOS_KEY:somekey}
+        database: ${AZURE_COSMOS_DATABASE:somedb}
+
 
 jwt:
   auth:
