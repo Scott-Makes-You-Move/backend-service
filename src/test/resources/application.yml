@@ -32,3 +32,6 @@ keycloak:
   username: admin
   password: admin
   client-id: admin-cli
+
+zapier:
+  webhook-url: http://someurl.com

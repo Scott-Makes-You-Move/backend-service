@@ -1,4 +1,4 @@
-package nl.optifit.backendservice.repository;
+package nl.optifit.backendservice.repository.jpa;
 
 import nl.optifit.backendservice.model.Biometrics;
 import org.springframework.data.domain.Page;

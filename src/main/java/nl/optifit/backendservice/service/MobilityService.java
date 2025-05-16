@@ -4,7 +4,8 @@ import lombok.*;
 import lombok.extern.slf4j.*;
 import nl.optifit.backendservice.dto.*;
 import nl.optifit.backendservice.model.*;
-import nl.optifit.backendservice.repository.*;
+import nl.optifit.backendservice.repository.jpa.AccountRepository;
+import nl.optifit.backendservice.repository.jpa.MobilityRepository;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.*;
 
