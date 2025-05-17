@@ -11,4 +11,6 @@ import java.util.UUID;
 @Repository
 public interface BiometricsRepository extends JpaRepository<Biometrics, UUID> {
     Page<Biometrics> findAllByAccountId(Pageable pageable, String accountId);
+
+    Biometrics findFirstByAccountIdOrderByMeasuredOnDesc(String accountId);
 }
