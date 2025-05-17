@@ -8,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import nl.optifit.backendservice.dto.*;
 import nl.optifit.backendservice.model.*;
 import nl.optifit.backendservice.service.*;
+import org.springframework.boot.actuate.health.Health;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.*;
@@ -24,6 +25,13 @@ public class AccountController {
     private final BiometricsService biometricsService;
     private final MobilityService mobilityService;
     private final SessionService sessionService;
+
+    @GetMapping("{accountId}/healthindex")
+    public ResponseEntity<HealthIndexDto> calculateHealthIndex(@PathVariable String accountId) {
+        log.info("GET Health Index REST API called");
+        HealthIndexDto healthIndex = accountService.calculateHealthIndex(accountId);
+        return ResponseEntity.ok(healthIndex);
+    }
 
     @GetMapping("/{accountId}/sessions")
     public ResponseEntity<PagedResponseDto<SessionDto>> getSessionsForAccount(@PathVariable String accountId,
