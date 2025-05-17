@@ -15,4 +15,6 @@ import lombok.Setter;
 public class UserMessageDto {
     @JsonProperty("user_message")
     private String userMessage;
+    @JsonProperty("session_id")
+    private String sessionId;
 }
