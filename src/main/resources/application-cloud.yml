@@ -13,12 +13,25 @@ spring:
         jwt:
           issuer-uri: ${AZURE_JWT_ISSUER_URI:http://localhost:9000/}
           jwk-set-uri: ${AZURE_JWT_PROTOCOL_URI:http://localhost:9000/protocol}
-  cloud:
-    azure:
-      cosmos:
-        endpoint: ${AZURE_COSMOS_ENDPOINT:https://somendpoint.documents.azure.com:443}
-        key: ${AZURE_COSMOS_KEY:somekey}
-        database: ${AZURE_COSMOS_DATABASE:somedb}
+  ai:
+    vectorstore:
+      cosmosdb:
+        endpoint: ${AZURE_COSMOSDB_ENDPOINT:http://someendpoint.com}
+        key: ${AZURE_COSMOSDB_KEY:somekey}
+        database-name: ${AZURE_COSMOSDB_DATABASE:test-database}
+        container-name: ${AZURE_COSMOSDB_CONTAINER:test-container}
+        partition-key-path: ${AZURE_COSMOSDB_PARTITION_KEY_PATH:/id}
+        metadata-fields: ${AZURE_COSMOSDB_METADATA_FIELDS:field1, field2}
+        vector-store-throughput: ${AZURE_COSMOSDB_VS_THROUGHPUT:1000}
+        vector-dimensions: ${AZURE_COSMOSDB_VS_DIMENSIONS:1536}
+    openai:
+      api-key: ${OPENAI_API_KEY:somekey}
+      embedding:
+        options:
+          model: ${OPENAI_API_MODEL:somemodel}
+
+
+
 
 
 jwt:

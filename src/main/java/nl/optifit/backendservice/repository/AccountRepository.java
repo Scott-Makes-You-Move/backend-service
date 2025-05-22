@@ -1,4 +1,4 @@
-package nl.optifit.backendservice.repository.jpa;
+package nl.optifit.backendservice.repository;
 
 import nl.optifit.backendservice.model.Account;
 import org.springframework.data.jpa.repository.JpaRepository;
