@@ -32,4 +32,8 @@ public class BiometricsService {
 
         return BiometricsDto.fromBiometrics(savedBiometrics);
     }
+
+    public Biometrics findMostRecentBiometricsForAccount(String accountId) {
+        return biometricsRepository.findFirstByAccountIdOrderByMeasuredOnDesc(accountId);
+    }
 }
