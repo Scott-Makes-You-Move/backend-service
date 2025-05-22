@@ -6,8 +6,10 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import nl.optifit.backendservice.model.Chunk;
+import org.springframework.ai.document.Document;
 
 import java.util.List;
+import java.util.Map;
 
 @Getter
 @Setter
@@ -19,25 +21,15 @@ public class ChunkDto {
     private String topic;
     private String subtopic;
     private String content;
-    private List<Float> embedding;
 
-    public static Chunk toChunk(ChunkDto chunkDto) {
-        Chunk chunk = new Chunk();
-        chunk.setId(chunkDto.getId());
-        chunk.setTopic(chunkDto.getTopic());
-        chunk.setSubtopic(chunkDto.getSubtopic());
-        chunk.setContent(chunkDto.getContent());
-        chunk.setEmbedding(chunkDto.getEmbedding());
-        return chunk;
-    }
-
-    public static ChunkDto fromChunk(Chunk chunk) {
-        return ChunkDto.builder()
-                .id(chunk.getId())
-                .topic(chunk.getTopic())
-                .subtopic(chunk.getSubtopic())
-                .content(chunk.getContent())
-                .embedding(chunk.getEmbedding())
+    public Document toDocument() {
+        return Document.builder()
+                .id(this.id)
+                .metadata(Map.of(
+                        "topic", this.topic,
+                        "subtopic", this.subtopic
+                ))
+                .text(this.content)
                 .build();
     }
 }
