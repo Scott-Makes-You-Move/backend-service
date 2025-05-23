@@ -47,6 +47,14 @@ public class AccountController {
     }
 
     @PreAuthorize("@jwtConverter.isAccountCurrentUser(#accountId) and @sessionService.sessionBelongsToAccount(#sessionId, #accountId)")
+    @GetMapping("/{accountId}/sessions/{sessionId}")
+    public ResponseEntity<SessionDto> getSessionsForAccount(@PathVariable String accountId, @PathVariable String sessionId) {
+        log.info("GET Account Sessions REST API called");
+        SessionDto accountSessions = sessionService.getSingleSessionForAccount(accountId, sessionId);
+        return ResponseEntity.ok(accountSessions);
+    }
+
+    @PreAuthorize("@jwtConverter.isAccountCurrentUser(#accountId) and @sessionService.sessionBelongsToAccount(#sessionId, #accountId)")
     @PutMapping("/{accountId}/sessions/{sessionId}")
     public ResponseEntity<SessionDto> updateSession(@PathVariable String accountId,
                                                     @PathVariable String sessionId) {

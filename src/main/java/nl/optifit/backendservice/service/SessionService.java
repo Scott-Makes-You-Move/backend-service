@@ -140,4 +140,10 @@ public class SessionService {
 
         return session.getAccount().getId().equals(accountId);
     }
+
+    public SessionDto getSingleSessionForAccount(String accountId, String sessionId) {
+        return sessionRepository.findByIdAndAccountId(UUID.fromString(sessionId), accountId)
+                .map(SessionDto::fromSession)
+                .orElseThrow(() -> new NotFoundException(String.format("Could not find session '%s' for account '%s'", sessionId, accountId)));
+    }
 }
