@@ -14,17 +14,17 @@ import java.util.*;
 @Builder
 public class SessionDto {
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm")
-    private ZonedDateTime sessionStartTime;
+    private LocalDateTime sessionStartTime;
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm")
-    private ZonedDateTime sessionExecutionTime;
+    private LocalDateTime sessionExecutionTime;
     private ExerciseType exerciseType;
     private SessionStatus sessionStatus;
     private String sessionVideoUrl;
 
     public static SessionDto fromSession(Session session) {
         return SessionDto.builder()
-                .sessionStartTime(session.getSessionStart().atZone(ZoneId.of("Europe/Amsterdam")))
-                .sessionExecutionTime(session.getSessionExecutionTime().atZone(ZoneId.of("Europe/Amsterdam")))
+                .sessionStartTime(session.getSessionStart())
+                .sessionExecutionTime(session.getSessionExecutionTime())
                 .exerciseType(session.getExerciseType())
                 .sessionStatus(session.getSessionStatus())
                 .sessionVideoUrl(Objects.isNull(session.getExerciseVideo()) ? null : session.getExerciseVideo().getVideoUrl())
