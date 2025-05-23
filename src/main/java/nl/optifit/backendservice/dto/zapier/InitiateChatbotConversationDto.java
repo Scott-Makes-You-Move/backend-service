@@ -12,9 +12,9 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class UserMessageDto {
-    @JsonProperty("user_message")
-    private String userMessage;
+public class InitiateChatbotConversationDto {
     @JsonProperty("session_id")
     private String sessionId;
+    @JsonProperty("user_message")
+    private String userMessage;
 }

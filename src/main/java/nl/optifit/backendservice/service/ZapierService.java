@@ -2,15 +2,14 @@ package nl.optifit.backendservice.service;
 
 import jakarta.ws.rs.*;
 import lombok.*;
-import nl.optifit.backendservice.dto.zapier.ChatbotResponseDto;
+import nl.optifit.backendservice.dto.zapier.ReceiveChatbotResponseDto;
 import nl.optifit.backendservice.dto.zapier.NotificationDto;
-import nl.optifit.backendservice.dto.zapier.UserMessageDto;
+import nl.optifit.backendservice.dto.zapier.InitiateChatbotConversationDto;
+import nl.optifit.backendservice.dto.zapier.ZapierWorkflowResponseDto;
 import nl.optifit.backendservice.model.*;
 import nl.optifit.backendservice.util.*;
 import org.keycloak.representations.idm.*;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.http.*;
 import org.springframework.stereotype.*;
 import org.springframework.web.reactive.function.client.*;
@@ -42,13 +41,13 @@ public class ZapierService {
                 .block();
     }
 
-    public ResponseEntity<ChatbotResponseDto> sendChatbotMessage(UserMessageDto userMessageDto) {
+    public ResponseEntity<ZapierWorkflowResponseDto> initiateChatbotConversation(InitiateChatbotConversationDto initiateChatbotConversationDto) {
         return webClient.post()
                 .uri(chatbotWebhookUrl)
                 .contentType(MediaType.APPLICATION_JSON)
-                .bodyValue(userMessageDto)
+                .bodyValue(initiateChatbotConversationDto)
                 .retrieve()
-                .toEntity(ChatbotResponseDto.class)
+                .toEntity(ZapierWorkflowResponseDto.class)
                 .block();
     }
 }
