@@ -35,7 +35,7 @@ public class Session implements Serializable {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private SessionStatus sessionStatus;
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "exercise_video_id", referencedColumnName = "id")
     private ExerciseVideo exerciseVideo;
 }
