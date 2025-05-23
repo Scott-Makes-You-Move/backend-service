@@ -76,6 +76,7 @@ public class BootstrapController {
     @DeleteMapping
     public ResponseEntity<Void> deleteExistingData() {
         accountRepository.deleteAll();
+        exerciseVideoRepository.deleteAll();
         return ResponseEntity.noContent().build();
     }
 
