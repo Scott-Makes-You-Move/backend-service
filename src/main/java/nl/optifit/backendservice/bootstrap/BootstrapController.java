@@ -9,7 +9,10 @@ import lombok.extern.slf4j.Slf4j;
 import nl.optifit.backendservice.exception.*;
 import nl.optifit.backendservice.model.*;
 import nl.optifit.backendservice.repository.AccountRepository;
+import nl.optifit.backendservice.repository.BiometricsRepository;
 import nl.optifit.backendservice.repository.ExerciseVideoRepository;
+import nl.optifit.backendservice.repository.MobilityRepository;
+import nl.optifit.backendservice.repository.SessionRepository;
 import nl.optifit.backendservice.util.KeycloakService;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.springframework.core.io.ClassPathResource;
@@ -18,6 +21,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.io.File;
@@ -43,6 +47,9 @@ public class BootstrapController {
     private final ObjectMapper objectMapper;
 
     public static final ClassPathResource BOOTSTRAP_DATA_RESOURCE = new ClassPathResource("bootstrap/bootstrap-data.json");
+    private final SessionRepository sessionRepository;
+    private final BiometricsRepository biometricsRepository;
+    private final MobilityRepository mobilityRepository;
 
     /**
      * Creates accounts, leaderboard, biometrics, mobilities and sessions for users in bootstrap-data.json
@@ -74,9 +81,14 @@ public class BootstrapController {
      * Deletes all accounts and their corresponding leaderboard, biometrics and mobilities.
      */
     @DeleteMapping
-    public ResponseEntity<Void> deleteExistingData() {
-        accountRepository.deleteAll();
-        exerciseVideoRepository.deleteAll();
+    public ResponseEntity<Void> deleteExistingData(@RequestParam String repository) {
+        switch (repository) {
+            case "videos" -> exerciseVideoRepository.deleteAll();
+            case "sessions" -> sessionRepository.deleteAll();
+            case "biometrics" -> biometricsRepository.deleteAll();
+            case "mobility" -> mobilityRepository.deleteAll();
+            case "all" -> accountRepository.deleteAll();
+        }
         return ResponseEntity.noContent().build();
     }
 
