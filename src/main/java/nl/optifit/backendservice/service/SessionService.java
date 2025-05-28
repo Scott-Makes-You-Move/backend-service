@@ -90,16 +90,14 @@ public class SessionService {
         LocalDateTime now = LocalDateTime.now().truncatedTo(ChronoUnit.MINUTES);
 
         Mobility latestMeasurement = mobilityRepository.findTopByAccountIdOrderByMeasuredOnDesc(account.getId())
-                .orElseThrow(() -> new NotFoundException("Could not find most recent mobility measurement"));
+                .orElseThrow(() -> new NotFoundException("No mobility measurement found for account " + account.getId()));
 
-        ExerciseVideo exerciseVideo = switch (exerciseType) {
-            case HIP ->
-                    exerciseVideoRepository.findByExerciseTypeAndScoreEquals(exerciseType, latestMeasurement.getHip());
-            case SHOULDER ->
-                    exerciseVideoRepository.findByExerciseTypeAndScoreEquals(exerciseType, latestMeasurement.getShoulder());
-            case BACK ->
-                    exerciseVideoRepository.findByExerciseTypeAndScoreEquals(exerciseType, latestMeasurement.getBack());
+        Integer score = switch (exerciseType) {
+            case HIP -> Optional.ofNullable(latestMeasurement.getHip()).orElse(2);
+            case SHOULDER -> Optional.ofNullable(latestMeasurement.getShoulder()).orElse(2);
+            case BACK -> Optional.ofNullable(latestMeasurement.getBack()).orElse(2);
         };
+        ExerciseVideo exerciseVideo = exerciseVideoRepository.findByExerciseTypeAndScoreEquals(exerciseType, score);
 
         Session session = Session.builder()
                 .account(account)
