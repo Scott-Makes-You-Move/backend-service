@@ -51,13 +51,13 @@ keycloak:
 cron:
   sessions:
     morning:
-      create: ${CRON_SESSIONS_MORNING_CREATE:"0 0 10 ? * MON-FRI"}
-      update: ${CRON_SESSIONS_MORNING_UPDATE:"0 0 11 ? * MON-FRI"}
+      create: ${CRON_SESSIONS_MORNING_CREATE:0 0 10 ? * MON-FRI}
+      update: ${CRON_SESSIONS_MORNING_UPDATE:0 0 11 ? * MON-FRI}
     lunch:
-      create: ${CRON_SESSIONS_LUNCH_CREATE:"0 30 13 ? * MON-FRI"}
-      update: ${CRON_SESSIONS_LUNCH_UPDATE:"0 30 14 ? * MON-FRI"}
+      create: ${CRON_SESSIONS_LUNCH_CREATE:0 30 13 ? * MON-FRI}
+      update: ${CRON_SESSIONS_LUNCH_UPDATE:0 30 14 ? * MON-FRI}
     afternoon:
-      create: ${CRON_SESSIONS_AFTERNOON_CREATE:"0 0 15 ? * MON-FRI"}
-      update: ${CRON_SESSIONS_AFTERNOON_UPDATE:"0 0 16 ? * MON-FRI"}
+      create: ${CRON_SESSIONS_AFTERNOON_CREATE:0 0 15 ? * MON-FRI}
+      update: ${CRON_SESSIONS_AFTERNOON_UPDATE:"0 0 16 ? * MON-FRI}
   leaderboard:
-    reset: ${CRON_LEADERBOARD_RESET:"0 0 17 ? * 5#1"}
+    reset: ${CRON_LEADERBOARD_RESET:0 0 12 ? * 5#1}
