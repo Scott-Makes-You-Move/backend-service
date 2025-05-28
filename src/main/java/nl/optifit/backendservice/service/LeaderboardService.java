@@ -87,4 +87,11 @@ public class LeaderboardService {
                 ? (double) completedSessions / totalSessions * 100
                 : 0;
     }
+
+    public void resetLeaderboard() {
+        log.debug("Resetting leaderboard");
+        List<Leaderboard> leaderboards = leaderboardRepository.findAll();
+        leaderboards.forEach(leaderboard -> leaderboard.setCurrentStreak(0));
+        leaderboardRepository.saveAll(leaderboards);
+    }
 }
