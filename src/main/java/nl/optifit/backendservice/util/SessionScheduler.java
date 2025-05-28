@@ -18,6 +18,11 @@ public class SessionScheduler {
 
     private final AccountService accountService;
     private final SessionService sessionService;
+    private final LeaderboardService leaderboardService;
+
+    /**
+     * Session Scheduler
+     */
 
     // 0 42 13 * * ? For testing purposes
     @Scheduled(cron = "0 0 10 ? * MON-FRI", zone = "Europe/Amsterdam")
@@ -48,6 +53,14 @@ public class SessionScheduler {
     @Scheduled(cron = "0 0 16 ? * MON-FRI", zone = "Europe/Amsterdam")
     public void updateAfternoonSession() {
         updateSessionStatusForAllAccounts();
+    }
+
+    /**
+     * Leaderboard Reset Scheduler
+     */
+    @Scheduled(cron = "0 0 17 ? * 5#1", zone = "Europe/Amsterdam")
+    public void clearLeaderboard() {
+        leaderboardService.resetLeaderboard();
     }
 
     private void createSessionsForAllAccounts(ExerciseType exerciseType) {
