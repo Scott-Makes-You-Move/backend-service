@@ -58,6 +58,6 @@ cron:
       update: ${CRON_SESSIONS_LUNCH_UPDATE:0 30 14 ? * MON-FRI}
     afternoon:
       create: ${CRON_SESSIONS_AFTERNOON_CREATE:0 0 15 ? * MON-FRI}
-      update: ${CRON_SESSIONS_AFTERNOON_UPDATE:"0 0 16 ? * MON-FRI}
+      update: ${CRON_SESSIONS_AFTERNOON_UPDATE:0 0 16 ? * MON-FRI}
   leaderboard:
     reset: ${CRON_LEADERBOARD_RESET:0 0 12 ? * 5#1}
