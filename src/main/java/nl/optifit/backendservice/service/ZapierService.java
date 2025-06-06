@@ -44,7 +44,6 @@ public class ZapierService {
     public ResponseEntity<ZapierWorkflowResponseDto> initiateChatbotConversation(InitiateChatbotConversationDto initiateChatbotConversationDto) {
         return webClient.post()
                 .uri(chatbotWebhookUrl)
-                .header(HttpHeaders.AUTHORIZATION, bearerToken)
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(initiateChatbotConversationDto)
                 .retrieve()
