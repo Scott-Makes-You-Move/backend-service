@@ -14,6 +14,7 @@ import nl.optifit.backendservice.repository.ExerciseVideoRepository;
 import nl.optifit.backendservice.repository.MobilityRepository;
 import nl.optifit.backendservice.repository.SessionRepository;
 import nl.optifit.backendservice.util.KeycloakService;
+import org.jetbrains.annotations.NotNull;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpStatus;
@@ -55,26 +56,27 @@ public class BootstrapController {
      * Creates accounts, leaderboard, biometrics, mobilities and sessions for users in bootstrap-data.json
      */
     @PostMapping
-    public ResponseEntity<AccountsBootstrappedData> bootstrapData() throws IOException {
+    public ResponseEntity<String> bootstrapData(@RequestParam String repository) throws IOException {
+        if (repository.equals("videos")) {
+            bootstrapExerciseVideos();
+        } else {
+            bootstrapAccountsFromFile();
+        }
+        return ResponseEntity.status(HttpStatus.CREATED).body("Bootstrap data has been successfully created");
+    }
+
+    private void bootstrapAccountsFromFile() throws IOException {
         File bootstrapDataFile = BOOTSTRAP_DATA_RESOURCE.getFile();
-        AccountsBootstrappedData response = new AccountsBootstrappedData();
 
         try {
             List<BootstrapDataModel> bootstrapData = objectMapper.readValue(bootstrapDataFile, objectMapper.getTypeFactory().constructCollectionType(List.class, BootstrapDataModel.class));
             bootstrapData.forEach(data -> keycloakService.findUserByUsername(data.getUsername()).ifPresent(user -> {
-                initiateAccount(user, data, response);
+                initiateAccount(user, data);
             }));
         } catch (Exception e) {
             log.error("Exception occurred during bootstrap", e);
             throw new BootstrapException("Something went wrong while bootstrapping", e);
         }
-
-        int total = response.getAccountIds().size();
-        response.setTotal(total);
-
-        bootstrapExerciseVideos();
-
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     /**
@@ -87,12 +89,12 @@ public class BootstrapController {
             case "sessions" -> sessionRepository.deleteAll();
             case "biometrics" -> biometricsRepository.deleteAll();
             case "mobility" -> mobilityRepository.deleteAll();
-            case "all" -> accountRepository.deleteAll();
+            default -> accountRepository.deleteAll();
         }
         return ResponseEntity.noContent().build();
     }
 
-    private void initiateAccount(UserRepresentation user, BootstrapDataModel bootstrapData, AccountsBootstrappedData response) {
+    private void initiateAccount(UserRepresentation user, BootstrapDataModel bootstrapData) {
         log.info("Initiating account for user '{}'", user.getUsername());
 
         if (accountRepository.findById(user.getId()).isPresent()) {
@@ -149,8 +151,8 @@ public class BootstrapController {
         });
         account.setSessions(sessions);
 
-        Account savedAccount = accountRepository.save(account);
-        response.getAccountIds().add(savedAccount.getId());
+        accountRepository.save(account);
+
         log.info("Account initiated for user '{}'", user.getUsername());
     }
 
