@@ -12,7 +12,11 @@ import java.util.*;
 import java.util.UUID;
 
 @Entity
-@Table(name = "videos", indexes = @Index(columnList = "id"))
+@Table(
+        name = "videos",
+        indexes = @Index(columnList = "id"),
+        uniqueConstraints = @UniqueConstraint(columnNames = {"exerciseType", "score"})
+)
 @Getter
 @Setter
 @NoArgsConstructor
