@@ -11,10 +11,10 @@ public class KeycloakAdminConfiguration {
     @Value("${keycloak.auth-server-url}")
     private String serverUrl;
 
-    @Value("${keycloak.realm}")
+    @Value("${keycloak.realm.master}")
     private String realm;
 
-    @Value("${keycloak.client-id}")
+    @Value("${keycloak.client.admin}")
     private String clientId;
 
     @Value("${keycloak.username}")

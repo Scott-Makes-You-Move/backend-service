@@ -43,10 +43,14 @@ webhooks:
 
 keycloak:
   auth-server-url: ${KEYCLOAK_AUTH_SERVER_URL:http://localhost:8080}
-  realm: ${KEYCLOAK_REALM:master}
   username: ${KEYCLOAK_USERNAME:admin}
   password: ${KEYCLOAK_PASSWORD:admin}
-  client-id: ${KEYCLOAK_CLIENT_ID:admin-cli}
+  realm:
+    master: ${KEYCLOAK_REALM_MASTER:master}
+    smym: ${KEYCLOAK_REALM_SMYM:smym}
+  client:
+    admin: ${KEYCLOAK_CLIENT_ADMIN:admin-cli}
+    smym: ${KEYCLOAK_CLIENT_SMYM:smym-client}
 
 cron:
   sessions:

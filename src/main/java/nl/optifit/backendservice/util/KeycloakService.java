@@ -13,7 +13,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class KeycloakService {
 
-    @Value("${keycloak.realm}")
+    @Value("${keycloak.realm.smym}")
     private String realm;
 
     private final Keycloak keycloak;
