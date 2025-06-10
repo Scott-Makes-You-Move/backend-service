@@ -25,10 +25,10 @@ public class Session implements Serializable {
     @JoinColumn(name = "account_id", referencedColumnName = "account_id", nullable = false)
     private Account account;
     @PastOrPresent(message = "Measured date cannot be in the future")
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSZ")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSZ", timezone = "Europe/Amsterdam")
     private ZonedDateTime sessionStart;
     @PastOrPresent(message = "Measured date cannot be in the future")
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSZ")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSZ", timezone = "Europe/Amsterdam")
     private ZonedDateTime sessionExecutionTime;
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
