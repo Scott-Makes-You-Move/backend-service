@@ -13,10 +13,10 @@ import java.util.*;
 @AllArgsConstructor
 @Builder
 public class SessionDto {
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm")
-    private LocalDateTime sessionStartTime;
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm")
-    private LocalDateTime sessionExecutionTime;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSZ")
+    private ZonedDateTime sessionStartTime;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSZ")
+    private ZonedDateTime sessionExecutionTime;
     private ExerciseType exerciseType;
     private SessionStatus sessionStatus;
     private String sessionVideoUrl;

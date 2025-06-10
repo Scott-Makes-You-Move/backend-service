@@ -87,7 +87,7 @@ public class SessionService {
     }
 
     public Session createNewSession(Account account, ExerciseType exerciseType) {
-        LocalDateTime now = LocalDateTime.now().truncatedTo(ChronoUnit.MINUTES);
+        ZonedDateTime now = ZonedDateTime.now(ZoneId.of("Europe/Amsterdam")).truncatedTo(ChronoUnit.MINUTES);
 
         Mobility latestMeasurement = mobilityRepository.findTopByAccountIdOrderByMeasuredOnDesc(account.getId())
                 .orElseThrow(() -> new NotFoundException("No mobility measurement found for account " + account.getId()));
@@ -111,8 +111,8 @@ public class SessionService {
     }
 
     public void updateSession(Session latestSession) {
-        LocalDateTime now = LocalDateTime.now().truncatedTo(ChronoUnit.MINUTES);
-        LocalDateTime lastSessionStart = latestSession.getSessionStart().truncatedTo(ChronoUnit.MINUTES);
+        ZonedDateTime now = ZonedDateTime.now(ZoneId.of("Europe/Amsterdam")).truncatedTo(ChronoUnit.MINUTES);
+        ZonedDateTime lastSessionStart = latestSession.getSessionStart().truncatedTo(ChronoUnit.MINUTES);
 
         long differenceBetweenSessionStartAndNow = Duration.between(lastSessionStart, now).toMinutes();
 
