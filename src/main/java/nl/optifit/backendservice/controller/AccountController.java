@@ -1,5 +1,6 @@
 package nl.optifit.backendservice.controller;
 
+import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.*;
 import jakarta.validation.Valid;
@@ -26,6 +27,7 @@ public class AccountController {
     private final MobilityService mobilityService;
     private final SessionService sessionService;
 
+    @PreAuthorize("@jwtConverter.isAccountCurrentUser(#accountId)")
     @GetMapping("{accountId}/healthindex")
     public ResponseEntity<HealthIndexDto> calculateHealthIndex(@PathVariable String accountId) {
         log.info("GET Health Index REST API called");
@@ -33,6 +35,7 @@ public class AccountController {
         return ResponseEntity.ok(healthIndex);
     }
 
+    @PreAuthorize("@jwtConverter.isAccountCurrentUser(#accountId)")
     @GetMapping("/{accountId}/sessions")
     public ResponseEntity<PagedResponseDto<SessionDto>> getSessionsForAccount(@PathVariable String accountId,
                                                                               @RequestParam(required = false) String sessionStartDate,
@@ -48,7 +51,8 @@ public class AccountController {
 
     @PreAuthorize("@jwtConverter.isAccountCurrentUser(#accountId) and @sessionService.sessionBelongsToAccount(#sessionId, #accountId)")
     @GetMapping("/{accountId}/sessions/{sessionId}")
-    public ResponseEntity<SessionDto> getSessionsForAccount(@PathVariable String accountId, @PathVariable String sessionId) {
+    public ResponseEntity<SessionDto> getSessionsForAccount(@PathVariable String accountId,
+                                                            @PathVariable String sessionId) {
         log.info("GET Account Sessions REST API called");
         SessionDto accountSessions = sessionService.getSingleSessionForAccount(accountId, sessionId);
         return ResponseEntity.ok(accountSessions);
@@ -63,6 +67,7 @@ public class AccountController {
         return ResponseEntity.noContent().build();
     }
 
+    @Hidden // This endpoint is called when a user is created in Keycloak
     @PostMapping
     public ResponseEntity<AccountDto> createAccount(@RequestBody AccountDto accountDTO) {
         log.info("POST Account REST API called");
@@ -70,6 +75,7 @@ public class AccountController {
         return ResponseEntity.status(HttpStatus.CREATED).body(createdAccount);
     }
 
+    @PreAuthorize("@jwtConverter.isAccountCurrentUser(#accountId)")
     @GetMapping("/{accountId}/mobilities")
     public ResponseEntity<PagedResponseDto<MobilityDto>> getMobilitiesForAccount(@PathVariable String accountId,
                                                                                  @RequestParam(defaultValue = "0") int page,
@@ -81,6 +87,7 @@ public class AccountController {
         return ResponseEntity.ok(accountMobilities);
     }
 
+//    @PreAuthorize("@jwtConverter.isAccountCurrentUser(#accountId)") TODO: Check who will be able to POST mobilities
     @PostMapping("/{accountId}/mobilities")
     public ResponseEntity<MobilityDto> createMobility(@PathVariable String accountId,
                                                    @RequestBody @Valid MobilityDto mobilityDTO) {
@@ -89,6 +96,7 @@ public class AccountController {
         return ResponseEntity.status(HttpStatus.CREATED).body(mobility);
     }
 
+    @PreAuthorize("@jwtConverter.isAccountCurrentUser(#accountId)")
     @GetMapping("/{accountId}/biometrics")
     public ResponseEntity<PagedResponseDto<BiometricsDto>> getBiometricsForAccount(@PathVariable String accountId,
                                                                                    @RequestParam(defaultValue = "0") int page,
@@ -100,6 +108,7 @@ public class AccountController {
         return ResponseEntity.ok(accountBiometrics);
     }
 
+    //    @PreAuthorize("@jwtConverter.isAccountCurrentUser(#accountId)") TODO: Check who will be able to POST biometrics
     @PostMapping("/{accountId}/biometrics")
     public ResponseEntity<BiometricsDto> createBiometric(@PathVariable String accountId,
                                                       @RequestBody @Valid BiometricsDto biometricsDTO) {
@@ -108,6 +117,7 @@ public class AccountController {
         return ResponseEntity.status(HttpStatus.CREATED).body(biometrics);
     }
 
+    @Hidden // This endpoint is called when a user is deleted in Keycloak
     @DeleteMapping("/{accountId}")
     public ResponseEntity<Void> deleteAccount(@PathVariable String accountId) {
         log.info("DELETE Account REST API called");
