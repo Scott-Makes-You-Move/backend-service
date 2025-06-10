@@ -50,7 +50,7 @@ keycloak:
     smym: ${KEYCLOAK_REALM_SMYM:smym}
   client:
     admin: ${KEYCLOAK_CLIENT_ADMIN:admin-cli}
-    smym: ${KEYCLOAK_CLIENT_SMYM:smym-client}
+    smym: ${KEYCLOAK_CLIENT_SMYM:smym}
 
 cron:
   sessions:
