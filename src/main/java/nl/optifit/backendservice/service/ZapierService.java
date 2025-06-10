@@ -1,5 +1,6 @@
 package nl.optifit.backendservice.service;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.ws.rs.*;
 import lombok.*;
 import nl.optifit.backendservice.dto.zapier.ReceiveChatbotResponseDto;
@@ -41,10 +42,11 @@ public class ZapierService {
                 .block();
     }
 
-    public ResponseEntity<ZapierWorkflowResponseDto> initiateChatbotConversation(InitiateChatbotConversationDto initiateChatbotConversationDto) {
+    public ResponseEntity<ZapierWorkflowResponseDto> initiateChatbotConversation(InitiateChatbotConversationDto initiateChatbotConversationDto, HttpServletRequest request) {
         return webClient.post()
                 .uri(chatbotWebhookUrl)
                 .contentType(MediaType.APPLICATION_JSON)
+                .header("Authorization", request.getHeader("Authorization"))
                 .bodyValue(initiateChatbotConversationDto)
                 .retrieve()
                 .toEntity(ZapierWorkflowResponseDto.class)

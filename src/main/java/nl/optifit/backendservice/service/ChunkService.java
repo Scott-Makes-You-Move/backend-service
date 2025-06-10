@@ -48,6 +48,7 @@ public class ChunkService {
 
     public List<Document> search(SearchQueryDto searchQueryDto) {
         log.info("Searching for chunks with query '{}'", searchQueryDto.getQuery());
+
         SearchRequest searchRequest = SearchRequest.builder()
                 .query(searchQueryDto.getQuery())
                 .topK(searchQueryDto.getTopK())

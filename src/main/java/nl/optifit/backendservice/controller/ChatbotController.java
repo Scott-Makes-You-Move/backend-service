@@ -2,6 +2,7 @@ package nl.optifit.backendservice.controller;
 
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import nl.optifit.backendservice.dto.zapier.InitiateChatbotConversationDto;
@@ -26,8 +27,9 @@ public class ChatbotController {
     private final ZapierService zapierService;
 
     @PostMapping("/initiate")
-    public ResponseEntity<ZapierWorkflowResponseDto> initiateChatbotConversation(@RequestBody InitiateChatbotConversationDto initiateChatbotConversationDto) {
-        return zapierService.initiateChatbotConversation(initiateChatbotConversationDto);
+    public ResponseEntity<ZapierWorkflowResponseDto> initiateChatbotConversation(@RequestBody InitiateChatbotConversationDto initiateChatbotConversationDto,
+                                                                                 HttpServletRequest request) {
+        return zapierService.initiateChatbotConversation(initiateChatbotConversationDto, request);
     }
 
     @PostMapping("/response")
