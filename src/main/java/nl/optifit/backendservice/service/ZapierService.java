@@ -17,6 +17,7 @@ import org.springframework.stereotype.*;
 import org.springframework.web.reactive.function.client.*;
 
 import java.time.LocalTime;
+import java.time.ZonedDateTime;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -47,7 +48,7 @@ public class ZapierService {
     }
 
     public ResponseEntity<ZapierWorkflowResponseDto> initiateChatbotConversation(InitiateChatbotConversationDto initiateChatbotConversationDto, HttpServletRequest request) {
-        log.info("Initiating chatbot conversation: '{}'", LocalTime.now());
+        log.info("Initiating chatbot conversation: '{}'", ZonedDateTime.now());
         return webClient.post()
                 .uri(chatbotWebhookUrl)
                 .contentType(MediaType.APPLICATION_JSON)
