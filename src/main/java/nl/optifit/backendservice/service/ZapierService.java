@@ -3,6 +3,7 @@ package nl.optifit.backendservice.service;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.ws.rs.*;
 import lombok.*;
+import lombok.extern.slf4j.Slf4j;
 import nl.optifit.backendservice.dto.zapier.ReceiveChatbotResponseDto;
 import nl.optifit.backendservice.dto.zapier.NotificationDto;
 import nl.optifit.backendservice.dto.zapier.InitiateChatbotConversationDto;
@@ -15,6 +16,9 @@ import org.springframework.http.*;
 import org.springframework.stereotype.*;
 import org.springframework.web.reactive.function.client.*;
 
+import java.time.LocalTime;
+
+@Slf4j
 @RequiredArgsConstructor
 @Service
 public class ZapierService {
@@ -43,6 +47,7 @@ public class ZapierService {
     }
 
     public ResponseEntity<ZapierWorkflowResponseDto> initiateChatbotConversation(InitiateChatbotConversationDto initiateChatbotConversationDto, HttpServletRequest request) {
+        log.info("Initiating chatbot conversation: '{}'", LocalTime.now());
         return webClient.post()
                 .uri(chatbotWebhookUrl)
                 .contentType(MediaType.APPLICATION_JSON)
