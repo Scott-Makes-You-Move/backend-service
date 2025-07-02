@@ -35,6 +35,7 @@ public class ChatbotController {
     @PostMapping("/response")
     public ResponseEntity<String> receiveResponse(@RequestBody ReceiveChatbotResponseDto receiveChatbotResponseDto) {
         String aiResponse = receiveChatbotResponseDto.getAiResponse();
+        log.info("Received response: {}", aiResponse);
         return StringUtils.isNotBlank(aiResponse) ? ResponseEntity.ok(aiResponse) : ResponseEntity.badRequest().build();
     }
 }
