@@ -37,7 +37,7 @@ public class ZapierService {
     private final KeycloakService keycloakService;
     private final ConcurrentHashMap<String, String> responseMap = new ConcurrentHashMap<>();
 
-    private static final int MAX_ATTEMPTS = 20;
+    private static final int MAX_ATTEMPTS = 40;
     private static final Duration DELAY = Duration.ofSeconds(1);
 
     public ResponseEntity<String> sendNotification(Session newSession) {
