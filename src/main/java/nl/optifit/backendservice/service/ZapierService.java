@@ -1,5 +1,6 @@
 package nl.optifit.backendservice.service;
 
+import io.micrometer.common.util.StringUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.ws.rs.*;
 import lombok.*;
@@ -68,6 +69,11 @@ public class ZapierService {
     public ChatbotResponseDto getResponseForSession(String sessionId) {
         log.info("Reading chatbot response for session: '{}'", sessionId);
         String response = responseMap.get(sessionId);
+
+        if (StringUtils.isEmpty(response)) {
+            throw new NotFoundException("Could not find chatbot response for session: " + sessionId);
+        }
+
         log.info("Response read successfully: '{}'", response);
         log.info("Removing response from local storage");
         responseMap.remove(sessionId);
