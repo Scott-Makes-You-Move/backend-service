@@ -16,7 +16,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.*;
 import org.springframework.web.reactive.function.client.*;
+import reactor.core.publisher.Mono;
+import reactor.util.retry.Retry;
 
+import java.time.Duration;
 import java.time.ZonedDateTime;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -29,9 +32,13 @@ public class ZapierService {
     private String notificationWebhookUrl;
     @Value("${webhooks.zapier.chatbot}")
     private String chatbotWebhookUrl;
+
     private final WebClient webClient;
     private final KeycloakService keycloakService;
     private final ConcurrentHashMap<String, String> responseMap = new ConcurrentHashMap<>();
+
+    private static final int MAX_ATTEMPTS = 20;
+    private static final Duration DELAY = Duration.ofSeconds(1);
 
     public ResponseEntity<String> sendNotification(Session newSession) {
         UserRepresentation userRepresentation = keycloakService.findUserById(newSession.getAccount().getId())
@@ -49,16 +56,20 @@ public class ZapierService {
                 .block();
     }
 
-    public ResponseEntity<ZapierWorkflowResponseDto> initiateChatbotConversation(InitiateChatbotConversationDto initiateChatbotConversationDto, HttpServletRequest request) {
-        log.info("Initiating chatbot conversation: '{}'", ZonedDateTime.now());
+    public Mono<ResponseEntity<ChatbotResponseDto>> initiateChatbotConversation(InitiateChatbotConversationDto initiateDto, HttpServletRequest request) {
+        String sessionId = initiateDto.getSessionId();
+
+        log.info("Initiating chatbot conversation at {}", ZonedDateTime.now());
+
         return webClient.post()
                 .uri(chatbotWebhookUrl)
                 .contentType(MediaType.APPLICATION_JSON)
                 .header("Authorization", request.getHeader("Authorization"))
-                .bodyValue(initiateChatbotConversationDto)
+                .bodyValue(initiateDto)
                 .retrieve()
-                .toEntity(ZapierWorkflowResponseDto.class)
-                .block();
+                .toBodilessEntity()
+                .then(waitForZapierResponse(sessionId))
+                .map(ResponseEntity::ok);
     }
 
     public void storeResponse(ChatbotResponseDto chatbotResponseDto) {
@@ -66,18 +77,22 @@ public class ZapierService {
         responseMap.put(chatbotResponseDto.getSessionId(), chatbotResponseDto.getAiResponse());
     }
 
-    public ChatbotResponseDto getResponseForSession(String sessionId) {
-        log.info("Reading chatbot response for session: '{}'", sessionId);
-        String response = responseMap.get(sessionId);
-
-        if (StringUtils.isEmpty(response)) {
-            throw new NotFoundException("Could not find chatbot response for session: " + sessionId);
-        }
-
-        log.info("Response read successfully: '{}'", response);
-        log.info("Removing response from local storage");
-        responseMap.remove(sessionId);
-        log.info("Removed successfully");
-        return new ChatbotResponseDto(sessionId, response);
+    private Mono<ChatbotResponseDto> waitForZapierResponse(String sessionId) {
+        return Mono.defer(() -> {
+                    String response = responseMap.get(sessionId);
+                    if (response != null) {
+                        log.info("Chatbot response found for session '{}'", sessionId);
+                        responseMap.remove(sessionId); // Optional: cleanup
+                        return Mono.just(new ChatbotResponseDto(sessionId, response));
+                    }
+                    return Mono.error(new IllegalStateException("Response not ready"));
+                })
+                .retryWhen(Retry.fixedDelay(MAX_ATTEMPTS, DELAY)
+                        .filter(IllegalStateException.class::isInstance)
+                )
+                .onErrorResume(e -> {
+                    log.warn("Zapier response timeout or error: {}", e.getMessage());
+                    return Mono.just(new ChatbotResponseDto(sessionId, "⚠️ No response in time."));
+                });
     }
 }
