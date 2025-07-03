@@ -18,6 +18,7 @@ import org.springframework.web.reactive.function.client.*;
 
 import java.time.LocalTime;
 import java.time.ZonedDateTime;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -30,6 +31,7 @@ public class ZapierService {
     private String chatbotWebhookUrl;
     private final WebClient webClient;
     private final KeycloakService keycloakService;
+    private final ConcurrentHashMap<String, String> responseMap = new ConcurrentHashMap<>();
 
     public ResponseEntity<String> sendNotification(Session newSession) {
         UserRepresentation userRepresentation = keycloakService.findUserById(newSession.getAccount().getId())
@@ -57,5 +59,14 @@ public class ZapierService {
                 .retrieve()
                 .toEntity(ZapierWorkflowResponseDto.class)
                 .block();
+    }
+
+    public void storeResponse(ReceiveChatbotResponseDto receiveChatbotResponseDto) {
+        log.info("Received chatbot response: '{}'", receiveChatbotResponseDto.getAiResponse());
+        responseMap.put(receiveChatbotResponseDto.getSessionId(), receiveChatbotResponseDto.getAiResponse());
+    }
+
+    public String getResponseForSession(String sessionId) {
+        return responseMap.get(sessionId);
     }
 }

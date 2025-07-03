@@ -11,6 +11,8 @@ import nl.optifit.backendservice.dto.zapier.ZapierWorkflowResponseDto;
 import nl.optifit.backendservice.service.ZapierService;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -33,9 +35,13 @@ public class ChatbotController {
     }
 
     @PostMapping("/response")
-    public ResponseEntity<String> receiveResponse(@RequestBody ReceiveChatbotResponseDto receiveChatbotResponseDto) {
-        String aiResponse = receiveChatbotResponseDto.getAiResponse();
-        log.info("Received response: {}", aiResponse);
-        return StringUtils.isNotBlank(aiResponse) ? ResponseEntity.ok(aiResponse) : ResponseEntity.badRequest().build();
+    public void receiveResponse(@RequestBody ReceiveChatbotResponseDto receiveChatbotResponseDto) {
+        zapierService.storeResponse(receiveChatbotResponseDto);
+    }
+
+    @GetMapping("/response/{sessionId}")
+    public ResponseEntity<String> receiveSessionResponse(@PathVariable String sessionId) {
+        String response = zapierService.getResponseForSession(sessionId);
+        return ResponseEntity.ok(response);
     }
 }
