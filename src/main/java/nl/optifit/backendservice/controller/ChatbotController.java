@@ -6,10 +6,9 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import nl.optifit.backendservice.dto.zapier.InitiateChatbotConversationDto;
-import nl.optifit.backendservice.dto.zapier.ReceiveChatbotResponseDto;
+import nl.optifit.backendservice.dto.zapier.ChatbotResponseDto;
 import nl.optifit.backendservice.dto.zapier.ZapierWorkflowResponseDto;
 import nl.optifit.backendservice.service.ZapierService;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -35,13 +34,13 @@ public class ChatbotController {
     }
 
     @PostMapping("/response")
-    public void receiveResponse(@RequestBody ReceiveChatbotResponseDto receiveChatbotResponseDto) {
-        zapierService.storeResponse(receiveChatbotResponseDto);
+    public void receiveResponse(@RequestBody ChatbotResponseDto chatbotResponseDto) {
+        zapierService.storeResponse(chatbotResponseDto);
     }
 
     @GetMapping("/response/{sessionId}")
-    public ResponseEntity<String> receiveSessionResponse(@PathVariable String sessionId) {
-        String response = zapierService.getResponseForSession(sessionId);
+    public ResponseEntity<ChatbotResponseDto> receiveSessionResponse(@PathVariable String sessionId) {
+        ChatbotResponseDto response = zapierService.getResponseForSession(sessionId);
         return ResponseEntity.ok(response);
     }
 }

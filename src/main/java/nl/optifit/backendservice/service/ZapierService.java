@@ -4,7 +4,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.ws.rs.*;
 import lombok.*;
 import lombok.extern.slf4j.Slf4j;
-import nl.optifit.backendservice.dto.zapier.ReceiveChatbotResponseDto;
+import nl.optifit.backendservice.dto.zapier.ChatbotResponseDto;
 import nl.optifit.backendservice.dto.zapier.NotificationDto;
 import nl.optifit.backendservice.dto.zapier.InitiateChatbotConversationDto;
 import nl.optifit.backendservice.dto.zapier.ZapierWorkflowResponseDto;
@@ -16,7 +16,6 @@ import org.springframework.http.*;
 import org.springframework.stereotype.*;
 import org.springframework.web.reactive.function.client.*;
 
-import java.time.LocalTime;
 import java.time.ZonedDateTime;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -61,12 +60,18 @@ public class ZapierService {
                 .block();
     }
 
-    public void storeResponse(ReceiveChatbotResponseDto receiveChatbotResponseDto) {
-        log.info("Received chatbot response: '{}'", receiveChatbotResponseDto.getAiResponse());
-        responseMap.put(receiveChatbotResponseDto.getSessionId(), receiveChatbotResponseDto.getAiResponse());
+    public void storeResponse(ChatbotResponseDto chatbotResponseDto) {
+        log.info("Received chatbot response: '{}'", chatbotResponseDto.getAiResponse());
+        responseMap.put(chatbotResponseDto.getSessionId(), chatbotResponseDto.getAiResponse());
     }
 
-    public String getResponseForSession(String sessionId) {
-        return responseMap.get(sessionId);
+    public ChatbotResponseDto getResponseForSession(String sessionId) {
+        log.info("Reading chatbot response for session: '{}'", sessionId);
+        String response = responseMap.get(sessionId);
+        log.info("Response read successfully: '{}'", response);
+        log.info("Removing response from local storage");
+        responseMap.remove(sessionId);
+        log.info("Removed successfully");
+        return new ChatbotResponseDto(sessionId, response);
     }
 }

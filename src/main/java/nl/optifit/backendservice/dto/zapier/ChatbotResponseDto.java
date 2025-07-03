@@ -12,7 +12,7 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class ReceiveChatbotResponseDto {
+public class ChatbotResponseDto {
     @JsonProperty("session_id")
     private String sessionId;
     @JsonProperty("ai_response")
