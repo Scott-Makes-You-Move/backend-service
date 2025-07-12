@@ -11,13 +11,18 @@ import nl.optifit.backendservice.repository.ConversationRepository;
 import nl.optifit.backendservice.util.MaskingUtil;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.document.Document;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 import static nl.optifit.backendservice.model.Role.ASSISTANT;
@@ -30,6 +35,10 @@ public class ChatbotService {
             You are a specialist in mobility exercises, habit creation and mental health improvement. 
             Your name is SMYM — please introduce yourself as such if asked.""";
 
+    private static final Executor taskExecutor = Executors.newFixedThreadPool(
+            Runtime.getRuntime().availableProcessors() * 2
+    );
+
     private final ConversationRepository conversationRepository;
     private final ChunkService chunkService;
     private final ChatClient chatClient;
@@ -41,28 +50,58 @@ public class ChatbotService {
     }
 
     public ChatbotResponseDto initiateChat(ConversationDto conversationDto) {
+        long startTime = System.currentTimeMillis();
+
         try {
             UUID chatSessionId = conversationDto.getSessionId();
-            saveUserMessage(conversationDto, chatSessionId);
+            String userMessage = conversationDto.getUserMessage();
+            String maskedMessage = MaskingUtil.maskEntities(userMessage);
 
-            List<Conversation> recentConversations = getRecentConversations(chatSessionId);
-            SummarizedConversation summary = summarizeConversation(recentConversations);
+            CompletableFuture<Void> saveFuture = CompletableFuture.runAsync(
+                    () -> saveUserMessage(conversationDto, chatSessionId),
+                    taskExecutor
+            );
 
-            String maskedMessage = MaskingUtil.maskEntities(conversationDto.getUserMessage());
-            String ragSearch = getRelevantKnowledge(maskedMessage);
+            CompletableFuture<List<Conversation>> conversationsFuture = CompletableFuture.supplyAsync(
+                    () -> getRecentConversations(chatSessionId),
+                    taskExecutor
+            );
 
-            String prompt = buildPrompt(summary.summary(), maskedMessage, ragSearch);
+            CompletableFuture<String> ragFuture = CompletableFuture.supplyAsync(
+                    () -> getRelevantKnowledge(maskedMessage),
+                    taskExecutor
+            );
+
+            CompletableFuture.allOf(saveFuture, conversationsFuture, ragFuture).join();
+
+            SummarizedConversation summary = summarizeConversation(conversationsFuture.get());
+            String prompt = buildPrompt(summary.summary(), maskedMessage, ragFuture.get());
+
             String aiResponse = getAiResponse(prompt);
+            ChatbotResponseDto response = createResponse(chatSessionId, aiResponse);
 
-            return createResponse(chatSessionId, aiResponse);
+            log.debug("Request processed in {}ms", System.currentTimeMillis() - startTime);
+            return response;
+
         } catch (Exception e) {
-            log.error("Error processing chat request", e);
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error processing chat request", e);
+            log.error("Error processing chat request in {}ms: {}",
+                    System.currentTimeMillis() - startTime, e.getMessage(), e);
+            throw new ResponseStatusException(
+                    HttpStatus.INTERNAL_SERVER_ERROR,
+                    "Error processing chat request",
+                    e
+            );
         }
     }
 
-    private List<Conversation> getRecentConversations(UUID chatSessionId) {
+    @Cacheable(value = "conversations", key = "#chatSessionId")
+    public List<Conversation> getRecentConversations(UUID chatSessionId) {
         return conversationRepository.findTop10ByChatSessionIdOrderByCreatedAtDesc(chatSessionId);
+    }
+
+    @Async
+    public CompletableFuture<SummarizedConversation> summarizeConversationAsync(List<Conversation> conversations) {
+        return CompletableFuture.completedFuture(summarizeConversation(conversations));
     }
 
     private SummarizedConversation summarizeConversation(List<Conversation> conversations) {
@@ -78,7 +117,8 @@ public class ChatbotService {
         return new SummarizedConversation(chatContextRaw, summary);
     }
 
-    private String getRelevantKnowledge(String query) {
+    @Cacheable(value = "ragResults", key = "#query.hashCode()")
+    public String getRelevantKnowledge(String query) {
         return chunkService.search(SearchQueryDto.builder()
                         .query(query)
                         .topK(1)
@@ -111,8 +151,20 @@ public class ChatbotService {
     }
 
     private String getAiResponse(String prompt) {
-        String maskedResponse = chatClient.prompt(prompt).call().content();
-        return MaskingUtil.unmaskEntities(maskedResponse);
+        try {
+            return MaskingUtil.unmaskEntities(
+                    chatClient.prompt(prompt)
+                            .call()
+                            .content()
+            );
+        } catch (Exception e) {
+            log.error("Error getting AI response", e);
+            throw new ResponseStatusException(
+                    HttpStatus.INTERNAL_SERVER_ERROR,
+                    "Error generating AI response",
+                    e
+            );
+        }
     }
 
     private ChatbotResponseDto createResponse(UUID chatSessionId, String aiResponse) {
