@@ -9,10 +9,9 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Getter
 @RequiredArgsConstructor
-public enum SessionStatus {
-    NEW("New"),
-    COMPLETED("Completed"),
-    OVERDUE("Overdue");
+public enum Role {
+    USER("User"),
+    ASSISTANT("Assistant");
 
     private final String displayName;
 

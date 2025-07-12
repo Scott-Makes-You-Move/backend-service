@@ -7,6 +7,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.UUID;
+
 @Getter
 @Setter
 @AllArgsConstructor
@@ -14,7 +16,7 @@ import lombok.Setter;
 @Builder
 public class ChatbotResponseDto {
     @JsonProperty("session_id")
-    private String sessionId;
+    private UUID sessionId;
     @JsonProperty("ai_response")
     private String aiResponse;
 }

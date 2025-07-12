@@ -7,14 +7,16 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.UUID;
+
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class InitiateChatbotConversationDto {
+public class ConversationDto {
     @JsonProperty("session_id")
-    private String sessionId;
+    private UUID sessionId;
     @JsonProperty("user_message")
     private String userMessage;
 }
