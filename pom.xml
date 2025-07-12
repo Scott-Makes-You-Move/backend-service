@@ -20,6 +20,7 @@
         <springdoc.openapi.version>2.8.5</springdoc.openapi.version>
         <jackson.version>2.19.0</jackson.version>
         <spring-ai.version>1.0.0</spring-ai.version>
+        <jasypt.version>1.9.3</jasypt.version>
     </properties>
 
     <dependencies>
@@ -138,6 +139,11 @@
         <dependency>
             <groupId>org.springframework.ai</groupId>
             <artifactId>spring-ai-starter-model-openai</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.opennlp</groupId>
+            <artifactId>opennlp-tools</artifactId>
+            <version>2.5.4</version>
         </dependency>
     </dependencies>
 
