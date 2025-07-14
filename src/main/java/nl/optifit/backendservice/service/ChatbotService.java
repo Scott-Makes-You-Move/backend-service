@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import nl.optifit.backendservice.dto.ChatbotResponseDto;
 import nl.optifit.backendservice.dto.ConversationDto;
 import nl.optifit.backendservice.dto.SearchQueryDto;
+import nl.optifit.backendservice.dto.SummarizedConversation;
 import nl.optifit.backendservice.model.Conversation;
 import nl.optifit.backendservice.repository.ConversationRepository;
 import nl.optifit.backendservice.util.MaskingUtil;
@@ -22,9 +23,8 @@ import java.io.IOException;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
+import java.util.concurrent.*;
+import java.util.function.Function;
 
 import static nl.optifit.backendservice.model.Role.ASSISTANT;
 import static nl.optifit.backendservice.model.Role.USER;
@@ -45,6 +45,7 @@ public class ChatbotService {
     private final ChatClient chatClient;
     private final Cache conversationCache;
     private final Cache ragCache;
+    private final ScheduledExecutorService timeoutExecutor = Executors.newSingleThreadScheduledExecutor();
 
     public ChatbotService(
             ConversationRepository conversationRepository,
@@ -70,7 +71,7 @@ public class ChatbotService {
                         try {
                             return MaskingUtil.maskEntities(userMessage);
                         } catch (IOException e) {
-                            throw new RuntimeException(e);
+                            throw new RuntimeException("Masking failed", e);
                         }
                     },
                     taskExecutor
@@ -82,13 +83,17 @@ public class ChatbotService {
             );
 
             CompletableFuture<List<Conversation>> conversationsFuture = getCachedConversations(chatSessionId);
-            CompletableFuture<String> ragFuture = getCachedRagResults(maskingFuture);
+            CompletableFuture<String> ragFuture = getCachedRagResultsWithTimeout(maskingFuture, 5, TimeUnit.SECONDS);
 
             return maskingFuture.thenCombine(conversationsFuture, (maskedMsg, conversations) -> {
                 SummarizedConversation summary = summarizeConversation(conversations);
                 return Pair.of(maskedMsg, summary);
             }).thenCombine(ragFuture, (pair, ragResult) -> {
-                String prompt = buildPrompt(pair.getRight().summary(), pair.getLeft(), ragResult);
+                String prompt = buildPrompt(
+                        pair.getRight().summary(),
+                        pair.getLeft(),
+                        ragResult != null ? ragResult : "[RAG search timed out or failed]"
+                );
                 return prompt;
             }).thenApplyAsync(prompt -> {
                 String aiResponse = getAiResponse(prompt);
@@ -106,34 +111,79 @@ public class ChatbotService {
         }
     }
 
-    private CompletableFuture<List<Conversation>> getCachedConversations(UUID chatSessionId) {
-        return CompletableFuture.supplyAsync(() -> {
-            List<Conversation> cached = conversationCache.get(chatSessionId, List.class);
-            if (cached != null) return cached;
+    private CompletableFuture<String> getCachedRagResultsWithTimeout(
+            CompletableFuture<String> queryFuture,
+            long timeout,
+            TimeUnit unit) {
 
-            List<Conversation> fresh = conversationRepository.findTop10ByChatSessionIdOrderByCreatedAtDesc(chatSessionId);
-            conversationCache.put(chatSessionId, fresh);
-            return fresh;
+        return queryFuture.thenComposeAsync(query -> {
+            CompletableFuture<String> ragSearch = CompletableFuture.supplyAsync(() -> {
+                try {
+                    int queryHash = query.hashCode();
+                    String cached = ragCache.get(queryHash, String.class);
+                    if (cached != null) {
+                        log.debug("Returning cached RAG results for query hash: {}", queryHash);
+                        return cached;
+                    }
+
+                    log.debug("Performing fresh RAG search for query: {}", query);
+                    List<Document> results = chunkService.search(
+                            SearchQueryDto.builder()
+                                    .query(query)
+                                    .topK(1)
+                                    .similarityThreshold(0.1)
+                                    .build()
+                    );
+
+                    String result = results.stream()
+                            .findFirst()
+                            .map(Document::getText)
+                            .orElse("");
+
+                    if (!result.isEmpty()) {
+                        ragCache.put(queryHash, result);
+                    }
+                    return result;
+                } catch (Exception e) {
+                    log.warn("RAG search failed for query: {}. Error: {}", query, e.getMessage());
+                    return null;
+                }
+            }, taskExecutor);
+
+            CompletableFuture<String> timeoutFuture = new CompletableFuture<>();
+            ScheduledFuture<?> scheduledTimeout = timeoutExecutor.schedule(
+                    () -> timeoutFuture.complete(null),
+                    timeout,
+                    unit
+            );
+
+            ragSearch.whenComplete((result, error) -> scheduledTimeout.cancel(false));
+
+            return ragSearch.applyToEither(timeoutFuture, Function.identity())
+                    .exceptionally(ex -> {
+                        log.warn("RAG search encountered error: {}", ex.getMessage());
+                        return null;
+                    });
         }, taskExecutor);
     }
 
-    private CompletableFuture<String> getCachedRagResults(CompletableFuture<String> queryFuture) {
-        return queryFuture.thenApplyAsync(query -> {
-            int queryHash = query.hashCode();
-            String cached = ragCache.get(queryHash, String.class);
-            if (cached != null) return cached;
+    private CompletableFuture<List<Conversation>> getCachedConversations(UUID chatSessionId) {
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                List<Conversation> cached = conversationCache.get(chatSessionId, List.class);
+                if (cached != null) {
+                    log.debug("Returning cached conversations for session: {}", chatSessionId);
+                    return cached;
+                }
 
-            String fresh = chunkService.search(SearchQueryDto.builder()
-                            .query(query)
-                            .topK(1)
-                            .similarityThreshold(0.1)
-                            .build())
-                    .stream()
-                    .findFirst()
-                    .map(Document::getText)
-                    .orElse("");
-            ragCache.put(queryHash, fresh);
-            return fresh;
+                List<Conversation> fresh = conversationRepository
+                        .findTop10ByChatSessionIdOrderByCreatedAtDesc(chatSessionId);
+                conversationCache.put(chatSessionId, fresh);
+                return fresh;
+            } catch (Exception e) {
+                log.warn("Failed to get conversations for session: {}. Error: {}", chatSessionId, e.getMessage());
+                return List.of();
+            }
         }, taskExecutor);
     }
 
@@ -222,26 +272,37 @@ public class ChatbotService {
     }
 
     private void saveUserMessage(ConversationDto dto, UUID chatSessionId) {
-        Conversation conversation = Conversation.builder()
-                .chatSessionId(chatSessionId)
-                .role(USER)
-                .message(dto.getUserMessage())
-                .createdAt(ZonedDateTime.now())
-                .build();
+        try {
+            Conversation conversation = Conversation.builder()
+                    .chatSessionId(chatSessionId)
+                    .role(USER)
+                    .message(dto.getUserMessage())
+                    .createdAt(ZonedDateTime.now())
+                    .build();
 
-        conversationRepository.save(conversation);
+            conversationRepository.save(conversation);
+        } catch (Exception e) {
+            log.warn("Failed to save user message for session: {}. Error: {}", chatSessionId, e.getMessage());
+        }
     }
 
     private Conversation saveAssistantMessage(UUID chatSessionId, String message) {
-        Conversation conversation = Conversation.builder()
-                .chatSessionId(chatSessionId)
-                .role(ASSISTANT)
-                .message(message)
-                .createdAt(ZonedDateTime.now())
-                .build();
+        try {
+            Conversation conversation = Conversation.builder()
+                    .chatSessionId(chatSessionId)
+                    .role(ASSISTANT)
+                    .message(message)
+                    .createdAt(ZonedDateTime.now())
+                    .build();
 
-        return conversationRepository.save(conversation);
+            return conversationRepository.save(conversation);
+        } catch (Exception e) {
+            log.warn("Failed to save assistant message for session: {}. Error: {}", chatSessionId, e.getMessage());
+            throw new ResponseStatusException(
+                    HttpStatus.INTERNAL_SERVER_ERROR,
+                    "Failed to save assistant response",
+                    e
+            );
+        }
     }
-
-    private record SummarizedConversation(String rawContext, String summary) {}
 }
