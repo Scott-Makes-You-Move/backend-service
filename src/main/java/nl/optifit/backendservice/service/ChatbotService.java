@@ -1,29 +1,30 @@
 package nl.optifit.backendservice.service;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import nl.optifit.backendservice.dto.ChatbotResponseDto;
+import nl.optifit.backendservice.dto.ConversationDto;
 import nl.optifit.backendservice.dto.SearchQueryDto;
-import nl.optifit.backendservice.dto.SummarizedConversation;
-import nl.optifit.backendservice.dto.zapier.ChatbotResponseDto;
-import nl.optifit.backendservice.dto.zapier.ConversationDto;
 import nl.optifit.backendservice.model.Conversation;
 import nl.optifit.backendservice.repository.ConversationRepository;
 import nl.optifit.backendservice.util.MaskingUtil;
+import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.document.Document;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.io.IOException;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
-import java.util.stream.Collectors;
 
 import static nl.optifit.backendservice.model.Role.ASSISTANT;
 import static nl.optifit.backendservice.model.Role.USER;
@@ -35,63 +36,105 @@ public class ChatbotService {
             You are a specialist in mobility exercises, habit creation and mental health improvement. 
             Your name is SMYM — please introduce yourself as such if asked.""";
 
-    private static final Executor taskExecutor = Executors.newFixedThreadPool(
-            Runtime.getRuntime().availableProcessors() * 2
+    private static final Executor taskExecutor = Executors.newWorkStealingPool(
+            Math.max(4, Runtime.getRuntime().availableProcessors())
     );
 
     private final ConversationRepository conversationRepository;
     private final ChunkService chunkService;
     private final ChatClient chatClient;
+    private final Cache conversationCache;
+    private final Cache ragCache;
 
-    public ChatbotService(ConversationRepository conversationRepository, ChunkService chunkService, ChatClient.Builder chatClientBuilder) {
+    public ChatbotService(
+            ConversationRepository conversationRepository,
+            ChunkService chunkService,
+            ChatClient.Builder chatClientBuilder,
+            CacheManager cacheManager) {
         this.conversationRepository = conversationRepository;
         this.chunkService = chunkService;
         this.chatClient = chatClientBuilder.build();
+        this.conversationCache = cacheManager.getCache("conversations");
+        this.ragCache = cacheManager.getCache("ragResults");
     }
 
     public ChatbotResponseDto initiateChat(ConversationDto conversationDto) {
-        long startTime = System.currentTimeMillis();
+        long startTime = System.nanoTime();
 
         try {
             UUID chatSessionId = conversationDto.getSessionId();
             String userMessage = conversationDto.getUserMessage();
-            String maskedMessage = MaskingUtil.maskEntities(userMessage);
+
+            CompletableFuture<String> maskingFuture = CompletableFuture.supplyAsync(
+                    () -> {
+                        try {
+                            return MaskingUtil.maskEntities(userMessage);
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
+                        }
+                    },
+                    taskExecutor
+            );
 
             CompletableFuture<Void> saveFuture = CompletableFuture.runAsync(
                     () -> saveUserMessage(conversationDto, chatSessionId),
                     taskExecutor
             );
 
-            CompletableFuture<List<Conversation>> conversationsFuture = CompletableFuture.supplyAsync(
-                    () -> getRecentConversations(chatSessionId),
-                    taskExecutor
-            );
+            CompletableFuture<List<Conversation>> conversationsFuture = getCachedConversations(chatSessionId);
+            CompletableFuture<String> ragFuture = getCachedRagResults(maskingFuture);
 
-            CompletableFuture<String> ragFuture = CompletableFuture.supplyAsync(
-                    () -> getRelevantKnowledge(maskedMessage),
-                    taskExecutor
-            );
-
-            CompletableFuture.allOf(saveFuture, conversationsFuture, ragFuture).join();
-
-            SummarizedConversation summary = summarizeConversation(conversationsFuture.get());
-            String prompt = buildPrompt(summary.summary(), maskedMessage, ragFuture.get());
-
-            String aiResponse = getAiResponse(prompt);
-            ChatbotResponseDto response = createResponse(chatSessionId, aiResponse);
-
-            log.debug("Request processed in {}ms", System.currentTimeMillis() - startTime);
-            return response;
+            return maskingFuture.thenCombine(conversationsFuture, (maskedMsg, conversations) -> {
+                SummarizedConversation summary = summarizeConversation(conversations);
+                return Pair.of(maskedMsg, summary);
+            }).thenCombine(ragFuture, (pair, ragResult) -> {
+                String prompt = buildPrompt(pair.getRight().summary(), pair.getLeft(), ragResult);
+                return prompt;
+            }).thenApplyAsync(prompt -> {
+                String aiResponse = getAiResponse(prompt);
+                return createResponse(chatSessionId, aiResponse);
+            }, taskExecutor).join();
 
         } catch (Exception e) {
-            log.error("Error processing chat request in {}ms: {}",
-                    System.currentTimeMillis() - startTime, e.getMessage(), e);
+            long durationMs = (System.nanoTime() - startTime) / 1_000_000;
+            log.error("Error processing chat request in {}ms: {}", durationMs, e.getMessage(), e);
             throw new ResponseStatusException(
                     HttpStatus.INTERNAL_SERVER_ERROR,
                     "Error processing chat request",
                     e
             );
         }
+    }
+
+    private CompletableFuture<List<Conversation>> getCachedConversations(UUID chatSessionId) {
+        return CompletableFuture.supplyAsync(() -> {
+            List<Conversation> cached = conversationCache.get(chatSessionId, List.class);
+            if (cached != null) return cached;
+
+            List<Conversation> fresh = conversationRepository.findTop10ByChatSessionIdOrderByCreatedAtDesc(chatSessionId);
+            conversationCache.put(chatSessionId, fresh);
+            return fresh;
+        }, taskExecutor);
+    }
+
+    private CompletableFuture<String> getCachedRagResults(CompletableFuture<String> queryFuture) {
+        return queryFuture.thenApplyAsync(query -> {
+            int queryHash = query.hashCode();
+            String cached = ragCache.get(queryHash, String.class);
+            if (cached != null) return cached;
+
+            String fresh = chunkService.search(SearchQueryDto.builder()
+                            .query(query)
+                            .topK(1)
+                            .similarityThreshold(0.1)
+                            .build())
+                    .stream()
+                    .findFirst()
+                    .map(Document::getText)
+                    .orElse("");
+            ragCache.put(queryHash, fresh);
+            return fresh;
+        }, taskExecutor);
     }
 
     @Cacheable(value = "conversations", key = "#chatSessionId")
@@ -105,33 +148,36 @@ public class ChatbotService {
     }
 
     private SummarizedConversation summarizeConversation(List<Conversation> conversations) {
-        String chatContextRaw = conversations.stream()
-                .map(Conversation::getMessage)
-                .collect(Collectors.joining("\n -", "- ", ""));
+        if (conversations.isEmpty()) {
+            return new SummarizedConversation("", "");
+        }
 
-        String summary = conversations.stream()
-                .limit(3)
-                .map(Conversation::getMessage)
-                .collect(Collectors.joining(", "));
+        StringBuilder chatContext = new StringBuilder(conversations.size() * 50);
+        StringBuilder summary = new StringBuilder(conversations.size() * 30);
 
-        return new SummarizedConversation(chatContextRaw, summary);
-    }
+        int count = 0;
+        for (Conversation conv : conversations) {
+            if (count < 3) {
+                if (count > 0) summary.append(", ");
+                summary.append(conv.getMessage());
+                count++;
+            }
+            chatContext.append("\n -").append(conv.getMessage());
+        }
 
-    @Cacheable(value = "ragResults", key = "#query.hashCode()")
-    public String getRelevantKnowledge(String query) {
-        return chunkService.search(SearchQueryDto.builder()
-                        .query(query)
-                        .topK(1)
-                        .similarityThreshold(0.1)
-                        .build())
-                .stream()
-                .findFirst()
-                .map(Document::getText)
-                .orElse("");
+        return new SummarizedConversation(
+                chatContext.insert(0, "- ").toString(),
+                summary.toString()
+        );
     }
 
     private String buildPrompt(String summary, String maskedMessage, String ragSearch) {
-        StringBuilder prompt = new StringBuilder(SYSTEM_PROMPT);
+        StringBuilder prompt = new StringBuilder(SYSTEM_PROMPT.length() +
+                (summary != null ? summary.length() : 0) +
+                (ragSearch != null ? ragSearch.length() : 0) +
+                (maskedMessage != null ? maskedMessage.length() : 0) + 100);
+
+        prompt.append(SYSTEM_PROMPT);
 
         if (summary != null && !summary.isBlank()) {
             prompt.append("\n\nHere's the previous conversation:\n")
@@ -175,7 +221,7 @@ public class ChatbotService {
                 .build();
     }
 
-    private Conversation saveUserMessage(ConversationDto dto, UUID chatSessionId) {
+    private void saveUserMessage(ConversationDto dto, UUID chatSessionId) {
         Conversation conversation = Conversation.builder()
                 .chatSessionId(chatSessionId)
                 .role(USER)
@@ -183,7 +229,7 @@ public class ChatbotService {
                 .createdAt(ZonedDateTime.now())
                 .build();
 
-        return conversationRepository.save(conversation);
+        conversationRepository.save(conversation);
     }
 
     private Conversation saveAssistantMessage(UUID chatSessionId, String message) {
@@ -196,4 +242,6 @@ public class ChatbotService {
 
         return conversationRepository.save(conversation);
     }
+
+    private record SummarizedConversation(String rawContext, String summary) {}
 }

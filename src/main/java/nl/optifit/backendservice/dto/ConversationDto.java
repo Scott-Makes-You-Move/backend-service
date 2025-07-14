@@ -1,4 +1,4 @@
-package nl.optifit.backendservice.dto.zapier;
+package nl.optifit.backendservice.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
@@ -14,9 +14,9 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class ChatbotResponseDto {
+public class ConversationDto {
     @JsonProperty("session_id")
     private UUID sessionId;
-    @JsonProperty("ai_response")
-    private String aiResponse;
+    @JsonProperty("user_message")
+    private String userMessage;
 }
