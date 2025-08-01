@@ -60,7 +60,13 @@ public class SessionService {
     public void createSessionForAccount(Account account, ExerciseType exerciseType) {
         log.info("Creating session for account '{}'", account.getId());
 
-        Session newSession = createNewSession(account, exerciseType);
+        Optional<Session> newSessionOptional = createNewSession(account, exerciseType);
+
+        if (newSessionOptional.isEmpty()) {
+            return;
+        }
+
+        Session newSession = newSessionOptional.get();
         ResponseEntity<String> response = zapierService.sendNotification(newSession);
 
         String logMessage = Objects.nonNull(response) ?
@@ -86,11 +92,17 @@ public class SessionService {
         leaderboardService.updateLeaderboard(lastSession);
     }
 
-    public Session createNewSession(Account account, ExerciseType exerciseType) {
+    public Optional<Session> createNewSession(Account account, ExerciseType exerciseType) {
         ZonedDateTime now = ZonedDateTime.now(ZoneId.of("Europe/Amsterdam")).truncatedTo(ChronoUnit.MINUTES);
 
-        Mobility latestMeasurement = mobilityRepository.findTopByAccountIdOrderByMeasuredOnDesc(account.getId())
-                .orElseThrow(() -> new NotFoundException("No mobility measurement found for account " + account.getId()));
+        Optional<Mobility> latestMeasurementOptional = mobilityRepository.findTopByAccountIdOrderByMeasuredOnDesc(account.getId());
+
+        if (latestMeasurementOptional.isEmpty()) {
+            log.debug("Could not find latest measurement for account '{}'. Skipping session creation.", account.getId());
+            return Optional.empty();
+        }
+
+        Mobility latestMeasurement = latestMeasurementOptional.get();
 
         Integer score = switch (exerciseType) {
             case HIP -> Optional.ofNullable(latestMeasurement.getHip()).orElse(2);
@@ -107,7 +119,7 @@ public class SessionService {
                 .exerciseVideo(exerciseVideo)
                 .build();
 
-        return sessionRepository.save(session);
+        return Optional.of(sessionRepository.save(session));
     }
 
     public void updateSession(Session latestSession) {
