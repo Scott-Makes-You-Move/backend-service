@@ -11,6 +11,7 @@ import nl.optifit.backendservice.util.MaskingUtil;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.document.Document;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.Cacheable;
@@ -32,6 +33,10 @@ import static nl.optifit.backendservice.model.Role.USER;
 @Slf4j
 @Service
 public class ChatbotService {
+
+    @Value("${search.rag.enabled}")
+    private boolean ragSearchEnabled;
+
     private static final String SYSTEM_PROMPT = """
             You are a specialist in mobility exercises, habit creation and mental health improvement. 
             Your name is SMYM — please introduce yourself as such if asked.""";
@@ -97,7 +102,7 @@ public class ChatbotService {
                 return prompt;
             }).thenApplyAsync(prompt -> {
                 String aiResponse = getAiResponse(prompt);
-                return createResponse(chatSessionId, aiResponse);
+                return saveAndReturnResponse(chatSessionId, aiResponse);
             }, taskExecutor).join();
 
         } catch (Exception e) {
@@ -112,11 +117,16 @@ public class ChatbotService {
     }
 
     private CompletableFuture<String> getCachedRagResultsWithTimeout(
-            CompletableFuture<String> queryFuture,
+            CompletableFuture<String> maskingFuture,
             long timeout,
             TimeUnit unit) {
 
-        return queryFuture.thenComposeAsync(query -> {
+        if (!ragSearchEnabled) {
+            log.debug("RAG search disabled. Returning null.");
+            return CompletableFuture.completedFuture(null);
+        }
+
+        return maskingFuture.thenComposeAsync(query -> {
             CompletableFuture<String> ragSearch = CompletableFuture.supplyAsync(() -> {
                 try {
                     int queryHash = query.hashCode();
@@ -126,6 +136,7 @@ public class ChatbotService {
                         return cached;
                     }
 
+                    long ragStartTime = System.nanoTime();
                     log.debug("Performing fresh RAG search for query: {}", query);
                     List<Document> results = chunkService.search(
                             SearchQueryDto.builder()
@@ -134,6 +145,10 @@ public class ChatbotService {
                                     .similarityThreshold(0.1)
                                     .build()
                     );
+
+                    long ragEndTime = System.nanoTime();
+
+                    log.debug("RAG search took {}ms", (ragEndTime - ragStartTime) / 1_000_000);
 
                     String result = results.stream()
                             .findFirst()
@@ -176,8 +191,7 @@ public class ChatbotService {
                     return cached;
                 }
 
-                List<Conversation> fresh = conversationRepository
-                        .findTop10ByChatSessionIdOrderByCreatedAtDesc(chatSessionId);
+                List<Conversation> fresh = conversationRepository.findTop10ByChatSessionIdOrderByCreatedAtDesc(chatSessionId);
                 conversationCache.put(chatSessionId, fresh);
                 return fresh;
             } catch (Exception e) {
@@ -198,7 +212,7 @@ public class ChatbotService {
     }
 
     private SummarizedConversation summarizeConversation(List<Conversation> conversations) {
-        if (conversations.isEmpty()) {
+        if (conversations.size() < 3) {
             return new SummarizedConversation("", "");
         }
 
@@ -248,11 +262,17 @@ public class ChatbotService {
 
     private String getAiResponse(String prompt) {
         try {
-            return MaskingUtil.unmaskEntities(
-                    chatClient.prompt(prompt)
-                            .call()
-                            .content()
-            );
+            long chatStartTime = System.nanoTime();
+
+            String chatClientResponse = chatClient.prompt(prompt)
+                    .call()
+                    .content();
+
+            long chatEndTime = System.nanoTime();
+
+            log.debug("Chat took {}ms", (chatEndTime - chatStartTime) / 1_000_000);
+
+            return MaskingUtil.unmaskEntities(chatClientResponse);
         } catch (Exception e) {
             log.error("Error getting AI response", e);
             throw new ResponseStatusException(
@@ -263,7 +283,7 @@ public class ChatbotService {
         }
     }
 
-    private ChatbotResponseDto createResponse(UUID chatSessionId, String aiResponse) {
+    private ChatbotResponseDto saveAndReturnResponse(UUID chatSessionId, String aiResponse) {
         Conversation savedMessage = saveAssistantMessage(chatSessionId, aiResponse);
         return ChatbotResponseDto.builder()
                 .sessionId(chatSessionId)
