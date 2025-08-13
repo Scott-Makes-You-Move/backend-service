@@ -26,9 +26,11 @@ spring:
         vector-dimensions: ${AZURE_COSMOSDB_VS_DIMENSIONS:1536}
     openai:
       api-key: ${OPENAI_API_KEY:somekey}
+      options:
+        model: ${OPENAI_API_MODEL:somemodel}
       embedding:
         options:
-          model: ${OPENAI_API_MODEL:somemodel}
+          model: ${OPENAI_API_EMBEDDING_MODEL:somemodel}
 
 search:
   rag:
