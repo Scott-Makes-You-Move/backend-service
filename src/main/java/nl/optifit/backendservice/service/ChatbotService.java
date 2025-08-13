@@ -6,9 +6,7 @@ import nl.optifit.backendservice.dto.ConversationDto;
 import nl.optifit.backendservice.dto.SearchQueryDto;
 import nl.optifit.backendservice.util.MaskingUtil;
 import org.springframework.ai.chat.client.ChatClient;
-import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
 import org.springframework.ai.chat.memory.ChatMemory;
-import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.document.Document;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.Cache;
@@ -27,12 +25,13 @@ import java.util.function.Function;
 @Service
 public class ChatbotService {
 
-    @Value("${search.rag.enabled}")
+    @Value("${search.rag.enabled:true}")
     private boolean ragSearchEnabled;
 
-    private static final String SYSTEM_PROMPT = """
-            You are a specialist in mobility exercises, habit creation and mental health improvement. 
-            Your name is SMYM — please introduce yourself as such if asked.""";
+    private static final String BASE_SYSTEM_PROMPT = """
+            You are a specialist in mobility exercises, habit creation and mental health improvement.
+            Your name is SMYM — please introduce yourself as such if asked.
+            """;
 
     private static final Executor taskExecutor = Executors.newWorkStealingPool(
             Math.max(4, Runtime.getRuntime().availableProcessors())
@@ -46,16 +45,10 @@ public class ChatbotService {
     public ChatbotService(
             ChunkService chunkService,
             CacheManager cacheManager,
-            ChatModel chatModel,
-            ChatMemory chatMemory) {
-
+            ChatClient chatClient) {
         this.chunkService = chunkService;
-        this.chatClient = ChatClient.builder(chatModel)
-                .defaultAdvisors(MessageChatMemoryAdvisor.builder(chatMemory).build())
-                .build();
+        this.chatClient = chatClient;
         this.ragCache = cacheManager.getCache("ragResults");
-
-        log.debug("Model used: '{}'", chatModel);
     }
 
     public ChatbotResponseDto initiateChat(ConversationDto conversationDto) {
@@ -65,7 +58,7 @@ public class ChatbotService {
             UUID chatSessionId = conversationDto.getSessionId();
             String userMessage = conversationDto.getUserMessage();
 
-            CompletableFuture<String> maskedForRagFuture = CompletableFuture.supplyAsync(() -> {
+            CompletableFuture<String> maskedFuture = CompletableFuture.supplyAsync(() -> {
                 try {
                     return MaskingUtil.maskEntities(userMessage);
                 } catch (IOException e) {
@@ -73,17 +66,14 @@ public class ChatbotService {
                 }
             }, taskExecutor);
 
-            CompletableFuture<String> ragFuture =
-                    getCachedRagResultsWithTimeout(maskedForRagFuture, 5, TimeUnit.SECONDS);
+            CompletableFuture<String> ragFuture = getCachedRagResultsWithTimeout(maskedFuture, 5, TimeUnit.SECONDS);
 
-            String userContent = maskedForRagFuture.thenCombine(ragFuture, (maskedMsg, rag) -> {
+            String userContent = maskedFuture.thenCombine(ragFuture, (masked, rag) -> {
                 StringBuilder sb = new StringBuilder();
                 if (rag != null && !rag.isBlank()) {
-                    sb.append("Relevant internal knowledge:\n")
-                            .append(rag.trim())
-                            .append("\n\n");
+                    sb.append("Relevant internal knowledge:\n").append(rag.trim()).append("\n\n");
                 }
-                sb.append(userMessage); // UNMASKED for memory/advisor
+                sb.append(masked != null ? masked.trim() : "");
                 return sb.toString();
             }).join();
 
@@ -91,16 +81,19 @@ public class ChatbotService {
             String aiResponse = chatClient
                     .prompt()
                     .advisors(a -> a.param(ChatMemory.CONVERSATION_ID, chatSessionId.toString()))
-                    .system(SYSTEM_PROMPT)
+                    .system(BASE_SYSTEM_PROMPT)
                     .user(userContent)
                     .call()
                     .content();
             long chatEndTime = System.nanoTime();
-            log.debug("It took {}ms for the model to return a response", (chatEndTime - chatStartTime) / 1_000_000);
+            log.debug("Chat model response time: {}ms", (chatEndTime - chatStartTime) / 1_000_000);
 
             String finalResponse = MaskingUtil.unmaskEntities(aiResponse);
 
-            return returnAiResponse(chatSessionId, finalResponse);
+            return ChatbotResponseDto.builder()
+                    .sessionId(chatSessionId)
+                    .aiResponse(finalResponse)
+                    .build();
 
         } catch (Exception e) {
             long durationMs = (System.nanoTime() - startTime) / 1_000_000;
@@ -113,23 +106,16 @@ public class ChatbotService {
     private CompletableFuture<String> getCachedRagResultsWithTimeout(
             CompletableFuture<String> maskingFuture, long timeout, TimeUnit unit) {
 
-        if (!ragSearchEnabled) {
-            log.debug("RAG search disabled. Returning null.");
-            return CompletableFuture.completedFuture(null);
-        }
+        if (!ragSearchEnabled) return CompletableFuture.completedFuture(null);
 
         return maskingFuture.thenComposeAsync(query -> {
             CompletableFuture<String> ragSearch = CompletableFuture.supplyAsync(() -> {
                 try {
                     int queryHash = query.hashCode();
                     String cached = ragCache.get(queryHash, String.class);
-                    if (cached != null) {
-                        log.debug("Returning cached RAG results for query hash: {}", queryHash);
-                        return cached;
-                    }
+                    if (cached != null) return cached;
 
-                    long ragStartTime = System.nanoTime();
-                    log.debug("Performing fresh RAG search for query: {}", query);
+                    long ragStart = System.nanoTime();
                     List<Document> results = chunkService.search(
                             SearchQueryDto.builder()
                                     .query(query)
@@ -137,21 +123,17 @@ public class ChatbotService {
                                     .similarityThreshold(0.1)
                                     .build()
                     );
-
-                    long ragEndTime = System.nanoTime();
-                    log.debug("RAG search took {}ms", (ragEndTime - ragStartTime) / 1_000_000);
+                    log.debug("RAG search time: {}ms", (System.nanoTime() - ragStart) / 1_000_000);
 
                     String result = results.stream()
                             .findFirst()
                             .map(Document::getText)
                             .orElse("");
 
-                    if (!result.isEmpty()) {
-                        ragCache.put(queryHash, result);
-                    }
+                    if (!result.isEmpty()) ragCache.put(queryHash, result);
                     return result;
                 } catch (Exception e) {
-                    log.warn("RAG search failed for query: {}. Error: {}", query, e.getMessage());
+                    log.warn("RAG search failed: {}", e.getMessage());
                     return null;
                 }
             }, taskExecutor);
@@ -161,19 +143,11 @@ public class ChatbotService {
                     timeoutExecutor.schedule(() -> timeoutFuture.complete(null), timeout, unit);
 
             ragSearch.whenComplete((r, err) -> scheduledTimeout.cancel(false));
-
             return ragSearch.applyToEither(timeoutFuture, Function.identity())
                     .exceptionally(ex -> {
                         log.warn("RAG search encountered error: {}", ex.getMessage());
                         return null;
                     });
         }, taskExecutor);
-    }
-
-    private ChatbotResponseDto returnAiResponse(UUID chatSessionId, String aiResponse) {
-        return ChatbotResponseDto.builder()
-                .sessionId(chatSessionId)
-                .aiResponse(aiResponse)
-                .build();
     }
 }
