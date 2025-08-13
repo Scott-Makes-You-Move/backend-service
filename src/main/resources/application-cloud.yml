@@ -30,6 +30,10 @@ spring:
         options:
           model: ${OPENAI_API_MODEL:somemodel}
 
+search:
+  rag:
+    enabled: ${SEARCH_RAG_ENABLED:false}
+
 jwt:
   auth:
     converter:
