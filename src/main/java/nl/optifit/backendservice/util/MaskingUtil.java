@@ -36,20 +36,28 @@ public class MaskingUtil {
                     "therapist", "psychologist")
     );
 
-    public static String maskEntities(String sentence) throws IOException {
+    private MaskingUtil() {
+    }
+
+    public static String maskUserMessage(String userMessage) {
+        long startMasking = System.nanoTime();
         entityMap.clear();
         List<Span> allSpans = new ArrayList<>();
 
-        allSpans.addAll(detectStandardEntities(sentence));
-        allSpans.addAll(Arrays.asList(detectPatternEntities(sentence, PHONE_PATTERN)));
-        allSpans.addAll(Arrays.asList(detectPatternEntities(sentence, EMAIL_PATTERN)));
-        allSpans.addAll(detectMedicalTerms(sentence));
+        allSpans.addAll(detectStandardEntities(userMessage));
+        allSpans.addAll(Arrays.asList(detectPatternEntities(userMessage, PHONE_PATTERN)));
+        allSpans.addAll(Arrays.asList(detectPatternEntities(userMessage, EMAIL_PATTERN)));
+        allSpans.addAll(detectMedicalTerms(userMessage));
 
-        return applyMasks(sentence, allSpans);
+        String maskedOutput = applyMasks(userMessage, allSpans);
+
+        log.debug("Masking took {}ms", (System.nanoTime() - startMasking) / 1_000_000);
+
+        return maskedOutput;
     }
 
-    public static String unmaskEntities(String maskedSentence) {
-        String result = maskedSentence;
+    public static String unmaskAssistantMessage(String maskedAssistantMessage) {
+        String result = maskedAssistantMessage;
         List<String> masks = new ArrayList<>(entityMap.keySet());
         Collections.sort(masks, Collections.reverseOrder());
 
@@ -59,7 +67,7 @@ public class MaskingUtil {
         return result;
     }
 
-    private static List<Span> detectStandardEntities(String sentence) throws IOException {
+    private static List<Span> detectStandardEntities(String sentence) {
         List<Span> spans = new ArrayList<>();
 
         // English models
@@ -150,7 +158,7 @@ public class MaskingUtil {
         return false;
     }
 
-    private static Span[] detectEntities(String sentence, String modelPath) throws IOException {
+    private static Span[] detectEntities(String sentence, String modelPath) {
         SimpleTokenizer tokenizer = SimpleTokenizer.INSTANCE;
         String[] tokens = tokenizer.tokenize(sentence);
 
@@ -162,6 +170,9 @@ public class MaskingUtil {
             TokenNameFinderModel model = new TokenNameFinderModel(is);
             NameFinderME finder = new NameFinderME(model);
             return finder.find(tokens);
+        } catch (IOException e) {
+            log.error("Error while detecting entities", e);
+            throw new RuntimeException(e);
         }
     }
 
