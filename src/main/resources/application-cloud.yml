@@ -32,9 +32,14 @@ spring:
         options:
           model: ${OPENAI_API_EMBEDDING_MODEL:somemodel}
 
-search:
-  rag:
-    enabled: ${SEARCH_RAG_ENABLED:false}
+chat:
+  client:
+    advisors:
+      masking:
+        enabled: ${CHAT_CLIENT_ADVISORS_MASKING_ENABLED:true}
+      rag:
+        enabled: ${CHAT_CLIENT_ADVISORS_RAG_ENABLED:true}
+        similarity-threshold: ${CHAT_CLIENT_ADVISORS_RAG_SIMILARITY_THRESHOLD:0.1}
 
 jwt:
   auth:

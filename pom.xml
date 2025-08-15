@@ -19,7 +19,7 @@
         <keycloak.version>24.0.5</keycloak.version>
         <springdoc.openapi.version>2.8.5</springdoc.openapi.version>
         <jackson.version>2.19.0</jackson.version>
-        <spring-ai.version>1.0.0</spring-ai.version>
+        <spring-ai.version>1.0.1</spring-ai.version>
         <jasypt.version>1.9.3</jasypt.version>
     </properties>
 
@@ -42,7 +42,6 @@
             <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
             <version>${springdoc.openapi.version}</version>
         </dependency>
-
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-devtools</artifactId>
@@ -147,6 +146,10 @@
         <dependency>
             <groupId>org.springframework.ai</groupId>
             <artifactId>spring-ai-client-chat</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.ai</groupId>
+            <artifactId>spring-ai-rag</artifactId>
         </dependency>
         <dependency>
             <groupId>org.apache.opennlp</groupId>
