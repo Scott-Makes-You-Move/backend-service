@@ -2,9 +2,16 @@ package nl.optifit.backendservice.service;
 
 import com.azure.identity.ClientSecretCredential;
 import com.azure.identity.ClientSecretCredentialBuilder;
+import com.microsoft.graph.authentication.TokenCredentialAuthProvider;
+import com.microsoft.graph.models.User;
+import com.microsoft.graph.requests.GraphServiceClient;
+import com.microsoft.graph.requests.UserCollectionPage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+
+import java.util.Collections;
+import java.util.List;
 
 @Slf4j
 @Service
@@ -17,22 +24,31 @@ public class NotificationService {
     @Value("${microsoft.entra.id.tenant-id}")
     private String tenantId;
 
-
     public void sendNotification() {
-        ClientSecretCredential credential = new ClientSecretCredentialBuilder()
+        ClientSecretCredential clientSecretCredential = new ClientSecretCredentialBuilder()
                 .clientId(clientId)
                 .clientSecret(clientSecret)
                 .tenantId(tenantId)
                 .build();
 
-        GraphServiceClient graphServiceClient = new GraphServiceClient(
-                credential, "https://graph.microsoft.com/.default");
+        TokenCredentialAuthProvider authProvider = new TokenCredentialAuthProvider(
+                Collections.singletonList("https://graph.microsoft.com/.default"),
+                clientSecretCredential
+        );
 
-        Event event = new Event();
-        event.setSubject("Daily workout");
+        GraphServiceClient<?> graphClient = GraphServiceClient
+                .builder()
+                .authenticationProvider(authProvider)
+                .buildClient();
 
-        Event createdEvent = graphServiceClient.users().byUserId("deroosean@gmail.com").events().post(event);
+        UserCollectionPage usersPage = graphClient
+                .users()
+                .buildRequest()
+                .get();
 
-        log.debug("Event created: {}", createdEvent.getId());
+        List<User> users = usersPage.getCurrentPage();
+        for (User user : users) {
+            log.debug("displayName '%s', email '%s', id '%s'".formatted(user.displayName, user.mail, user.id));
+        }
     }
 }

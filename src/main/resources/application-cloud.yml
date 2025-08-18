@@ -41,6 +41,13 @@ chat:
         enabled: ${CHAT_CLIENT_ADVISORS_RAG_ENABLED:true}
         similarity-threshold: ${CHAT_CLIENT_ADVISORS_RAG_SIMILARITY_THRESHOLD:0.1}
 
+microsoft:
+  entra:
+    id:
+      client-id: ${MICROSOFT_ENTRA_ID_CLIENT_ID:client-id}
+      client-secret: ${MICROSOFT_ENTRA_ID_CLIENT_SECRET:client-secret}
+      tenant-id: ${MICROSOFT_ENTRA_ID_TENANT_ID:tenant-id}
+
 jwt:
   auth:
     converter:
