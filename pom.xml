@@ -156,6 +156,16 @@
             <artifactId>opennlp-tools</artifactId>
             <version>2.5.4</version>
         </dependency>
+        <dependency>
+            <groupId>com.microsoft.graph</groupId>
+            <artifactId>microsoft-graph</artifactId>
+            <version>6.50.0</version>
+        </dependency>
+        <dependency>
+            <groupId>com.azure</groupId>
+            <artifactId>azure-identity</artifactId>
+            <version>1.17.0</version>
+        </dependency>
     </dependencies>
 
     <build>
