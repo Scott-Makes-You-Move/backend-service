@@ -71,17 +71,14 @@ public class MaskingUtil {
         List<Span> spans = new ArrayList<>();
 
         // English models
-        spans.addAll(Arrays.asList(detectEntities(sentence, "/models/en-ner-person.bin")));
-        spans.addAll(Arrays.asList(detectEntities(sentence, "/models/en-ner-location.bin")));
-        spans.addAll(Arrays.asList(detectEntities(sentence, "/models/en-ner-date.bin")));
-        spans.addAll(Arrays.asList(detectEntities(sentence, "/models/en-ner-time.bin")));
-        spans.addAll(Arrays.asList(detectEntities(sentence, "/models/en-ner-organization.bin")));
+        spans.addAll(Arrays.asList(detectEntities(sentence, "/models/en/date.bin")));
+        spans.addAll(Arrays.asList(detectEntities(sentence, "/models/en/location.bin")));
+        spans.addAll(Arrays.asList(detectEntities(sentence, "/models/en/person.bin")));
+        spans.addAll(Arrays.asList(detectEntities(sentence, "/models/en/time.bin")));
 
         // Dutch models
-        spans.addAll(Arrays.asList(detectEntities(sentence, "/models/nl-ner-person.bin")));
-        spans.addAll(Arrays.asList(detectEntities(sentence, "/models/nl-ner-location.bin")));
-        spans.addAll(Arrays.asList(detectEntities(sentence, "/models/nl-ner-misc.bin")));
-        spans.addAll(Arrays.asList(detectEntities(sentence, "/models/nl-ner-organization.bin")));
+        spans.addAll(Arrays.asList(detectEntities(sentence, "/models/nl/location.bin")));
+        spans.addAll(Arrays.asList(detectEntities(sentence, "/models/nl/person.bin")));
 
         return spans;
     }
