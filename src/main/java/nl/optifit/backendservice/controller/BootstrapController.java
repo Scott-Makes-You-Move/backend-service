@@ -71,17 +71,17 @@ public class BootstrapController {
 
     private void bootstrapExerciseVideos() {
         log.info("Bootstrapping exercise videos");
-        ExerciseVideo hipLow = ExerciseVideo.builder().exerciseType(HIP).score(1).videoUrl("https://www.youtube.com/watch?v=glbLJEHfoa4").build();
-        ExerciseVideo hipMedium = ExerciseVideo.builder().exerciseType(HIP).score(2).videoUrl("https://www.youtube.com/watch?v=ef0iIL20rMA").build();
-        ExerciseVideo hipHigh = ExerciseVideo.builder().exerciseType(HIP).score(3).videoUrl("https://www.youtube.com/watch?v=fHLyMY828Jg").build();
+        ExerciseVideo hipLow = ExerciseVideo.builder().exerciseType(HIP).score(1).videoUrl("https://youtu.be/-7mdU1-eEpk").build();
+        ExerciseVideo hipMedium = ExerciseVideo.builder().exerciseType(HIP).score(2).videoUrl("https://youtu.be/uceJ4BlkYeM").build();
+        ExerciseVideo hipHigh = ExerciseVideo.builder().exerciseType(HIP).score(3).videoUrl("https://youtu.be/KXfQJKzXYrM").build();
 
-        ExerciseVideo shoulderLow = ExerciseVideo.builder().exerciseType(SHOULDER).score(1).videoUrl("https://www.youtube.com/watch?v=glbLJEHfoa4").build();
-        ExerciseVideo shoulderMedium = ExerciseVideo.builder().exerciseType(SHOULDER).score(2).videoUrl("https://www.youtube.com/watch?v=ef0iIL20rMA").build();
-        ExerciseVideo shoulderHigh = ExerciseVideo.builder().exerciseType(SHOULDER).score(3).videoUrl("https://www.youtube.com/watch?v=fHLyMY828Jg").build();
+        ExerciseVideo shoulderLow = ExerciseVideo.builder().exerciseType(SHOULDER).score(1).videoUrl("https://youtu.be/b0kj4lzp1Kk").build();
+        ExerciseVideo shoulderMedium = ExerciseVideo.builder().exerciseType(SHOULDER).score(2).videoUrl("https://youtu.be/s4eam7dodSQ").build();
+        ExerciseVideo shoulderHigh = ExerciseVideo.builder().exerciseType(SHOULDER).score(3).videoUrl("https://youtu.be/QKEP71NglPI").build();
 
-        ExerciseVideo backLow = ExerciseVideo.builder().exerciseType(BACK).score(1).videoUrl("https://www.youtube.com/watch?v=buyuA7moFP4").build();
-        ExerciseVideo backMedium = ExerciseVideo.builder().exerciseType(BACK).score(2).videoUrl("https://www.youtube.com/watch?v=zWH9v5Ge7Ao").build();
-        ExerciseVideo backHigh = ExerciseVideo.builder().exerciseType(BACK).score(3).videoUrl("https://www.youtube.com/watch?v=fHLyMY828Jg").build();
+        ExerciseVideo backLow = ExerciseVideo.builder().exerciseType(BACK).score(1).videoUrl("https://youtu.be/jjBJeE_WN3Q").build();
+        ExerciseVideo backMedium = ExerciseVideo.builder().exerciseType(BACK).score(2).videoUrl("https://youtu.be/xH7enFOXXE4").build();
+        ExerciseVideo backHigh = ExerciseVideo.builder().exerciseType(BACK).score(3).videoUrl("https://youtu.be/Pu47xMcuwMo").build();
 
         List<ExerciseVideo> exerciseVideos = List.of(hipLow, hipMedium, hipHigh, shoulderLow, shoulderMedium, shoulderHigh, backLow, backMedium, backHigh);
         exerciseVideoRepository.saveAll(exerciseVideos);
