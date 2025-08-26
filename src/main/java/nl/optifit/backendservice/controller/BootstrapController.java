@@ -1,11 +1,11 @@
 package nl.optifit.backendservice.controller;
 
-import io.swagger.v3.oas.annotations.*;
+import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
-import io.swagger.v3.oas.annotations.tags.*;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import nl.optifit.backendservice.model.*;
+import nl.optifit.backendservice.model.ExerciseVideo;
 import nl.optifit.backendservice.repository.AccountRepository;
 import nl.optifit.backendservice.repository.BiometricsRepository;
 import nl.optifit.backendservice.repository.ExerciseVideoRepository;
@@ -22,7 +22,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
-import static nl.optifit.backendservice.model.ExerciseType.*;
+import static nl.optifit.backendservice.model.ExerciseType.BACK;
+import static nl.optifit.backendservice.model.ExerciseType.HIP;
+import static nl.optifit.backendservice.model.ExerciseType.SHOULDER;
 
 @Hidden
 @Slf4j

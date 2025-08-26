@@ -1,7 +1,11 @@
 package nl.optifit.backendservice.dto;
 
-import lombok.*;
-import nl.optifit.backendservice.model.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import nl.optifit.backendservice.model.Account;
 
 @Getter
 @Setter

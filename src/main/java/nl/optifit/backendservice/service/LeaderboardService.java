@@ -1,20 +1,29 @@
 package nl.optifit.backendservice.service;
 
-import jakarta.ws.rs.*;
+import jakarta.ws.rs.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import nl.optifit.backendservice.dto.*;
-import nl.optifit.backendservice.model.*;
+import nl.optifit.backendservice.dto.LeaderboardDto;
+import nl.optifit.backendservice.dto.PagedResponseDto;
+import nl.optifit.backendservice.model.Account;
+import nl.optifit.backendservice.model.Leaderboard;
+import nl.optifit.backendservice.model.Session;
+import nl.optifit.backendservice.model.SessionStatus;
 import nl.optifit.backendservice.repository.LeaderboardRepository;
 import org.keycloak.admin.client.resource.UserResource;
-import org.springframework.data.domain.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import java.time.*;
-import java.time.temporal.*;
-import java.util.*;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
+import java.util.List;
+import java.util.Objects;
 
-import static nl.optifit.backendservice.model.SessionStatus.*;
+import static nl.optifit.backendservice.model.SessionStatus.COMPLETED;
+import static nl.optifit.backendservice.model.SessionStatus.OVERDUE;
 
 @Slf4j
 @RequiredArgsConstructor

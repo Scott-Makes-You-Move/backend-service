@@ -2,18 +2,33 @@ package nl.optifit.backendservice.controller;
 
 import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
-import io.swagger.v3.oas.annotations.tags.*;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import nl.optifit.backendservice.dto.*;
-import nl.optifit.backendservice.model.*;
-import nl.optifit.backendservice.service.*;
-import org.springframework.boot.actuate.health.Health;
+import nl.optifit.backendservice.dto.AccountDto;
+import nl.optifit.backendservice.dto.BiometricsDto;
+import nl.optifit.backendservice.dto.HealthIndexDto;
+import nl.optifit.backendservice.dto.MobilityDto;
+import nl.optifit.backendservice.dto.PagedResponseDto;
+import nl.optifit.backendservice.dto.SessionDto;
+import nl.optifit.backendservice.model.SessionStatus;
+import nl.optifit.backendservice.service.AccountService;
+import nl.optifit.backendservice.service.BiometricsService;
+import nl.optifit.backendservice.service.MobilityService;
+import nl.optifit.backendservice.service.SessionService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.*;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 @Slf4j
 @RequiredArgsConstructor

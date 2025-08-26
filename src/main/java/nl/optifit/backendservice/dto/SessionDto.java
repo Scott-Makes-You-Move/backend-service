@@ -1,11 +1,17 @@
 package nl.optifit.backendservice.dto;
 
-import com.fasterxml.jackson.annotation.*;
-import lombok.*;
-import nl.optifit.backendservice.model.*;
+import com.fasterxml.jackson.annotation.JsonFormat;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import nl.optifit.backendservice.model.ExerciseType;
+import nl.optifit.backendservice.model.Session;
+import nl.optifit.backendservice.model.SessionStatus;
 
-import java.time.*;
-import java.util.*;
+import java.time.ZonedDateTime;
+import java.util.Objects;
 
 @Getter
 @Setter

@@ -1,4 +1,4 @@
-package nl.optifit.backendservice.util;
+package nl.optifit.backendservice.utility;
 
 import com.microsoft.graph.models.DateTimeTimeZone;
 

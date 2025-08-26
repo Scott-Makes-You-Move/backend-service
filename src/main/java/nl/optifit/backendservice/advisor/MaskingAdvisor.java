@@ -2,7 +2,7 @@ package nl.optifit.backendservice.advisor;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import nl.optifit.backendservice.util.MaskingUtil;
+import nl.optifit.backendservice.utility.MaskingUtil;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.ai.chat.client.ChatClientRequest;
 import org.springframework.ai.chat.client.ChatClientResponse;

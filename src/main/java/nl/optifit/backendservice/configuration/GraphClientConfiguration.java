@@ -1,4 +1,4 @@
-package nl.optifit.backendservice.config;
+package nl.optifit.backendservice.configuration;
 
 import com.azure.identity.ClientSecretCredential;
 import com.azure.identity.ClientSecretCredentialBuilder;

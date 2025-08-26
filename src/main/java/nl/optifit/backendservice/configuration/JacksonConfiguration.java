@@ -1,4 +1,4 @@
-package nl.optifit.backendservice.config;
+package nl.optifit.backendservice.configuration;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.MapperFeature;

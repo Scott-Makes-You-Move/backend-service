@@ -1,13 +1,18 @@
 package nl.optifit.backendservice.service;
 
-import lombok.*;
-import lombok.extern.slf4j.*;
-import nl.optifit.backendservice.dto.*;
-import nl.optifit.backendservice.model.*;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import nl.optifit.backendservice.dto.BiometricsDto;
+import nl.optifit.backendservice.dto.PagedResponseDto;
+import nl.optifit.backendservice.model.Account;
+import nl.optifit.backendservice.model.Biometrics;
 import nl.optifit.backendservice.repository.AccountRepository;
 import nl.optifit.backendservice.repository.BiometricsRepository;
-import org.springframework.data.domain.*;
-import org.springframework.stereotype.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.stereotype.Service;
 
 @Slf4j
 @RequiredArgsConstructor

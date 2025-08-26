@@ -40,44 +40,102 @@ This project is a backend service designed to manage user accounts, biometrics, 
 3. **Add a local properties file**
 
     In src/main/resources add an `application-local.yml` and add the following properties:
-    ```
-   spring:
-     datasource:
-       url: jdbc:h2:mem:backend-service
-       username: sa
-     h2:
-       console:
-         enabled: true
-     jpa:
-       database-platform: org.hibernate.dialect.H2Dialect
-       hibernate:
-         ddl-auto: update
-       show-sql: true
-       properties:
-         hibernate:
-           dialect: org.hibernate.dialect.H2Dialect
-     security:
-       oauth2:
-         resourceserver:
-           jwt:
-             issuer-uri: http://localhost:8080/realms/${keycloak.realm.smym}
-             jwk-set-uri: http://localhost:8080/realms/${keycloak.realm.smym}/protocol/openid-connect/certs
+```yaml
+spring:
+  datasource:
+    url: jdbc:h2:mem:backend-service
+    username: sa
+  h2:
+    console:
+      enabled: true
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:8080/realms/${keycloak.realm.smym}
+          jwk-set-uri: http://localhost:8080/realms/${keycloak.realm.smym}/protocol/openid-connect/certs
+  ai:
+    vectorstore:
+      cosmosdb:
+        endpoint: someendpoint
+        key: somekey
+        database-name: somedatabase
+        container-name: somecontainer
+        partition-key-path: /metadata/topic
+        metadata-fields: topic,subtopic
+        vector-store-throughput: 1000
+        vector-dimensions: 1536
+  openai:
+    api-key: somekey
+    chat:
+      options:
+        model: gpt-3.5-turbo
+    embedding:
+      options:
+        model: text-embedding-3-small
 
-   jwt:
-     auth:
-       converter:
-         resource-id: myclient
-         principal-attribute: principal_username
-   
-   zapier:
-     webhook-url: http://localhost:9999
+chat:
+  client:
+    advisors:
+      masking:
+        enabled: true
+      rag:
+        enabled: true
+        similarity-threshold: 0.2
 
-   keycloak:
-     auth-server-url: http://localhost:8080
-     realm: master
-     username: admin
-     password: admin
-     client-id: admin-cli
+microsoft:
+  entra:
+    id:
+      client-id: someclientid
+      client-secret: somesecret
+      tenant-id: sometenantid
+
+jwt:
+  auth:
+    converter:
+      resource-id: myclient
+      principal-attribute: principal_username
+
+keycloak:
+  auth-server-url: http://localhost:8080
+  realm:
+    smym: smym-dev
+    master: master
+  client:
+    admin: admin-cli
+  username: admin
+  password: admin
+
+cron:
+  sessions:
+    morning:
+      create: 0 0 10 ? * MON-FRI
+      update: 0 0 11 ? * MON-FRI
+    lunch:
+      create: 0 30 13 ? * MON-FRI
+      update: 0 30 14 ? * MON-FRI
+    afternoon:
+      create: 0 0 15 ? * MON-FRI
+      update: 0 0 16 ? * MON-FRI
+    leaderboard:
+      reset: 0 0 12 ? * 5#1
+
+notification:
+  user-id: userid
+  user-email: notification@user.com
+  user-name: Notification User
+
+frontend:
+  url: https://scottmakesyoumove.com
+```
 
 
 4. Run the application
