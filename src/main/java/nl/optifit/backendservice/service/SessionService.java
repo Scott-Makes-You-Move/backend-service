@@ -97,7 +97,7 @@ public class SessionService {
             DateTimeTimeZone start = DateUtil.toGraphDateTime(newSession.getSessionStart());
             DateTimeTimeZone end = DateUtil.toGraphDateTime(newSession.getSessionStart().plusHours(1));
 
-            log.debug("Sending event for account '{}' with start '{}' and end '{}'", account.getId(), start, end);
+            log.debug("Sending event for account '{}' with start '{}' and end '{}'", account.getId(), start.dateTime, end.dateTime);
             notificationService.sendCalendarEventFrom(email, fullName, newSession.getId().toString(), start, end);
         }, () -> log.warn("Could not find user for account '{}'", account.getId()));
     }
