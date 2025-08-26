@@ -83,15 +83,15 @@ public class NotificationService {
     }
 
     private String generateEmailContent(String fullName, String sessionId) {
-        return "Hi %s\n" +
+        return "Hi %s\n".formatted(fullName) +
                 "\n" +
                 "<p> STOP what you're doing 🖐️ </p>\n" +
                 "\n" +
                 "<p> It's time for you your 1 min movement break! 🏃‍♂️ </p>\n" +
                 "\n" +
-                "<p> Click  <a href=\"%s/watch/%s\">HERE</a>  to see what  exercise suits you best based upon your mobility check up results. </p>\n" +
+                "<p> Click  <a href=\"%s/watch/%s\">HERE</a>  to see what  exercise suits you best based upon your mobility check up results. </p>\n".formatted(frontendUrl, sessionId) +
                 "\n" +
-                "<p> %s Remember 👉 \"Prevention is better than cure\" </p>\n" +
+                "<p> %s Remember 👉 \"Prevention is better than cure\" </p>\n".formatted(fullName) +
                 "\n" +
                 "<p> If you have any questions don't hesitate to reach out, I am ready to help you on your journey towards better health and wellbeing. </p>\n" +
                 "\n" +
@@ -99,11 +99,6 @@ public class NotificationService {
                 "\n" +
                 "<p> Have  great day! ✨ </p>\n" +
                 "\n" +
-                "<p> Scott | SMYM</p>".formatted(
-                        fullName,
-                        frontendUrl,
-                        sessionId,
-                        fullName
-                );
+                "<p> Scott | SMYM</p>";
     }
 }

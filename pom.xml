@@ -9,7 +9,7 @@
     </parent>
     <groupId>nl.optifit</groupId>
     <artifactId>backend-service</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>1.0.0-SNAPSHOT</version>
     <packaging>war</packaging>
     <name>backend-service</name>
     <description>backend-service</description>
@@ -21,6 +21,10 @@
         <jackson.version>2.19.0</jackson.version>
         <spring-ai.version>1.0.1</spring-ai.version>
         <jasypt.version>1.9.3</jasypt.version>
+        <opennlp.version>2.5.4</opennlp.version>
+        <microsoft-graph.version>5.47.0</microsoft-graph.version>
+        <azure-identity.version>1.15.0</azure-identity.version>
+        <resteasty.version>6.2.7.Final</resteasty.version>
     </properties>
 
     <dependencies>
@@ -154,17 +158,27 @@
         <dependency>
             <groupId>org.apache.opennlp</groupId>
             <artifactId>opennlp-tools</artifactId>
-            <version>2.5.4</version>
+            <version>${opennlp.version}</version>
         </dependency>
         <dependency>
             <groupId>com.microsoft.graph</groupId>
             <artifactId>microsoft-graph</artifactId>
-            <version>5.47.0</version>
+            <version>${microsoft-graph.version}</version>
         </dependency>
         <dependency>
             <groupId>com.azure</groupId>
             <artifactId>azure-identity</artifactId>
-            <version>1.15.0</version>
+            <version>${azure-identity.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jboss.resteasy</groupId>
+            <artifactId>resteasy-client</artifactId>
+            <version>${resteasty.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jboss.resteasy</groupId>
+            <artifactId>resteasy-jackson2-provider</artifactId>
+            <version>${resteasty.version}</version>
         </dependency>
     </dependencies>
 
