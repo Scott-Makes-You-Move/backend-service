@@ -5,7 +5,6 @@ import lombok.*;
 import lombok.extern.slf4j.Slf4j;
 import nl.optifit.backendservice.dto.zapier.NotificationDto;
 import nl.optifit.backendservice.model.*;
-import nl.optifit.backendservice.util.*;
 import org.keycloak.representations.idm.*;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;

@@ -6,7 +6,6 @@ import lombok.extern.slf4j.Slf4j;
 import nl.optifit.backendservice.dto.*;
 import nl.optifit.backendservice.model.*;
 import nl.optifit.backendservice.repository.LeaderboardRepository;
-import nl.optifit.backendservice.util.KeycloakService;
 import org.keycloak.admin.client.resource.UserResource;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;

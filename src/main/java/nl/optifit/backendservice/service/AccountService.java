@@ -5,8 +5,6 @@ import lombok.extern.slf4j.Slf4j;
 import nl.optifit.backendservice.dto.*;
 import nl.optifit.backendservice.model.*;
 import nl.optifit.backendservice.repository.AccountRepository;
-import nl.optifit.backendservice.security.*;
-import nl.optifit.backendservice.util.KeycloakService;
 import org.keycloak.admin.client.resource.UserResource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,8 +13,6 @@ import java.time.LocalDate;
 import java.time.Period;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
-
-import static org.bouncycastle.asn1.isismtt.x509.DeclarationOfMajority.dateOfBirth;
 
 @Slf4j
 @RequiredArgsConstructor
