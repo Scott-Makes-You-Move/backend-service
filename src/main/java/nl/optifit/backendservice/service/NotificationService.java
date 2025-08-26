@@ -1,86 +1,113 @@
 package nl.optifit.backendservice.service;
 
-import com.azure.identity.ClientSecretCredential;
-import com.azure.identity.ClientSecretCredentialBuilder;
-import com.microsoft.graph.authentication.TokenCredentialAuthProvider;
 import com.microsoft.graph.models.Attendee;
 import com.microsoft.graph.models.BodyType;
 import com.microsoft.graph.models.DateTimeTimeZone;
 import com.microsoft.graph.models.EmailAddress;
 import com.microsoft.graph.models.Event;
+import com.microsoft.graph.models.FreeBusyStatus;
 import com.microsoft.graph.models.ItemBody;
+import com.microsoft.graph.models.Recipient;
 import com.microsoft.graph.requests.GraphServiceClient;
-import com.microsoft.graph.requests.UserCollectionPage;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.util.Collections;
 import java.util.List;
 
 @Slf4j
+@RequiredArgsConstructor
 @Service
 public class NotificationService {
 
-    @Value("${microsoft.entra.id.client-id}")
-    private String clientId;
-    @Value("${microsoft.entra.id.client-secret}")
-    private String clientSecret;
-    @Value("${microsoft.entra.id.tenant-id}")
-    private String tenantId;
-    @Value("${microsoft.entra.id.user}")
-    private String user;
+    @Value("${notification.user-id}")
+    private String notificationUserId;
+    @Value("${notification.user-email}")
+    private String notificationUserEmail;
+    @Value("${notification.user-name}")
+    private String notificationUserName;
+    @Value("${frontend.url}")
+    private String frontendUrl;
 
-    public void sendNotification() {
-        ClientSecretCredential clientSecretCredential = new ClientSecretCredentialBuilder()
-                .clientId(clientId)
-                .clientSecret(clientSecret)
-                .tenantId(tenantId)
-                .build();
+    private final GraphServiceClient graphServiceClient;
 
-        TokenCredentialAuthProvider authProvider = new TokenCredentialAuthProvider(
-                Collections.singletonList("https://graph.microsoft.com/.default"),
-                clientSecretCredential
-        );
+    public Event sendNotification(String email, String fullName, String sessionId, DateTimeTimeZone startTime, DateTimeTimeZone endTime) {
+        Event event = createEventFrom(email, fullName, sessionId, startTime, endTime);
 
-        GraphServiceClient<?> graphClient = GraphServiceClient
-                .builder()
-                .authenticationProvider(authProvider)
-                .buildClient();
-
-        Event event = new Event();
-        ItemBody body = new ItemBody();
-        body.content = "<p>It's time for you your 1 min movement break!</p>";
-        body.contentType = BodyType.HTML;
-
-        EmailAddress emailAddress = new EmailAddress();
-        emailAddress.address = "seanderoo@hotmail.com";
-        emailAddress.name = "Seán de Roo";
-
-        Attendee attendee = new Attendee();
-        attendee.emailAddress = emailAddress;
-
-        DateTimeTimeZone start = new DateTimeTimeZone();
-        start.dateTime = "2025-08-26T15:00:00.0000000";
-        start.timeZone = "Europe/Amsterdam";
-        DateTimeTimeZone end = new DateTimeTimeZone();
-        end.dateTime = "2025-08-26T16:00:00.0000000";
-        end.timeZone = "Europe/Amsterdam";
-
-        event.subject = "Make your next move";
-        event.body = body;
-        event.start = start;
-        event.end = end;
-        event.attendees = List.of(attendee);
-
-        Event postedEvent = graphClient
-                .users(user)
+        Event postedEvent = graphServiceClient
+                .users(notificationUserId)
                 .calendar()
                 .events()
                 .buildRequest()
                 .post(event);
 
         log.info("Posted event: {}", postedEvent.id);
+        return postedEvent;
+    }
 
+    @NotNull
+    private Event createEventFrom(String email, String fullName, String sessionId, DateTimeTimeZone startTime, DateTimeTimeZone endTime) {
+        Event event = new Event();
+
+        // body
+        ItemBody body = new ItemBody();
+        body.content = generateEmailContent(fullName, sessionId);
+        body.contentType = BodyType.HTML;
+
+        // attendee
+        Attendee attendee = new Attendee();
+        EmailAddress attendeeEmailAddress = new EmailAddress();
+        attendeeEmailAddress.address = email;
+        attendeeEmailAddress.name = fullName;
+        attendee.emailAddress = attendeeEmailAddress;
+
+        // organizer
+        Recipient organizer = new Recipient();
+        EmailAddress organizerEmailAddress = new EmailAddress();
+        organizerEmailAddress.address = notificationUserEmail;
+        organizerEmailAddress.name = notificationUserName;
+        organizer.emailAddress = organizerEmailAddress;
+
+        // start and end time
+        DateTimeTimeZone start = startTime;
+        DateTimeTimeZone end = endTime;
+
+        event.subject = "Make your next move, %s".formatted(fullName);
+        event.body = body;
+        event.start = start;
+        event.end = end;
+        event.attendees = List.of(attendee);
+        event.organizer = organizer;
+        event.isOnlineMeeting = false;
+        event.allowNewTimeProposals = false;
+        event.showAs = FreeBusyStatus.BUSY;
+        return event;
+    }
+
+    private String generateEmailContent(String fullName, String sessionId) {
+        return "Hi %s\n" +
+                "\n" +
+                "<p> STOP what you're doing 🖐️ </p>\n" +
+                "\n" +
+                "<p> It's time for you your 1 min movement break! 🏃‍♂️ </p>\n" +
+                "\n" +
+                "<p> Click  <a href=\"%s/watch/%s\">HERE</a>  to see what  exercise suits you best based upon your mobility check up results. </p>\n" +
+                "\n" +
+                "<p> %s Remember 👉 \"Prevention is better than cure\" </p>\n" +
+                "\n" +
+                "<p> If you have any questions don't hesitate to reach out, I am ready to help you on your journey towards better health and wellbeing. </p>\n" +
+                "\n" +
+                "<p> 📧 scottmakesyoumove@gmail.com </p>\n" +
+                "\n" +
+                "<p> Have  great day! ✨ </p>\n" +
+                "\n" +
+                "<p> Scott | SMYM</p>".formatted(
+                        fullName,
+                        frontendUrl,
+                        sessionId,
+                        fullName
+                );
     }
 }

@@ -54,11 +54,6 @@ jwt:
       resource-id: ${JWT_RESOURCE_ID:resource}
       principal-attribute: ${JWT_PRINCIPAL_ATTRIBUTE:attribute}
 
-webhooks:
-  zapier:
-    notification: ${WEBHOOKS_ZAPIER_NOTIFICATION:http://localhost:9998}
-    chatbot: ${WEBHOOKS_ZAPIER_CHATBOT:http://localhost:9999}
-
 keycloak:
   auth-server-url: ${KEYCLOAK_AUTH_SERVER_URL:http://localhost:8080}
   username: ${KEYCLOAK_USERNAME:admin}
@@ -83,3 +78,11 @@ cron:
       update: ${CRON_SESSIONS_AFTERNOON_UPDATE:0 0 16 ? * MON-FRI}
   leaderboard:
     reset: ${CRON_LEADERBOARD_RESET:0 0 12 ? * 5#1}
+
+notification:
+  user-id: ${NOTIFICATION_USER_ID:notification-user-id}
+  user-email: ${NOTIFICATION_USER_EMAIL:notification@user.com}
+  user-name: ${NOTIFICATION_USER_NAME:Notification User}
+
+frontend:
+  url: ${FRONTEND_URL:https://scottmakesyoumove.com}

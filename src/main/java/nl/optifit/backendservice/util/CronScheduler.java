@@ -19,6 +19,7 @@ public class CronScheduler {
     private final AccountService accountService;
     private final SessionService sessionService;
     private final LeaderboardService leaderboardService;
+    private final NotificationService notificationService;
 
     /**
      * SESSIONS
@@ -36,10 +37,7 @@ public class CronScheduler {
     }
 
     @Scheduled(cron = "#{@cronProperties.sessions.afternoon.create}", zone = "Europe/Amsterdam")
-    public void createAfternoonSession() {
-        log.debug("Creating afternoon Session");
-        createSessionsForAllAccounts(BACK);
-    }
+    public void createAfternoonSession() {createSessionsForAllAccounts(BACK); }
 
     @Scheduled(cron = "#{@cronProperties.sessions.morning.update}", zone = "Europe/Amsterdam")
     public void updateMorningSession() {
@@ -67,6 +65,7 @@ public class CronScheduler {
 
     private void createSessionsForAllAccounts(ExerciseType exerciseType) {
         accountService.findAllAccounts()
+                .parallelStream()
                 .forEach(account -> sessionService.createSessionForAccount(account, exerciseType));
     }
 

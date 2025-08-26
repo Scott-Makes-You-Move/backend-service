@@ -1,5 +1,7 @@
 package nl.optifit.backendservice.service;
 
+import com.microsoft.graph.models.DateTimeTimeZone;
+import com.microsoft.graph.models.Event;
 import jakarta.persistence.criteria.*;
 import jakarta.ws.rs.*;
 import lombok.RequiredArgsConstructor;
@@ -9,13 +11,17 @@ import nl.optifit.backendservice.model.*;
 import nl.optifit.backendservice.repository.ExerciseVideoRepository;
 import nl.optifit.backendservice.repository.MobilityRepository;
 import nl.optifit.backendservice.repository.SessionRepository;
+import nl.optifit.backendservice.util.KeycloakService;
 import org.apache.commons.lang3.*;
+import org.keycloak.admin.client.resource.UserResource;
+import org.keycloak.representations.idm.UserRepresentation;
 import org.springframework.data.domain.*;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.*;
 
 import java.time.*;
+import java.time.format.DateTimeFormatter;
 import java.time.temporal.*;
 import java.util.*;
 
@@ -30,6 +36,8 @@ public class SessionService {
     private final SessionRepository sessionRepository;
     private final ExerciseVideoRepository exerciseVideoRepository;
     private final MobilityRepository mobilityRepository;
+    private final KeycloakService keycloakService;
+    private final NotificationService notificationService;
 
     public PagedResponseDto<SessionDto> getSessionsForAccount(String accountId, String sessionStartDateString,
                                                               SessionStatus sessionStatus, int page, int size, String direction, String sortBy) {
@@ -67,11 +75,28 @@ public class SessionService {
         }
 
         Session newSession = newSessionOptional.get();
-        ResponseEntity<String> response = zapierService.sendNotification(newSession);
 
-        String logMessage = Objects.nonNull(response) ?
-                String.format("Created Zapier notification status '%s'", response.getStatusCode().value()) :
-                "Zapier webhook returned null response code";
+        ZonedDateTime sessionStart = newSession.getSessionStart();
+        DateTimeTimeZone start = new DateTimeTimeZone();
+        start.dateTime = sessionStart.toLocalDateTime().format(ISO_LOCAL_DATE_TIME);
+        start.timeZone = "Europe/Amsterdam";
+        ZonedDateTime sessionEnd = sessionStart.plusHours(1);
+        DateTimeTimeZone end = new DateTimeTimeZone();
+        end.dateTime = sessionEnd.toLocalDateTime().format(ISO_LOCAL_DATE_TIME);
+        end.timeZone = "Europe/Amsterdam";
+
+        Optional<UserResource> userById = keycloakService.findUserById(account.getId());
+        UserResource userResource = userById.get();
+        UserRepresentation representation = userResource.toRepresentation();
+        String email = representation.getEmail();
+        String fullName = "%s %s".formatted(representation.getFirstName(), representation.getLastName());
+
+        log.debug("Sending event for account '{}' with start '{}' and end '{}'", account.getId(), start, end);
+        Event postedEvent = notificationService.sendNotification(email, fullName, newSession.getId().toString(), start, end);
+
+        String logMessage = Objects.nonNull(postedEvent) ?
+                "Created event '%s' for account '%s'".formatted(postedEvent.id, account.getId()) :
+                "Could not create event for account '%s'".formatted(account.getId());
 
         log.debug(logMessage);
     }
