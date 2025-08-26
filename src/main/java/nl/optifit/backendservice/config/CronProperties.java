@@ -7,8 +7,8 @@ import org.springframework.context.annotation.Configuration;
 @ConfigurationProperties(prefix = "cron")
 public class CronProperties {
 
-    private Sessions sessions = new Sessions();
-    private Leaderboard leaderboard = new Leaderboard();
+    private final Sessions sessions = new Sessions();
+    private final Leaderboard leaderboard = new Leaderboard();
 
     public Sessions getSessions() {
         return sessions;
@@ -19,9 +19,9 @@ public class CronProperties {
     }
 
     public static class Sessions {
-        private SessionTime morning = new SessionTime();
-        private SessionTime lunch = new SessionTime();
-        private SessionTime afternoon = new SessionTime();
+        private final SessionTime morning = new SessionTime();
+        private final SessionTime lunch = new SessionTime();
+        private final SessionTime afternoon = new SessionTime();
 
         public SessionTime getMorning() { return morning; }
         public SessionTime getLunch() { return lunch; }
