@@ -1,4 +1,4 @@
-package nl.optifit.backendservice.util;
+package nl.optifit.backendservice.cron;
 
 import lombok.*;
 import lombok.extern.slf4j.*;

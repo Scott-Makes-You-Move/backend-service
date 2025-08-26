@@ -11,17 +11,15 @@ import nl.optifit.backendservice.model.*;
 import nl.optifit.backendservice.repository.ExerciseVideoRepository;
 import nl.optifit.backendservice.repository.MobilityRepository;
 import nl.optifit.backendservice.repository.SessionRepository;
-import nl.optifit.backendservice.util.KeycloakService;
+import nl.optifit.backendservice.util.DateUtil;
 import org.apache.commons.lang3.*;
 import org.keycloak.admin.client.resource.UserResource;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.springframework.data.domain.*;
-import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.*;
 
 import java.time.*;
-import java.time.format.DateTimeFormatter;
 import java.time.temporal.*;
 import java.util.*;
 
@@ -76,29 +74,17 @@ public class SessionService {
 
         Session newSession = newSessionOptional.get();
 
-        ZonedDateTime sessionStart = newSession.getSessionStart();
-        DateTimeTimeZone start = new DateTimeTimeZone();
-        start.dateTime = sessionStart.toLocalDateTime().format(ISO_LOCAL_DATE_TIME);
-        start.timeZone = "Europe/Amsterdam";
-        ZonedDateTime sessionEnd = sessionStart.plusHours(1);
-        DateTimeTimeZone end = new DateTimeTimeZone();
-        end.dateTime = sessionEnd.toLocalDateTime().format(ISO_LOCAL_DATE_TIME);
-        end.timeZone = "Europe/Amsterdam";
-
         Optional<UserResource> userById = keycloakService.findUserById(account.getId());
-        UserResource userResource = userById.get();
-        UserRepresentation representation = userResource.toRepresentation();
-        String email = representation.getEmail();
-        String fullName = "%s %s".formatted(representation.getFirstName(), representation.getLastName());
+        userById.ifPresentOrElse(userResource -> {
+            UserRepresentation userRepresentation = userResource.toRepresentation();
+            String email = userRepresentation.getEmail();
+            String fullName = "%s %s".formatted(userRepresentation.getFirstName(), userRepresentation.getLastName());
+            DateTimeTimeZone start = DateUtil.toGraphDateTime(newSession.getSessionStart());
+            DateTimeTimeZone end = DateUtil.toGraphDateTime(newSession.getSessionStart().plusHours(1));
 
-        log.debug("Sending event for account '{}' with start '{}' and end '{}'", account.getId(), start, end);
-        Event postedEvent = notificationService.sendNotification(email, fullName, newSession.getId().toString(), start, end);
-
-        String logMessage = Objects.nonNull(postedEvent) ?
-                "Created event '%s' for account '%s'".formatted(postedEvent.id, account.getId()) :
-                "Could not create event for account '%s'".formatted(account.getId());
-
-        log.debug(logMessage);
+            log.debug("Sending event for account '{}' with start '{}' and end '{}'", account.getId(), start, end);
+            notificationService.sendCalendarEventFrom(email, fullName, newSession.getId().toString(), start, end);
+        }, () -> log.warn("Could not find user for account '{}'", account.getId()));
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)

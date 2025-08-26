@@ -33,8 +33,8 @@ public class NotificationService {
 
     private final GraphServiceClient graphServiceClient;
 
-    public Event sendNotification(String email, String fullName, String sessionId, DateTimeTimeZone startTime, DateTimeTimeZone endTime) {
-        Event event = createEventFrom(email, fullName, sessionId, startTime, endTime);
+    public Event sendCalendarEventFrom(String email, String fullName, String sessionId, DateTimeTimeZone start, DateTimeTimeZone end) {
+        Event event = createEventFrom(email, fullName, sessionId, start, end);
 
         Event postedEvent = graphServiceClient
                 .users(notificationUserId)
@@ -48,7 +48,7 @@ public class NotificationService {
     }
 
     @NotNull
-    private Event createEventFrom(String email, String fullName, String sessionId, DateTimeTimeZone startTime, DateTimeTimeZone endTime) {
+    private Event createEventFrom(String email, String fullName, String sessionId, DateTimeTimeZone start, DateTimeTimeZone end) {
         Event event = new Event();
 
         // body
@@ -69,10 +69,6 @@ public class NotificationService {
         organizerEmailAddress.address = notificationUserEmail;
         organizerEmailAddress.name = notificationUserName;
         organizer.emailAddress = organizerEmailAddress;
-
-        // start and end time
-        DateTimeTimeZone start = startTime;
-        DateTimeTimeZone end = endTime;
 
         event.subject = "Make your next move, %s".formatted(fullName);
         event.body = body;
