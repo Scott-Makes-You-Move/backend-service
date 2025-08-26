@@ -1,4 +1,4 @@
-package nl.optifit.backendservice.config;
+package nl.optifit.backendservice.configuration;
 
 import io.swagger.v3.oas.annotations.enums.SecuritySchemeType;
 import io.swagger.v3.oas.annotations.security.SecurityScheme;

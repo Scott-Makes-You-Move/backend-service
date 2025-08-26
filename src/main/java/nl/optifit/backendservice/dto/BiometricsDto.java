@@ -1,7 +1,11 @@
 package nl.optifit.backendservice.dto;
 
-import com.fasterxml.jackson.annotation.*;
-import lombok.*;
+import com.fasterxml.jackson.annotation.JsonFormat;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import nl.optifit.backendservice.model.Account;
 import nl.optifit.backendservice.model.Biometrics;
 

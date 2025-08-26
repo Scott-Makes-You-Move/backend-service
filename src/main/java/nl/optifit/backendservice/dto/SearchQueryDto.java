@@ -1,6 +1,5 @@
 package nl.optifit.backendservice.dto;
 
-import com.azure.core.annotation.Get;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;

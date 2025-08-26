@@ -2,8 +2,12 @@ package nl.optifit.backendservice.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import nl.optifit.backendservice.dto.*;
-import nl.optifit.backendservice.model.*;
+import nl.optifit.backendservice.dto.AccountDto;
+import nl.optifit.backendservice.dto.HealthIndexDto;
+import nl.optifit.backendservice.dto.UserHealthProfileDto;
+import nl.optifit.backendservice.model.Account;
+import nl.optifit.backendservice.model.Biometrics;
+import nl.optifit.backendservice.model.Leaderboard;
 import nl.optifit.backendservice.repository.AccountRepository;
 import org.keycloak.admin.client.resource.UserResource;
 import org.springframework.stereotype.Service;
@@ -12,7 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.time.Period;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.List;
 
 @Slf4j
 @RequiredArgsConstructor

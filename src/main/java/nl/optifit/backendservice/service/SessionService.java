@@ -1,36 +1,51 @@
 package nl.optifit.backendservice.service;
 
 import com.microsoft.graph.models.DateTimeTimeZone;
-import com.microsoft.graph.models.Event;
-import jakarta.persistence.criteria.*;
-import jakarta.ws.rs.*;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.ws.rs.NotFoundException;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.*;
-import nl.optifit.backendservice.dto.*;
-import nl.optifit.backendservice.model.*;
+import lombok.extern.slf4j.Slf4j;
+import nl.optifit.backendservice.dto.PagedResponseDto;
+import nl.optifit.backendservice.dto.SessionDto;
+import nl.optifit.backendservice.model.Account;
+import nl.optifit.backendservice.model.ExerciseType;
+import nl.optifit.backendservice.model.ExerciseVideo;
+import nl.optifit.backendservice.model.Mobility;
+import nl.optifit.backendservice.model.Session;
+import nl.optifit.backendservice.model.SessionStatus;
 import nl.optifit.backendservice.repository.ExerciseVideoRepository;
 import nl.optifit.backendservice.repository.MobilityRepository;
 import nl.optifit.backendservice.repository.SessionRepository;
-import nl.optifit.backendservice.util.DateUtil;
-import org.apache.commons.lang3.*;
+import nl.optifit.backendservice.utility.DateUtil;
+import org.apache.commons.lang3.StringUtils;
 import org.keycloak.admin.client.resource.UserResource;
 import org.keycloak.representations.idm.UserRepresentation;
-import org.springframework.data.domain.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.*;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.time.*;
-import java.time.temporal.*;
-import java.util.*;
+import java.time.Duration;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
-import static java.time.format.DateTimeFormatter.*;
+import static java.time.format.DateTimeFormatter.ISO_LOCAL_DATE;
 
 @RequiredArgsConstructor
 @Service
 @Slf4j
 public class SessionService {
     private final LeaderboardService leaderboardService;
-    private final ZapierService zapierService;
     private final SessionRepository sessionRepository;
     private final ExerciseVideoRepository exerciseVideoRepository;
     private final MobilityRepository mobilityRepository;

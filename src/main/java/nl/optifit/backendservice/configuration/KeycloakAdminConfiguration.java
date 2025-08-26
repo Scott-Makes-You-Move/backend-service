@@ -1,4 +1,4 @@
-package nl.optifit.backendservice.config;
+package nl.optifit.backendservice.configuration;
 
 import org.keycloak.admin.client.Keycloak;
 import org.springframework.beans.factory.annotation.Value;

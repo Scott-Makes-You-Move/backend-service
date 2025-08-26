@@ -1,15 +1,22 @@
 package nl.optifit.backendservice.cron;
 
-import lombok.*;
-import lombok.extern.slf4j.*;
-import nl.optifit.backendservice.model.*;
-import nl.optifit.backendservice.service.*;
-import org.springframework.scheduling.annotation.*;
-import org.springframework.stereotype.*;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import nl.optifit.backendservice.model.ExerciseType;
+import nl.optifit.backendservice.model.Session;
+import nl.optifit.backendservice.model.SessionStatus;
+import nl.optifit.backendservice.service.AccountService;
+import nl.optifit.backendservice.service.LeaderboardService;
+import nl.optifit.backendservice.service.NotificationService;
+import nl.optifit.backendservice.service.SessionService;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
 
-import java.util.*;
+import java.util.UUID;
 
-import static nl.optifit.backendservice.model.ExerciseType.*;
+import static nl.optifit.backendservice.model.ExerciseType.BACK;
+import static nl.optifit.backendservice.model.ExerciseType.HIP;
+import static nl.optifit.backendservice.model.ExerciseType.SHOULDER;
 
 @Slf4j
 @RequiredArgsConstructor

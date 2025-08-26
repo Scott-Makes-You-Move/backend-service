@@ -1,4 +1,4 @@
-package nl.optifit.backendservice.util;
+package nl.optifit.backendservice.utility;
 
 import lombok.extern.slf4j.Slf4j;
 import opennlp.tools.namefind.NameFinderME;

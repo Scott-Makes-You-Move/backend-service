@@ -1,15 +1,20 @@
 package nl.optifit.backendservice.exception.advice;
 
-import jakarta.ws.rs.*;
-import lombok.extern.slf4j.*;
-import nl.optifit.backendservice.exception.*;
-import org.springframework.http.*;
-import org.springframework.security.authorization.*;
-import org.springframework.web.bind.annotation.*;
+import jakarta.ws.rs.NotFoundException;
+import lombok.extern.slf4j.Slf4j;
+import nl.optifit.backendservice.exception.BootstrapException;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.authorization.AuthorizationDeniedException;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import java.io.*;
+import java.io.IOException;
 
-import static org.springframework.http.HttpStatus.*;
+import static org.springframework.http.HttpStatus.CONFLICT;
+import static org.springframework.http.HttpStatus.FORBIDDEN;
+import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
+import static org.springframework.http.HttpStatus.NOT_FOUND;
+import static org.springframework.http.HttpStatus.SERVICE_UNAVAILABLE;
 
 @Slf4j
 @RestControllerAdvice

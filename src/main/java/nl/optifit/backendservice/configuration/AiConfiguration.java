@@ -1,4 +1,4 @@
-package nl.optifit.backendservice.config;
+package nl.optifit.backendservice.configuration;
 
 import nl.optifit.backendservice.advisor.MaskingAdvisor;
 import org.springframework.ai.chat.client.ChatClient;
@@ -19,7 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Configuration
-public class AiConfig {
+public class AiConfiguration {
 
     @Value("${chat.client.advisors.masking.enabled}")
     private boolean maskingEnabled;

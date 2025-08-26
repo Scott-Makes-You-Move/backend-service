@@ -5,10 +5,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import nl.optifit.backendservice.model.Chunk;
 import org.springframework.ai.document.Document;
 
-import java.util.List;
 import java.util.Map;
 
 @Getter
