@@ -72,7 +72,6 @@ public class CronScheduler {
 
     private void createSessionsForAllAccounts(ExerciseType exerciseType) {
         accountService.findAllAccounts()
-                .parallelStream()
                 .forEach(account -> sessionService.createSessionForAccount(account, exerciseType));
     }
 
