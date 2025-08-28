@@ -7,12 +7,14 @@ import nl.optifit.backendservice.model.Session;
 import nl.optifit.backendservice.model.SessionStatus;
 import nl.optifit.backendservice.service.AccountService;
 import nl.optifit.backendservice.service.LeaderboardService;
-import nl.optifit.backendservice.service.NotificationService;
 import nl.optifit.backendservice.service.SessionService;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import static nl.optifit.backendservice.model.ExerciseType.BACK;
 import static nl.optifit.backendservice.model.ExerciseType.HIP;
@@ -23,14 +25,11 @@ import static nl.optifit.backendservice.model.ExerciseType.SHOULDER;
 @Component
 public class CronScheduler {
 
+    private final ExecutorService executor = Executors.newFixedThreadPool(20);
+
     private final AccountService accountService;
     private final SessionService sessionService;
     private final LeaderboardService leaderboardService;
-    private final NotificationService notificationService;
-
-    /**
-     * SESSIONS
-     */
 
     // 0 42 13 * * ? For testing purposes
     @Scheduled(cron = "#{@cronProperties.sessions.morning.create}", zone = "Europe/Amsterdam")
@@ -44,7 +43,9 @@ public class CronScheduler {
     }
 
     @Scheduled(cron = "#{@cronProperties.sessions.afternoon.create}", zone = "Europe/Amsterdam")
-    public void createAfternoonSession() {createSessionsForAllAccounts(BACK); }
+    public void createAfternoonSession() {
+        createSessionsForAllAccounts(BACK);
+    }
 
     @Scheduled(cron = "#{@cronProperties.sessions.morning.update}", zone = "Europe/Amsterdam")
     public void updateMorningSession() {
@@ -61,18 +62,17 @@ public class CronScheduler {
         updateSessionStatusForAllAccounts();
     }
 
-    /**
-     * LEADERBOARD
-     */
-
     @Scheduled(cron = "#{@cronProperties.leaderboard.reset}", zone = "Europe/Amsterdam")
     public void clearLeaderboard() {
         leaderboardService.resetLeaderboard();
     }
 
     private void createSessionsForAllAccounts(ExerciseType exerciseType) {
-        accountService.findAllAccounts()
-                .forEach(account -> sessionService.createSessionForAccount(account, exerciseType));
+        accountService.findAllAccounts().forEach(account ->
+                CompletableFuture.runAsync(() ->
+                        sessionService.createSessionForAccount(account, exerciseType), executor
+                )
+        );
     }
 
     private void updateSessionStatusForAllAccounts() {
