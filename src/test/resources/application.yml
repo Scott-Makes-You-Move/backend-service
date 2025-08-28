@@ -1,4 +1,6 @@
 spring:
+  profiles:
+    active: test
   datasource:
     url: jdbc:h2:mem:backend-service
     username: sa
@@ -22,22 +24,22 @@ spring:
   ai:
     vectorstore:
       cosmosdb:
-        endpoint: someendpoint
-        key: somekey
-        database-name: somedatabase
-        container-name: somecontainer
-        partition-key-path: /metadata/topic
+        endpoint: http://endpoint.com
+        key: key
+        database-name: database
+        container-name: container
+        partition-key-path: partitionkey
         metadata-fields: topic,subtopic
         vector-store-throughput: 1000
         vector-dimensions: 1536
-  openai:
-    api-key: somekey
-    chat:
-      options:
-        model: gpt-3.5-turbo
-    embedding:
-      options:
-        model: text-embedding-3-small
+    openai:
+      api-key: apikey
+      chat:
+        options:
+          model: gpt-3.5-turbo
+      embedding:
+        options:
+          model: text-embedding-3-small
 
 chat:
   client:
@@ -51,9 +53,9 @@ chat:
 microsoft:
   entra:
     id:
-      client-id: someclientid
-      client-secret: somesecret
-      tenant-id: sometenantid
+      client-id: clientid
+      client-secret: secret
+      tenant-id: tenantid
 
 jwt:
   auth:
@@ -64,12 +66,12 @@ jwt:
 keycloak:
   auth-server-url: http://localhost:8080
   realm:
-    smym: smym-dev
+    smym: smym
     master: master
   client:
     admin: admin-cli
   username: admin
-  password: admin
+  password: password
 
 cron:
   sessions:
@@ -82,13 +84,13 @@ cron:
     afternoon:
       create: 0 0 15 ? * MON-FRI
       update: 0 0 16 ? * MON-FRI
-    leaderboard:
-      reset: 0 0 12 ? * 5#1
+  leaderboard:
+    reset: 0 0 12 ? * 5#1
 
 notification:
   user-id: userid
-  user-email: notification@user.com
-  user-name: Notification User
+  user-email: email
+  user-name: name
 
 frontend:
   url: https://scottmakesyoumove.com

@@ -8,7 +8,7 @@ import com.microsoft.graph.models.Event;
 import com.microsoft.graph.models.FreeBusyStatus;
 import com.microsoft.graph.models.ItemBody;
 import com.microsoft.graph.models.Recipient;
-import com.microsoft.graph.requests.GraphServiceClient;
+import com.microsoft.graph.serviceclient.GraphServiceClient;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
@@ -33,18 +33,16 @@ public class NotificationService {
 
     private final GraphServiceClient graphServiceClient;
 
-    public Event sendCalendarEventFrom(String email, String fullName, String sessionId, DateTimeTimeZone start, DateTimeTimeZone end) {
+    public void sendCalendarEventFrom(String email, String fullName, String sessionId, DateTimeTimeZone start, DateTimeTimeZone end) {
         Event event = createEventFrom(email, fullName, sessionId, start, end);
 
-        Event postedEvent = graphServiceClient
-                .users(notificationUserId)
+        Event postedEvent = graphServiceClient.users()
+                .byUserId(notificationUserId)
                 .calendar()
                 .events()
-                .buildRequest()
                 .post(event);
 
-        log.info("Posted event: {}", postedEvent.id);
-        return postedEvent;
+        log.info("Posted event: {}", postedEvent.getId());
     }
 
     @NotNull
@@ -53,32 +51,32 @@ public class NotificationService {
 
         // body
         ItemBody body = new ItemBody();
-        body.content = generateEmailContent(fullName, sessionId);
-        body.contentType = BodyType.HTML;
+        body.setContent(generateEmailContent(fullName, sessionId));
+        body.setContentType(BodyType.Html);
 
         // attendee
         Attendee attendee = new Attendee();
         EmailAddress attendeeEmailAddress = new EmailAddress();
-        attendeeEmailAddress.address = email;
-        attendeeEmailAddress.name = fullName;
-        attendee.emailAddress = attendeeEmailAddress;
+        attendeeEmailAddress.setAddress(email);
+        attendeeEmailAddress.setName(fullName);
+        attendee.setEmailAddress(attendeeEmailAddress);
 
         // organizer
         Recipient organizer = new Recipient();
         EmailAddress organizerEmailAddress = new EmailAddress();
-        organizerEmailAddress.address = notificationUserEmail;
-        organizerEmailAddress.name = notificationUserName;
-        organizer.emailAddress = organizerEmailAddress;
+        organizerEmailAddress.setAddress(notificationUserEmail);
+        organizerEmailAddress.setName(notificationUserName);
+        organizer.setEmailAddress(organizerEmailAddress);
 
-        event.subject = "Make your next move, %s".formatted(fullName);
-        event.body = body;
-        event.start = start;
-        event.end = end;
-        event.attendees = List.of(attendee);
-        event.organizer = organizer;
-        event.isOnlineMeeting = false;
-        event.allowNewTimeProposals = false;
-        event.showAs = FreeBusyStatus.BUSY;
+        event.setSubject("Make your next move, %s".formatted(fullName));
+        event.setBody(body);
+        event.setStart(start);
+        event.setEnd(end);
+        event.setAttendees(List.of(attendee));
+        event.setOrganizer(organizer);
+        event.setIsOnlineMeeting(false);
+        event.setAllowNewTimeProposals(false);
+        event.setShowAs(FreeBusyStatus.Busy);
         return event;
     }
 

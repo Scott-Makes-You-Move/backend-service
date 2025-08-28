@@ -8,12 +8,14 @@ import nl.optifit.backendservice.dto.SearchQueryDto;
 import org.springframework.ai.document.Document;
 import org.springframework.ai.vectorstore.SearchRequest;
 import org.springframework.ai.vectorstore.VectorStore;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Arrays;
 import java.util.List;
 
+@Profile("!test")
 @Slf4j
 @RequiredArgsConstructor
 @Service

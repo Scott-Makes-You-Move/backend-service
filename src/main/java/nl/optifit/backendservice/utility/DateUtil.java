@@ -20,8 +20,8 @@ public class DateUtil {
                 .format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
 
         DateTimeTimeZone dt = new DateTimeTimeZone();
-        dt.dateTime = localDateTime;
-        dt.timeZone = DEFAULT_TIME_ZONE;
+        dt.setDateTime(localDateTime);
+        dt.setTimeZone(DEFAULT_TIME_ZONE);
 
         return dt;
     }
