@@ -15,7 +15,6 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.Arrays;
 import java.util.List;
 
-@Profile("!test")
 @Slf4j
 @RequiredArgsConstructor
 @Service

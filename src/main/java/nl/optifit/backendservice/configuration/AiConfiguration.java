@@ -19,7 +19,6 @@ import org.springframework.context.annotation.Profile;
 import java.util.ArrayList;
 import java.util.List;
 
-@Profile("!test")
 @Configuration
 public class AiConfiguration {
 

@@ -19,7 +19,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
-@Profile("!test")
 @Slf4j
 @RequiredArgsConstructor
 @SecurityRequirement(name = "Bearer Authentication")
