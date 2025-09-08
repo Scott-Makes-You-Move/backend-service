@@ -85,7 +85,9 @@ public class LeaderboardService {
 
     public double calculateSessionCompletionRate(Account account, Leaderboard leaderboard) {
         List<Session> relevantSessions = account.getSessions().stream()
-                .filter(session -> session.getSessionStart().isAfter(leaderboard.getLastUpdated().atZone(ZoneId.of("Europe/Amsterdam"))))
+                .filter(session -> session.getSessionStart().isAfter(
+                        leaderboard.getResetAt().atZone(ZoneId.of("Europe/Amsterdam")))
+                )
                 .toList();
 
         long totalSessions = relevantSessions.size();
@@ -107,6 +109,7 @@ public class LeaderboardService {
             leaderboard.setLongestStreak(0);
             leaderboard.setCompletionRate(0.0);
             leaderboard.setLastUpdated(LocalDateTime.now());
+            leaderboard.setResetAt(LocalDateTime.now());
         });
         leaderboardRepository.saveAll(leaderboards);
     }

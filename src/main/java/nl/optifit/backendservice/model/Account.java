@@ -36,10 +36,13 @@ public class Account implements Serializable {
     @PrimaryKeyJoinColumn
     @JsonManagedReference
     private Leaderboard leaderboard;
+    @Builder.Default
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "account", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Biometrics> biometrics = new ArrayList<>();
+    @Builder.Default
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "account", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Mobility> mobilities = new ArrayList<>();
+    @Builder.Default
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "account", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Session> sessions = new ArrayList<>();
 }
