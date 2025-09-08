@@ -18,6 +18,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Objects;
@@ -76,17 +77,19 @@ public class LeaderboardService {
         if (sessionStatus.equals(OVERDUE)) {
             leaderboard.setCurrentStreak(0);
         }
-        leaderboard.setCompletionRate(calculateSessionCompletionRate(account));
+        leaderboard.setCompletionRate(calculateSessionCompletionRate(account, leaderboard));
         leaderboard.setLastUpdated(LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS));
 
         return leaderboard;
     }
 
-    public double calculateSessionCompletionRate(Account account) {
-        List<Session> sessionsForAccount = account.getSessions();
+    public double calculateSessionCompletionRate(Account account, Leaderboard leaderboard) {
+        List<Session> relevantSessions = account.getSessions().stream()
+                .filter(session -> session.getSessionStart().isAfter(leaderboard.getLastUpdated().atZone(ZoneId.of("Europe/Amsterdam"))))
+                .toList();
 
-        long totalSessions = sessionsForAccount.size();
-        long completedSessions = sessionsForAccount.stream()
+        long totalSessions = relevantSessions.size();
+        long completedSessions = relevantSessions.stream()
                 .map(Session::getSessionExecutionTime)
                 .filter(Objects::nonNull)
                 .count();
