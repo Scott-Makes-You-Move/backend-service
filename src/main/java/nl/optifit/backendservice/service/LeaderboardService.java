@@ -99,7 +99,12 @@ public class LeaderboardService {
     public void resetLeaderboard() {
         log.debug("Resetting leaderboard");
         List<Leaderboard> leaderboards = leaderboardRepository.findAll();
-        leaderboards.forEach(leaderboard -> leaderboard.setCurrentStreak(0));
+        leaderboards.forEach(leaderboard -> {
+            leaderboard.setCurrentStreak(0);
+            leaderboard.setLongestStreak(0);
+            leaderboard.setCompletionRate(0.0);
+            leaderboard.setLastUpdated(LocalDateTime.now());
+        });
         leaderboardRepository.saveAll(leaderboards);
     }
 }
