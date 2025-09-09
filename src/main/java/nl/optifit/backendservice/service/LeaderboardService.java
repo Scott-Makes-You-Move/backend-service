@@ -19,8 +19,10 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 
 import static nl.optifit.backendservice.model.SessionStatus.COMPLETED;
@@ -84,10 +86,12 @@ public class LeaderboardService {
     }
 
     public double calculateSessionCompletionRate(Account account, Leaderboard leaderboard) {
+        LocalDateTime resetAt = leaderboard.getResetAt();
+        LocalDateTime relevantDateTime = resetAt == null ? leaderboard.getLastUpdated() : resetAt;
+        ZonedDateTime relevantZonedDateTime = relevantDateTime.atZone(ZoneId.of("Europe/Amsterdam"));
+
         List<Session> relevantSessions = account.getSessions().stream()
-                .filter(session -> session.getSessionStart().isAfter(
-                        leaderboard.getResetAt().atZone(ZoneId.of("Europe/Amsterdam")))
-                )
+                .filter(session -> session.getSessionStart().isAfter(relevantZonedDateTime))
                 .toList();
 
         long totalSessions = relevantSessions.size();
