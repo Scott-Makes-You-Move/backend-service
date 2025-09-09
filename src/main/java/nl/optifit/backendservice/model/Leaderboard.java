@@ -40,9 +40,10 @@ public class Leaderboard implements Serializable {
     @PastOrPresent(message = "Measured datetime cannot be in the future")
     @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss")
     private LocalDateTime lastUpdated = LocalDateTime.now();
+    @Builder.Default
     @PastOrPresent(message = "Reset datetime cannot be in the future")
     @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss")
-    private LocalDateTime resetAt;
+    private LocalDateTime resetAt = LocalDateTime.now();
     @Column(nullable = false)
     private Double completionRate;
     @Column(nullable = false)
