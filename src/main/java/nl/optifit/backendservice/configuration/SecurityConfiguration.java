@@ -29,7 +29,8 @@ public class SecurityConfiguration {
                         "/v3/api-docs/**",
                         "/v3/api-docs",
                         "/webjars/**",
-                        "/h2-console/**"
+                        "/h2-console/**",
+                        "/api/v1/**"
                 ).permitAll()
                 .anyRequest().authenticated());
         http.headers(headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::disable));
