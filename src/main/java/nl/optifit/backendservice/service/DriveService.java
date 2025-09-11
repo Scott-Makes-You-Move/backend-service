@@ -10,8 +10,10 @@ import com.google.auth.oauth2.GoogleCredentials;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
 import java.util.Collections;
@@ -51,15 +53,18 @@ public class DriveService {
     }
 
     private Drive getDrive() throws IOException, GeneralSecurityException {
-        GoogleCredentials credentials = GoogleCredentials.getApplicationDefault()
-                .createScoped(Collections.singleton(DriveScopes.DRIVE));
+        String json = System.getenv("GOOGLE_SERVICE_ACCOUNT_JSON");
+        try (InputStream in = new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8))) {
+            GoogleCredentials credentials = GoogleCredentials.fromStream(in)
+                    .createScoped(Collections.singleton(DriveScopes.DRIVE));
 
-        return new Drive.Builder(
-                GoogleNetHttpTransport.newTrustedTransport(),
-                GsonFactory.getDefaultInstance(),
-                new HttpCredentialsAdapter(credentials)
-        )
-                .setApplicationName("MyApp")
-                .build();
+            return new Drive.Builder(
+                    GoogleNetHttpTransport.newTrustedTransport(),
+                    GsonFactory.getDefaultInstance(),
+                    new HttpCredentialsAdapter(credentials)
+            )
+                    .setApplicationName("SMYM")
+                    .build();
+        }
     }
 }

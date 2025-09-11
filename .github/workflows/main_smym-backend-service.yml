@@ -24,15 +24,6 @@ jobs:
           java-version: '17'
           distribution: 'microsoft'
 
-      - name: Set up Google Service Account key
-        run: |
-          mkdir -p $HOME/credentials
-          echo "${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}" > $HOME/credentials/service-account-key.json
-        shell: bash
-
-      - name: Set GOOGLE_APPLICATION_CREDENTIALS
-        run: echo "GOOGLE_APPLICATION_CREDENTIALS=$HOME/credentials/service-account-key.json" >> $GITHUB_ENV
-
       - name: Build with Maven
         run: mvn clean install -Dspring.profiles.active=cloud,logging -DskipTests=true
 
