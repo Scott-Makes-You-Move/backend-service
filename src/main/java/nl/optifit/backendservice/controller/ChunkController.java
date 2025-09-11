@@ -1,8 +1,5 @@
 package nl.optifit.backendservice.controller;
 
-import com.google.api.services.drive.Drive;
-import com.google.api.services.drive.model.File;
-import com.google.api.services.drive.model.FileList;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -10,9 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import nl.optifit.backendservice.dto.ChunkDto;
 import nl.optifit.backendservice.dto.SearchQueryDto;
 import nl.optifit.backendservice.service.ChunkService;
-import nl.optifit.backendservice.service.DriveService;
 import org.springframework.ai.document.Document;
-import org.springframework.context.annotation.Profile;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -21,10 +16,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.print.Doc;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 @Slf4j
