@@ -23,48 +23,44 @@ import static nl.optifit.backendservice.model.ExerciseType.SHOULDER;
 @Slf4j
 @RequiredArgsConstructor
 @Component
-public class CronScheduler {
+public class SessionCronScheduler {
+
+    public static final String EUROPE_AMSTERDAM = "Europe/Amsterdam";
 
     private final ExecutorService executor = Executors.newFixedThreadPool(20);
 
     private final AccountService accountService;
     private final SessionService sessionService;
-    private final LeaderboardService leaderboardService;
 
     // 0 42 13 * * ? For testing purposes
-    @Scheduled(cron = "#{@cronProperties.sessions.morning.create}", zone = "Europe/Amsterdam")
+    @Scheduled(cron = "#{@cronProperties.sessions.morning.create}", zone = EUROPE_AMSTERDAM)
     public void createMorningSession() {
         createSessionsForAllAccounts(HIP);
     }
 
-    @Scheduled(cron = "#{@cronProperties.sessions.lunch.create}", zone = "Europe/Amsterdam")
+    @Scheduled(cron = "#{@cronProperties.sessions.lunch.create}", zone = EUROPE_AMSTERDAM)
     public void createLunchSession() {
         createSessionsForAllAccounts(SHOULDER);
     }
 
-    @Scheduled(cron = "#{@cronProperties.sessions.afternoon.create}", zone = "Europe/Amsterdam")
+    @Scheduled(cron = "#{@cronProperties.sessions.afternoon.create}", zone = EUROPE_AMSTERDAM)
     public void createAfternoonSession() {
         createSessionsForAllAccounts(BACK);
     }
 
-    @Scheduled(cron = "#{@cronProperties.sessions.morning.update}", zone = "Europe/Amsterdam")
+    @Scheduled(cron = "#{@cronProperties.sessions.morning.update}", zone = EUROPE_AMSTERDAM)
     public void updateMorningSession() {
         updateSessionStatusForAllAccounts();
     }
 
-    @Scheduled(cron = "#{@cronProperties.sessions.lunch.update}", zone = "Europe/Amsterdam")
+    @Scheduled(cron = "#{@cronProperties.sessions.lunch.update}", zone = EUROPE_AMSTERDAM)
     public void updateLunchSession() {
         updateSessionStatusForAllAccounts();
     }
 
-    @Scheduled(cron = "#{@cronProperties.sessions.afternoon.update}", zone = "Europe/Amsterdam")
+    @Scheduled(cron = "#{@cronProperties.sessions.afternoon.update}", zone = EUROPE_AMSTERDAM)
     public void updateAfternoonSession() {
         updateSessionStatusForAllAccounts();
-    }
-
-    @Scheduled(cron = "#{@cronProperties.leaderboard.reset}", zone = "Europe/Amsterdam")
-    public void clearLeaderboard() {
-        leaderboardService.resetLeaderboard();
     }
 
     private void createSessionsForAllAccounts(ExerciseType exerciseType) {
