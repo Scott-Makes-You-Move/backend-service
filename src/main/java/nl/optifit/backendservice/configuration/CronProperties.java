@@ -9,6 +9,7 @@ public class CronProperties {
 
     private final Sessions sessions = new Sessions();
     private final Leaderboard leaderboard = new Leaderboard();
+    private final Drive drive = new Drive();
 
     public Sessions getSessions() {
         return sessions;
@@ -16,6 +17,10 @@ public class CronProperties {
 
     public Leaderboard getLeaderboard() {
         return leaderboard;
+    }
+
+    public Drive getDrive() {
+        return drive;
     }
 
     public static class Sessions {
