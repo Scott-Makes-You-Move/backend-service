@@ -128,7 +128,7 @@ cron:
     leaderboard:
       reset: 0 0 12 ? * 5#1
     drive:
-      pull: 0 0 18 ? * 6
+      sync: 0 0 18 ? * 6
 
 notification:
   user-id: userid

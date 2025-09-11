@@ -45,4 +45,11 @@ public class CronProperties {
         public String getReset() { return reset; }
         public void setReset(String reset) { this.reset = reset; }
     }
+
+    public static class Drive {
+        private String sync;
+
+        public String getSync() { return sync; }
+        public void setSync(String sync) { this.sync = sync; }
+    }
 }

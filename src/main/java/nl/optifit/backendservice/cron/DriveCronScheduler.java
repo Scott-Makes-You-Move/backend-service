@@ -18,8 +18,8 @@ public class DriveCronScheduler {
 
     private final DriveService driveService;
 
-    @Scheduled(cron = "#{@cronProperties.drive.pull}", zone = EUROPE_AMSTERDAM)
-    public void resetLeaderboard() throws GeneralSecurityException, IOException {
+    @Scheduled(cron = "#{@cronProperties.drive.sync}", zone = EUROPE_AMSTERDAM)
+    public void syncFiles() throws GeneralSecurityException, IOException {
         driveService.getDriveFiles();
     }
 }
