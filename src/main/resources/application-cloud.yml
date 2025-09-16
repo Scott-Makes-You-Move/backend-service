@@ -19,18 +19,26 @@ spring:
         endpoint: ${AZURE_COSMOSDB_ENDPOINT:http://someendpoint.com}
         key: ${AZURE_COSMOSDB_KEY:somekey}
         database-name: ${AZURE_COSMOSDB_DATABASE:test-database}
-        container-name: ${AZURE_COSMOSDB_CONTAINER:test-container}
-        partition-key-path: ${AZURE_COSMOSDB_PARTITION_KEY_PATH:/id}
-        metadata-fields: ${AZURE_COSMOSDB_METADATA_FIELDS:field1, field2}
-        vector-store-throughput: ${AZURE_COSMOSDB_VS_THROUGHPUT:1000}
-        vector-dimensions: ${AZURE_COSMOSDB_VS_DIMENSIONS:1536}
-    openai:
-      api-key: ${OPENAI_API_KEY:somekey}
+        containers:
+          chunks:
+            container-name: chunks
+            partition-key-path: ${AZURE_COSMOSDB_CHUNKS_PARTITION_KEY_PATH:/id}
+            metadata-fields: topic,subtopic
+            vector-store-throughput: 1000
+            vector-dimensions: 1536
+          files:
+            container-name: files
+            partition-key-path: ${AZURE_COSMOSDB_FILES_PARTITION_KEY_PATH:/id}
+            metadata-fields: accountId
+            vector-store-throughput: 1000
+            vector-dimensions: 1536
+  openai:
+    api-key: ${OPENAI_API_KEY:somekey}
+    options:
+      model: ${OPENAI_API_MODEL:somemodel}
+    embedding:
       options:
-        model: ${OPENAI_API_MODEL:somemodel}
-      embedding:
-        options:
-          model: ${OPENAI_API_EMBEDDING_MODEL:somemodel}
+        model: ${OPENAI_API_EMBEDDING_MODEL:somemodel}
 
 chat:
   client:
@@ -40,6 +48,12 @@ chat:
       rag:
         enabled: ${CHAT_CLIENT_ADVISORS_RAG_ENABLED:true}
         similarity-threshold: ${CHAT_CLIENT_ADVISORS_RAG_SIMILARITY_THRESHOLD:0.1}
+      files:
+        enabled: ${CHAT_CLIENT_ADVISORS_FILES_ENABLED:true}
+
+google:
+  service-account:
+    credentials: ${GOOGLE_SERVICE_ACCOUNT_CREDENTIALS:somecredentials}
 
 microsoft:
   entra:
@@ -88,3 +102,7 @@ notification:
 
 frontend:
   url: ${FRONTEND_URL:https://scottmakesyoumove.com}
+
+app:
+  security:
+    enabled: ${APP_SECURITY_ENABLED:true}

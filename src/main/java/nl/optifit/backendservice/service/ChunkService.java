@@ -1,13 +1,13 @@
 package nl.optifit.backendservice.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import nl.optifit.backendservice.dto.ChunkDto;
 import nl.optifit.backendservice.dto.SearchQueryDto;
 import org.springframework.ai.document.Document;
 import org.springframework.ai.vectorstore.SearchRequest;
 import org.springframework.ai.vectorstore.VectorStore;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -15,11 +15,15 @@ import java.util.Arrays;
 import java.util.List;
 
 @Slf4j
-@RequiredArgsConstructor
 @Service
 public class ChunkService {
     private final ObjectMapper objectMapper;
     private final VectorStore vectorStore;
+
+    public ChunkService(ObjectMapper objectMapper, @Qualifier("chunksVectorStore") VectorStore vectorStore) {
+        this.objectMapper = objectMapper;
+        this.vectorStore = vectorStore;
+    }
 
     public Document storeChunk(ChunkDto chunkDto) {
         log.info("Storing chunk '{}'", chunkDto.getId());

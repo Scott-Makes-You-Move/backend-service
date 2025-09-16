@@ -6,7 +6,6 @@ import nl.optifit.backendservice.model.ExerciseType;
 import nl.optifit.backendservice.model.Session;
 import nl.optifit.backendservice.model.SessionStatus;
 import nl.optifit.backendservice.service.AccountService;
-import nl.optifit.backendservice.service.LeaderboardService;
 import nl.optifit.backendservice.service.SessionService;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
