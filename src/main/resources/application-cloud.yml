@@ -32,13 +32,13 @@ spring:
             metadata-fields: accountId
             vector-store-throughput: 1000
             vector-dimensions: 1536
-  openai:
-    api-key: ${OPENAI_API_KEY:somekey}
-    options:
-      model: ${OPENAI_API_MODEL:somemodel}
-    embedding:
+    openai:
+      api-key: ${OPENAI_API_KEY:somekey}
       options:
-        model: ${OPENAI_API_EMBEDDING_MODEL:somemodel}
+        model: ${OPENAI_API_MODEL:somemodel}
+      embedding:
+        options:
+          model: ${OPENAI_API_EMBEDDING_MODEL:somemodel}
 
 chat:
   client:
