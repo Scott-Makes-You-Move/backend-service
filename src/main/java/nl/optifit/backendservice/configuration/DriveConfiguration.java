@@ -13,19 +13,24 @@ import org.springframework.context.annotation.Configuration;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
+import java.util.Base64;
 import java.util.Collections;
 
 @Configuration
 public class DriveConfiguration {
 
     @Value("${google.service-account.credentials:}")
-    private String credentials;
+    private String credentialsBase64;
 
     @Bean
     public Drive getDrive() throws IOException, GeneralSecurityException {
-        try (InputStream in = new ByteArrayInputStream(credentials.getBytes(StandardCharsets.UTF_8))) {
+        if (credentialsBase64.isEmpty()) {
+            throw new IllegalArgumentException("Google service account credentials are missing!");
+        }
+
+        byte[] decoded = Base64.getDecoder().decode(credentialsBase64);
+        try (InputStream in = new ByteArrayInputStream(decoded)) {
             GoogleCredentials googleCredentials = GoogleCredentials.fromStream(in)
                     .createScoped(Collections.singleton(DriveScopes.DRIVE));
 
