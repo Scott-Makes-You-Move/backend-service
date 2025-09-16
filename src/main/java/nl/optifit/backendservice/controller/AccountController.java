@@ -30,6 +30,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.io.IOException;
+
 @Slf4j
 @RequiredArgsConstructor
 @SecurityRequirement(name = "Bearer Authentication")
@@ -84,7 +86,7 @@ public class AccountController {
 
     @Hidden // This endpoint is called when a user is created in Keycloak
     @PostMapping
-    public ResponseEntity<AccountDto> createAccount(@RequestBody AccountDto accountDTO) {
+    public ResponseEntity<AccountDto> createAccount(@RequestBody AccountDto accountDTO) throws IOException {
         log.info("POST Account REST API called");
         AccountDto createdAccount = accountService.createAccount(accountDTO.getAccountId());
         return ResponseEntity.status(HttpStatus.CREATED).body(createdAccount);
@@ -134,7 +136,7 @@ public class AccountController {
 
     @Hidden // This endpoint is called when a user is deleted in Keycloak
     @DeleteMapping("/{accountId}")
-    public ResponseEntity<Void> deleteAccount(@PathVariable String accountId) {
+    public ResponseEntity<Void> deleteAccount(@PathVariable String accountId) throws Exception {
         log.info("DELETE Account REST API called");
         accountService.deleteAccount(accountId);
         return ResponseEntity.noContent().build();

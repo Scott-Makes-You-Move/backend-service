@@ -1,15 +1,24 @@
 package nl.optifit.backendservice.cron;
 
+import com.google.api.services.drive.model.File;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import nl.optifit.backendservice.dto.FileDto;
 import nl.optifit.backendservice.service.AccountService;
 import nl.optifit.backendservice.service.DriveService;
+import nl.optifit.backendservice.service.FileService;
+import nl.optifit.backendservice.service.KeycloakService;
+import org.keycloak.admin.client.resource.UserResource;
+import org.springframework.ai.document.Document;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -18,19 +27,10 @@ public class DriveCronScheduler {
 
     public static final String EUROPE_AMSTERDAM = "Europe/Amsterdam";
 
-    private final DriveService driveService;
-    private final AccountService accountService;
-    @Qualifier("filesVectorStore")
-    private final VectorStore filesVectorStore;
+    private final FileService fileService;
 
     @Scheduled(cron = "#{@cronProperties.drive.sync}", zone = EUROPE_AMSTERDAM)
-    public void syncFiles() throws IOException {
-        accountService.findAllAccounts().forEach(account -> {
-//            try {
-//                List<File> files = driveService.getDriveFilesForAccount(account);
-//            } catch (IOException e) {
-//                throw new RuntimeException(e);
-//            }
-        });
+    public void syncFiles() {
+        fileService.syncFiles();
     }
 }

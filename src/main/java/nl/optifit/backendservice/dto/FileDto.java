@@ -1,5 +1,6 @@
 package nl.optifit.backendservice.dto;
 
+import com.google.api.services.drive.model.File;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;

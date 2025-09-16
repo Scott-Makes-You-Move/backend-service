@@ -4,7 +4,6 @@ import com.google.api.services.drive.Drive;
 import com.google.api.services.drive.model.File;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import nl.optifit.backendservice.model.Account;
 import org.keycloak.admin.client.resource.UserResource;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.springframework.stereotype.Service;
@@ -40,11 +39,11 @@ public class DriveService {
         return googleDocs;
     }
 
-    public List<File> getDriveFilesForAccount(Account account) throws IOException {
-        Optional<UserResource> optionalUser = keycloakService.findUserById(account.getId());
+    public List<File> getDriveFilesForAccount(String accountId) throws IOException {
+        Optional<UserResource> optionalUser = keycloakService.findUserById(accountId);
 
         if (optionalUser.isEmpty()) {
-            log.warn("User with ID '{}' not found", account.getId());
+            log.warn("User with ID '{}' not found", accountId);
             return List.of();
         }
 
@@ -63,15 +62,33 @@ public class DriveService {
         return googleDocs;
     }
 
-    private void readFileContent(File doc) {
+    public void createDriveFolder(String folderName) throws IOException {
+        log.info("Creating Google Drive folder '{}'", folderName);
+        File folder = new File()
+                .setName(folderName)
+                .setMimeType("application/vnd.google-apps.folder");
+
+        drive.files().create(folder);
+        log.info("Created Google Drive folder '{}' successfully", folderName);
+    }
+
+    public void deleteDriveFolder(String folderName) throws IOException {
+        log.info("Deleting Google Drive folder '{}'", folderName);
+        drive.files().delete(folderName).execute();
+        log.info("Deleted Google Drive folder '{}' successfully", folderName);
+    }
+
+    public String readFileContent(File doc) {
         try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
             drive.files().export(doc.getId(), EXPORT_MIME_TYPE)
                     .executeMediaAndDownloadTo(outputStream);
 
             String contents = outputStream.toString(StandardCharsets.UTF_8);
             log.info("Contents of Google Doc '{}':\n{}", doc.getName(), contents);
+            return contents;
         } catch (IOException e) {
             log.error("Failed to export Google Doc '{}': {}", doc.getName(), e.getMessage(), e);
+            throw new RuntimeException(e);
         }
     }
 }

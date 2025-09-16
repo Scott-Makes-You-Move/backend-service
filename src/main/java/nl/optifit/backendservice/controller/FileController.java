@@ -29,4 +29,11 @@ public class FileController {
         Document document = fileService.storeFile(fileDto);
         return ResponseEntity.ok(document);
     }
+
+    @PostMapping("/sync")
+    public ResponseEntity<Void> syncFiles() {
+        log.info("Syncing files");
+        fileService.syncFiles();
+        return ResponseEntity.ok().build();
+    }
 }

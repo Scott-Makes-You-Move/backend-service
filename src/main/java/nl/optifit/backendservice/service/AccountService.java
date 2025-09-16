@@ -1,5 +1,6 @@
 package nl.optifit.backendservice.service;
 
+import jakarta.ws.rs.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import nl.optifit.backendservice.dto.AccountDto;
@@ -10,9 +11,11 @@ import nl.optifit.backendservice.model.Biometrics;
 import nl.optifit.backendservice.model.Leaderboard;
 import nl.optifit.backendservice.repository.AccountRepository;
 import org.keycloak.admin.client.resource.UserResource;
+import org.keycloak.representations.idm.UserRepresentation;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.IOException;
 import java.time.LocalDate;
 import java.time.Period;
 import java.time.format.DateTimeFormatter;
@@ -28,22 +31,35 @@ public class AccountService {
     private final AccountRepository accountRepository;
     private final KeycloakService keycloakService;
     private final BiometricsService biometricsService;
+    private final DriveService driveService;
 
     @Transactional
-    public AccountDto createAccount(String accountId) {
+    public AccountDto createAccount(String accountId) throws IOException {
         log.info("Creating account '{}'", accountId);
         Account account = Account.builder().id(accountId).build();
         Leaderboard leaderboard = leaderboardService.createLeaderboardForAccount(account);
         account.setLeaderboard(leaderboard);
         Account savedAccount = accountRepository.save(account);
 
+        UserRepresentation user = keycloakService.findUserById(accountId)
+                .orElseThrow(() -> new NotFoundException("User not found"))
+                .toRepresentation();
+
+        driveService.createDriveFolder(user.getUsername());
+
         return AccountDto.fromAccount(savedAccount);
     }
 
     @Transactional
-    public void deleteAccount(String accountId) {
+    public void deleteAccount(String accountId) throws IOException {
         log.info("Deleting account '{}'", accountId);
         accountRepository.deleteById(accountId);
+
+        UserRepresentation user = keycloakService.findUserById(accountId)
+                .orElseThrow(() -> new NotFoundException("User not found"))
+                .toRepresentation();
+
+        driveService.deleteDriveFolder(user.getUsername());
     }
 
     public List<Account> findAllAccounts() {
