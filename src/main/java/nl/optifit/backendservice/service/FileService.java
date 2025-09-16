@@ -44,7 +44,8 @@ public class FileService {
                 .map(UserResource::toRepresentation)
                 .forEach(userRepresentation -> {
                     try {
-                        List<File> files = driveService.getDriveFilesForAccount(userRepresentation.getId());
+                        log.info("Syncing files for user '{}'", userRepresentation.getUsername());
+                        List<File> files = driveService.getDriveFilesForAccount(userRepresentation.getUsername());
                         List<Document> documents = files.stream()
                                 .map(file ->
                                         FileDto.builder()
@@ -53,6 +54,7 @@ public class FileService {
                                                 .content(driveService.readFileContent(file))
                                                 .build()
                                 )
+                                .peek(fileDto -> log.info("File '{}' synced", fileDto.getId()))
                                 .map(FileDto::toDocument)
                                 .toList();
                         vectorStore.add(documents);
