@@ -68,13 +68,18 @@ public class DriveService {
                 .setName(folderName)
                 .setMimeType("application/vnd.google-apps.folder");
 
-        drive.files().create(folder);
-        log.info("Created Google Drive folder '{}' successfully", folderName);
+        File createdFolder = drive.files()
+                .create(folder)
+                .execute();
+
+        log.info("Created Google Drive folder '{}' successfully", createdFolder.getName());
     }
 
     public void deleteDriveFolder(String folderName) throws IOException {
         log.info("Deleting Google Drive folder '{}'", folderName);
-        drive.files().delete(folderName).execute();
+        drive.files()
+                .delete(folderName)
+                .execute();
         log.info("Deleted Google Drive folder '{}' successfully", folderName);
     }
 
