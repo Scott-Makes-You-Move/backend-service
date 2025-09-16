@@ -53,7 +53,7 @@ chat:
 
 google:
   service-account:
-    credentials: ${GOOGLE_SERVICE_ACCOUNT_CREDENTIALS_BASE64:somestring}
+    credentials: ${GOOGLE_SERVICE_ACCOUNT_CREDENTIALS_BASE64:test-credentials}
 
 microsoft:
   entra:
