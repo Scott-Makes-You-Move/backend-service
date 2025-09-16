@@ -20,7 +20,7 @@ import java.util.Collections;
 @Configuration
 public class DriveConfiguration {
 
-    @Value("${google.service-account.credentials}")
+    @Value("${google.service-account.credentials:}")
     private String credentials;
 
     @Bean

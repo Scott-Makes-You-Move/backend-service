@@ -51,6 +51,10 @@ chat:
       files:
         enabled: ${CHAT_CLIENT_ADVISORS_FILES_ENABLED:true}
 
+google:
+  service-account:
+    credentials: ${GOOGLE_SERVICE_ACCOUNT_CREDENTIALS_FILE:}
+
 microsoft:
   entra:
     id:
