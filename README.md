@@ -90,6 +90,14 @@ chat:
       rag:
         enabled: true
         similarity-threshold: 0.2
+      files:
+        enabled: false  
+
+google:
+  drive:
+    root-folder-id: someid
+  service-account:
+    credentials: "base64encodedcreds"
 
 microsoft:
   entra:
