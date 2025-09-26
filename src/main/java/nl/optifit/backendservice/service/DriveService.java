@@ -17,7 +17,7 @@ import java.util.List;
 @Service
 public class DriveService {
 
-    @Value("${goole.drive.root-folder-id}")
+    @Value("${google.drive.root-folder-id}")
     private String rootFolderId;
 
     private static final String DOCS_MIME_TYPE = "application/vnd.google-apps.document";
