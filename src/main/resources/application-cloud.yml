@@ -52,6 +52,8 @@ chat:
         enabled: ${CHAT_CLIENT_ADVISORS_FILES_ENABLED:true}
 
 google:
+  drive:
+    root-folder-id: ${GOOGLE_ROOT_FOLDER_ID:rootfolderid}
   service-account:
     credentials: ${GOOGLE_SERVICE_ACCOUNT_CREDENTIALS_BASE64:test-credentials}
 

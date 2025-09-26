@@ -45,7 +45,7 @@ public class AccountService {
                 .orElseThrow(() -> new NotFoundException("User not found"))
                 .toRepresentation();
 
-        driveService.createDriveFolder(user.getUsername());
+        driveService.createDriveFolderInRoot(user.getUsername());
 
         return AccountDto.fromAccount(savedAccount);
     }
@@ -59,7 +59,7 @@ public class AccountService {
                 .orElseThrow(() -> new NotFoundException("User not found"))
                 .toRepresentation();
 
-        driveService.deleteDriveFolder(user.getUsername());
+        driveService.deleteDriveFolderInRoot(user.getUsername());
     }
 
     public List<Account> findAllAccounts() {

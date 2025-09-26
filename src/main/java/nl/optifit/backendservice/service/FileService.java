@@ -1,10 +1,10 @@
 package nl.optifit.backendservice.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.api.services.drive.model.File;
 import lombok.extern.slf4j.Slf4j;
 import nl.optifit.backendservice.dto.FileDto;
 import org.keycloak.admin.client.resource.UserResource;
+import org.keycloak.representations.idm.UserRepresentation;
 import org.springframework.ai.document.Document;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -42,26 +42,27 @@ public class FileService {
                 .map(account -> keycloakService.findUserById(account.getId()))
                 .flatMap(Optional::stream)
                 .map(UserResource::toRepresentation)
-                .forEach(userRepresentation -> {
-                    try {
-                        log.info("Syncing files for user '{}'", userRepresentation.getUsername());
-                        List<File> files = driveService.getDriveFilesForAccount(userRepresentation.getUsername());
-                        List<Document> documents = files.stream()
-                                .map(file ->
-                                        FileDto.builder()
-                                                .id(file.getId())
-                                                .accountId(userRepresentation.getId())
-                                                .content(driveService.readFileContent(file))
-                                                .build()
-                                )
-                                .peek(fileDto -> log.info("File '{}' synced", fileDto.getId()))
-                                .map(FileDto::toDocument)
-                                .toList();
-                        vectorStore.add(documents);
-                        log.info("Files synced for user '{}'", userRepresentation.getId());
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
-                    }
-                });
+                .forEach(this::addUserFilesToCosmos);
+    }
+
+    private void addUserFilesToCosmos(UserRepresentation userRepresentation) {
+        try {
+            log.info("Syncing files for user '{}'", userRepresentation.getUsername());
+            List<File> files = driveService.getFilesForUser(userRepresentation.getUsername());
+            List<Document> documents = files.stream()
+                    .map(file ->
+                            FileDto.builder()
+                                    .id(file.getId())
+                                    .accountId(userRepresentation.getId())
+                                    .content(driveService.readContent(file))
+                                    .build()
+                    )
+                    .map(FileDto::toDocument)
+                    .toList();
+            vectorStore.add(documents);
+            log.info("Files synced for user '{}'", userRepresentation.getId());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

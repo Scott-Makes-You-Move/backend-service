@@ -4,95 +4,118 @@ import com.google.api.services.drive.Drive;
 import com.google.api.services.drive.model.File;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.keycloak.admin.client.resource.UserResource;
-import org.keycloak.representations.idm.UserRepresentation;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
-import java.util.Optional;
 
 @Slf4j
 @RequiredArgsConstructor
 @Service
 public class DriveService {
 
+    @Value("${goole.drive.root-folder-id}")
+    private String rootFolderId;
+
     private static final String DOCS_MIME_TYPE = "application/vnd.google-apps.document";
-    private static final String EXPORT_MIME_TYPE = "text/plain";
+    private static final String SPREADSHEET_MIME_TYPE = "application/vnd.google-apps.spreadsheet";
+    private static final String TEXT_PLAIN = "text/plain";
+    private static final String TEXT_CSV = "text/csv";
 
     private final Drive drive;
-    private final KeycloakService keycloakService;
 
-    public List<File> getDriveFiles() throws IOException {
+    public List<File> getFiles() throws IOException {
         var result = drive.files().list()
                 .setFields("files(id, name, mimeType)")
                 .execute();
 
-        List<File> googleDocs = result.getFiles().stream()
-                .filter(file -> DOCS_MIME_TYPE.equals(file.getMimeType()))
+        List<File> documents = result.getFiles().stream()
+                .filter(file -> DOCS_MIME_TYPE.equals(file.getMimeType()) || SPREADSHEET_MIME_TYPE.equals(file.getMimeType()))
                 .toList();
 
-        googleDocs.forEach(this::readFileContent);
+        documents.forEach(this::readContent);
 
-        return googleDocs;
+        return documents;
     }
 
-    public List<File> getDriveFilesForAccount(String accountId) throws IOException {
-        Optional<UserResource> optionalUser = keycloakService.findUserById(accountId);
-
-        if (optionalUser.isEmpty()) {
-            log.warn("User with ID '{}' not found", accountId);
-            return List.of();
-        }
-
-        UserResource userResource = optionalUser.get();
-        UserRepresentation representation = userResource.toRepresentation();
-        String username = representation.getUsername();
-
-        List<File> googleDocs = drive.files().list()
+    public List<File> getFilesForUser(String username) throws IOException {
+        List<File> folders = drive.files().list()
+                .setQ("name='" + username + "' and '" + rootFolderId + "' in parents and mimeType='application/vnd.google-apps.folder'")
                 .setFields("files(id, name, mimeType)")
-                .setQ("mimeType = '" + DOCS_MIME_TYPE + "' and '" + username + "' in parents")
                 .execute()
                 .getFiles();
 
-        googleDocs.forEach(this::readFileContent);
+        String userFolderId = folders.stream()
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("User folder not found"))
+                .getId();
 
-        return googleDocs;
+        List<File> files = drive.files().list()
+                .setQ("'" + userFolderId + "' in parents and (mimeType='" + DOCS_MIME_TYPE + "' or mimeType='" + SPREADSHEET_MIME_TYPE + "')")
+                .setFields("files(id, name, mimeType)")
+                .execute()
+                .getFiles();
+
+        files.forEach(this::readContent);
+
+        return files;
     }
 
-    public void createDriveFolder(String folderName) throws IOException {
-        log.info("Creating Google Drive folder '{}'", folderName);
+    public void createDriveFolderInRoot(String folderName) throws IOException {
+        log.info("Creating Google Drive folder '{}' in root folder", folderName);
+
         File folder = new File()
                 .setName(folderName)
-                .setMimeType("application/vnd.google-apps.folder");
+                .setMimeType("application/vnd.google-apps.folder")
+                .setParents(List.of(rootFolderId));
 
         File createdFolder = drive.files()
                 .create(folder)
+                .setFields("id, name, parents")
                 .execute();
 
-        log.info("Created Google Drive folder '{}' successfully", createdFolder.getName());
+        log.info("Created Google Drive folder '{}' with ID '{}' successfully", createdFolder.getName(), createdFolder.getId());
     }
 
-    public void deleteDriveFolder(String folderName) throws IOException {
-        log.info("Deleting Google Drive folder '{}'", folderName);
-        drive.files()
-                .delete(folderName)
-                .execute();
+    public void deleteDriveFolderInRoot(String folderName) throws IOException {
+        List<File> folders = drive.files().list()
+                .setQ("name='" + folderName + "' and '" + rootFolderId + "' in parents and mimeType='application/vnd.google-apps.folder'")
+                .setFields("files(id, name)")
+                .execute()
+                .getFiles();
+
+        String folderId = folders.stream()
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("Folder not found"))
+                .getId();
+
+        drive.files().delete(folderId).execute();
         log.info("Deleted Google Drive folder '{}' successfully", folderName);
     }
 
-    public String readFileContent(File doc) {
+    public String readContent(File file) {
         try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
-            drive.files().export(doc.getId(), EXPORT_MIME_TYPE)
-                    .executeMediaAndDownloadTo(outputStream);
+            if (DOCS_MIME_TYPE.equals(file.getMimeType())) {
+                drive.files().export(file.getId(), TEXT_PLAIN)
+                        .executeMediaAndDownloadTo(outputStream);
+
+            } else if (SPREADSHEET_MIME_TYPE.equals(file.getMimeType())) {
+                drive.files().export(file.getId(), TEXT_CSV)
+                        .executeMediaAndDownloadTo(outputStream);
+            } else {
+                log.warn("Skipping unsupported file type: {}", file.getMimeType());
+                return null;
+            }
 
             String contents = outputStream.toString(StandardCharsets.UTF_8);
-            log.info("Contents of Google Doc '{}':\n{}", doc.getName(), contents);
+            log.info("Contents of '{}':\n{}", file.getName(), contents);
             return contents;
+
         } catch (IOException e) {
-            log.error("Failed to export Google Doc '{}': {}", doc.getName(), e.getMessage(), e);
+            log.error("Failed to read file '{}': {}", file.getName(), e.getMessage(), e);
             throw new RuntimeException(e);
         }
     }
