@@ -27,20 +27,6 @@ public class DriveService {
 
     private final Drive drive;
 
-    public List<File> getFiles() throws IOException {
-        var result = drive.files().list()
-                .setFields("files(id, name, mimeType)")
-                .execute();
-
-        List<File> documents = result.getFiles().stream()
-                .filter(file -> DOCS_MIME_TYPE.equals(file.getMimeType()) || SPREADSHEET_MIME_TYPE.equals(file.getMimeType()))
-                .toList();
-
-        documents.forEach(this::readContent);
-
-        return documents;
-    }
-
     public List<File> getFilesForUser(String username) throws IOException {
         List<File> folders = drive.files().list()
                 .setQ("name='" + username + "' and '" + rootFolderId + "' in parents and mimeType='application/vnd.google-apps.folder'")
