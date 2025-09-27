@@ -43,7 +43,7 @@ public class ChatbotService {
     }
 
     public ChatbotResponseDto initiateChat(ConversationDto conversationDto) {
-        log.debug("Initiating chat");
+        log.debug("Initiating chat with session id '{}'", conversationDto.getSessionId());
         long startTime = System.nanoTime();
 
         try {
