@@ -52,6 +52,16 @@ public class JwtConverter implements Converter<Jwt, AbstractAuthenticationToken>
         return jwt.getSubject().equals(accountId);
     }
 
+    public String getCurrentUserAccountId() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication instanceof JwtAuthenticationToken) {
+            return ((JwtAuthenticationToken) authentication).getToken().getSubject();
+        }
+
+        throw new IllegalStateException("No current user found");
+    }
+
     private String getPrincipalClaim(Jwt jwt) {
         String claimName = Optional.ofNullable(jwtConverterProperties.getPrincipalAttribute())
                 .orElse(JwtClaimNames.SUB);

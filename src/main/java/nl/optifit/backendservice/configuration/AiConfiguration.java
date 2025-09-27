@@ -25,12 +25,16 @@ public class AiConfiguration {
 
     @Value("${chat.client.advisors.masking.enabled}")
     private boolean maskingEnabled;
-    @Value("${chat.client.advisors.rag.enabled}")
-    private boolean ragEnabled;
-    @Value("${chat.client.advisors.files.enabled}")
-    private boolean filesEnabled;
-    @Value("${chat.client.advisors.rag.similarity-threshold}")
-    private double similarityThreshold;
+    @Value("${chat.client.advisors.chunks.enabled}")
+    private boolean chunksEnabled;
+    @Value("${chat.client.advisors.chunks.similarity-threshold}")
+    private double chunksSimilarityThreshold;
+
+    private final VectorStore chunksVectorStore;
+
+    public AiConfiguration(@Qualifier("chunksVectorStore") VectorStore chunksVectorStore) {
+        this.chunksVectorStore = chunksVectorStore;
+    }
 
     @Bean
     public ChatMemory chatMemory() {
@@ -38,7 +42,7 @@ public class AiConfiguration {
     }
 
     @Bean
-    public ChatClient chatClient(ChatModel chatModel, ChatMemory chatMemory, @Qualifier("chunksVectorStore") VectorStore vectorStore) {
+    public ChatClient chatClient(ChatModel chatModel, ChatMemory chatMemory) {
         MessageChatMemoryAdvisor messageChatMemoryAdvisor = MessageChatMemoryAdvisor.builder(chatMemory).build();
 
         ChatClient.Builder chatClientBuilder = ChatClient.builder(chatModel);
@@ -46,28 +50,24 @@ public class AiConfiguration {
         List<Advisor> advisors = new ArrayList<>();
         advisors.add(messageChatMemoryAdvisor);
 
-        if (ragEnabled) {
-            RetrievalAugmentationAdvisor retrievalAugmentationAdvisor = getRetrievalAugmentationAdvisor(vectorStore);
+        if (chunksEnabled) {
+            RetrievalAugmentationAdvisor retrievalAugmentationAdvisor = getRetrievalAugmentationAdvisor();
             advisors.add(retrievalAugmentationAdvisor);
         }
         if (maskingEnabled) {
             MaskingAdvisor maskingAdvisor = new MaskingAdvisor();
             advisors.add(maskingAdvisor);
         }
-        if (filesEnabled) {
-            // Create a custom FilesAdvisor here
-            // advisors.add(new FilesAdvisor());
-        }
 
         return chatClientBuilder.defaultAdvisors(advisors).build();
     }
 
     @NotNull
-    private RetrievalAugmentationAdvisor getRetrievalAugmentationAdvisor(@Qualifier("chunksVectorStore") VectorStore vectorStore) {
+    private RetrievalAugmentationAdvisor getRetrievalAugmentationAdvisor() {
         return RetrievalAugmentationAdvisor.builder()
                 .documentRetriever(VectorStoreDocumentRetriever.builder()
-                        .similarityThreshold(similarityThreshold)
-                        .vectorStore(vectorStore)
+                        .similarityThreshold(chunksSimilarityThreshold)
+                        .vectorStore(chunksVectorStore)
                         .build())
                 .queryAugmenter(ContextualQueryAugmenter.builder()
                         .allowEmptyContext(true)
