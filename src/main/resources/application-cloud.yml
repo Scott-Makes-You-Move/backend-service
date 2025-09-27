@@ -45,11 +45,12 @@ chat:
     advisors:
       masking:
         enabled: ${CHAT_CLIENT_ADVISORS_MASKING_ENABLED:true}
-      rag:
-        enabled: ${CHAT_CLIENT_ADVISORS_RAG_ENABLED:true}
+      chunks:
+        enabled: ${CHAT_CLIENT_ADVISORS_CHUNKS_ENABLED:true}
         similarity-threshold: ${CHAT_CLIENT_ADVISORS_RAG_SIMILARITY_THRESHOLD:0.1}
       files:
         enabled: ${CHAT_CLIENT_ADVISORS_FILES_ENABLED:true}
+        similarity-threshold: ${CHAT_CLIENT_ADVISORS_FILES_SIMILARITY_THRESHOLD:0.1}
 
 google:
   drive:
