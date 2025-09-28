@@ -7,6 +7,7 @@ import nl.optifit.backendservice.security.JwtConverter;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.document.Document;
+import org.springframework.ai.rag.Query;
 import org.springframework.ai.rag.advisor.RetrievalAugmentationAdvisor;
 import org.springframework.ai.rag.generation.augmentation.ContextualQueryAugmenter;
 import org.springframework.ai.rag.retrieval.search.VectorStoreDocumentRetriever;
@@ -82,8 +83,8 @@ public class ChatbotService {
         String currentUserAccountId = jwtConverter.getCurrentUserAccountId();
         log.debug("Current user account id: {}", currentUserAccountId);
 
-        FilterExpressionBuilder feb = new FilterExpressionBuilder();
-        Filter.Expression filterExpression = feb.eq("accountId", currentUserAccountId).build();
+        FilterExpressionBuilder filterExpressionBuilder = new FilterExpressionBuilder();
+        Filter.Expression filterExpression = filterExpressionBuilder.eq("accountId", currentUserAccountId).build();
 
         VectorStoreDocumentRetriever delegate = VectorStoreDocumentRetriever.builder()
                 .similarityThreshold(filesSimilarityThreshold)
@@ -93,10 +94,11 @@ public class ChatbotService {
 
         return RetrievalAugmentationAdvisor.builder()
                 .documentRetriever(query -> {
-                    List<Document> docs = delegate.retrieve(query);
+                    Query emptyQuery = Query.builder().text(" ").build();
+                    List<Document> docs = delegate.retrieve(emptyQuery);
 
-                    log.debug("RAG retrieved {} docs for query '{}':", docs.size(), query.text());
-                    docs.forEach(d -> log.debug("Doc: {}", d.getText()));
+                    log.debug("RAG retrieved {} docs for query '{}':", docs.size(), emptyQuery.text());
+                    docs.forEach(doc -> log.debug("Doc: {}", doc.getText()));
 
                     return docs;
                 })
