@@ -6,6 +6,7 @@ import nl.optifit.backendservice.dto.ConversationDto;
 import nl.optifit.backendservice.security.JwtConverter;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.memory.ChatMemory;
+import org.springframework.ai.document.Document;
 import org.springframework.ai.rag.advisor.RetrievalAugmentationAdvisor;
 import org.springframework.ai.rag.generation.augmentation.ContextualQueryAugmenter;
 import org.springframework.ai.rag.retrieval.search.VectorStoreDocumentRetriever;
@@ -17,6 +18,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
+
+import java.util.List;
 
 @Slf4j
 @Service
@@ -82,12 +85,21 @@ public class ChatbotService {
         FilterExpressionBuilder feb = new FilterExpressionBuilder();
         Filter.Expression filterExpression = feb.eq("accountId", currentUserAccountId).build();
 
+        VectorStoreDocumentRetriever delegate = VectorStoreDocumentRetriever.builder()
+                .similarityThreshold(filesSimilarityThreshold)
+                .vectorStore(filesVectorStore)
+                .filterExpression(filterExpression)
+                .build();
+
         return RetrievalAugmentationAdvisor.builder()
-                .documentRetriever(VectorStoreDocumentRetriever.builder()
-                        .similarityThreshold(filesSimilarityThreshold)
-                        .vectorStore(filesVectorStore)
-                        .filterExpression(filterExpression)
-                        .build())
+                .documentRetriever(query -> {
+                    List<Document> docs = delegate.retrieve(query);
+
+                    log.debug("RAG retrieved {} docs for query '{}':", docs.size(), query.text());
+                    docs.forEach(d -> log.debug("Doc: {}", d.getText()));
+
+                    return docs;
+                })
                 .queryAugmenter(ContextualQueryAugmenter.builder()
                         .allowEmptyContext(true)
                         .build())
