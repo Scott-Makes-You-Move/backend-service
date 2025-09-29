@@ -11,6 +11,7 @@ import org.springframework.ai.document.Document;
 import org.springframework.ai.rag.Query;
 import org.springframework.ai.rag.advisor.RetrievalAugmentationAdvisor;
 import org.springframework.ai.rag.generation.augmentation.ContextualQueryAugmenter;
+import org.springframework.ai.rag.generation.augmentation.QueryAugmenter;
 import org.springframework.ai.rag.retrieval.search.DocumentRetriever;
 import org.springframework.ai.rag.retrieval.search.VectorStoreDocumentRetriever;
 import org.springframework.ai.vectorstore.VectorStore;
@@ -101,9 +102,7 @@ public class ChatbotService {
 
         return RetrievalAugmentationAdvisor.builder()
                 .documentRetriever(new LoggingDocumentRetriever(chunksDocumentRetriever, "CHUNKS"))
-                .queryAugmenter(ContextualQueryAugmenter.builder()
-                        .allowEmptyContext(true)
-                        .build())
+                .queryAugmenter(new NoOpQueryAugmenter())
                 .build();
     }
 
@@ -122,10 +121,18 @@ public class ChatbotService {
 
         return RetrievalAugmentationAdvisor.builder()
                 .documentRetriever(new LoggingDocumentRetriever(filesDocumentRetriever, "FILES"))
-                .queryAugmenter(ContextualQueryAugmenter.builder()
-                        .allowEmptyContext(true)
-                        .build())
+                .queryAugmenter(new NoOpQueryAugmenter())
                 .build();
+    }
+
+    /**
+     * No-op query augmenter that returns the original query unchanged
+     */
+    private static class NoOpQueryAugmenter implements QueryAugmenter {
+        @Override
+        public Query augment(Query query, List<Document> documents) {
+            return query;
+        }
     }
 
     /**
