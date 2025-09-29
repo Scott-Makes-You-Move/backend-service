@@ -94,10 +94,10 @@ public class ChatbotService {
 
         return RetrievalAugmentationAdvisor.builder()
                 .documentRetriever(query -> {
-                    Query emptyQuery = Query.builder().text(" ").build();
-                    List<Document> docs = delegate.retrieve(emptyQuery);
+                    Query findAllQuery = Query.builder().text("e").build();
+                    List<Document> docs = delegate.retrieve(findAllQuery);
 
-                    log.debug("RAG retrieved {} docs for query '{}':", docs.size(), emptyQuery.text());
+                    log.debug("RAG retrieved {} docs for query '{}':", docs.size(), query.text());
                     docs.forEach(doc -> log.debug("Doc: {}", doc.getText()));
 
                     return docs;
