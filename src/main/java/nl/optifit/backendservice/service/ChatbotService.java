@@ -10,6 +10,7 @@ import org.springframework.ai.document.Document;
 import org.springframework.ai.rag.Query;
 import org.springframework.ai.rag.advisor.RetrievalAugmentationAdvisor;
 import org.springframework.ai.rag.generation.augmentation.ContextualQueryAugmenter;
+import org.springframework.ai.rag.retrieval.search.DocumentRetriever;
 import org.springframework.ai.rag.retrieval.search.VectorStoreDocumentRetriever;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.ai.vectorstore.filter.Filter;
@@ -20,6 +21,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
@@ -35,15 +37,26 @@ public class ChatbotService {
     private boolean filesEnabled;
     @Value("${chat.client.advisors.files.similarity-threshold}")
     private double filesSimilarityThreshold;
+    @Value("${chat.client.advisors.chunks.enabled}")
+    private boolean chunksEnabled;
+    @Value("${chat.client.advisors.chunks.similarity-threshold}")
+    private double chunksSimilarityThreshold;
 
     private final ChatClient chatClient;
     private final JwtConverter jwtConverter;
     private final VectorStore filesVectorStore;
+    private final VectorStore chunksVectorStore;
 
-    public ChatbotService(ChatClient chatClient, JwtConverter jwtConverter, @Qualifier("filesVectorStore") VectorStore filesVectorStore) {
+    public ChatbotService(
+            ChatClient chatClient,
+            JwtConverter jwtConverter,
+            @Qualifier("filesVectorStore") VectorStore filesVectorStore,
+            @Qualifier("chunksVectorStore") VectorStore chunksVectorStore
+    ) {
         this.chatClient = chatClient;
         this.jwtConverter = jwtConverter;
         this.filesVectorStore = filesVectorStore;
+        this.chunksVectorStore = chunksVectorStore;
     }
 
     public ChatbotResponseDto initiateChat(ConversationDto conversationDto) {
@@ -55,9 +68,7 @@ public class ChatbotService {
             String aiResponse = chatClient
                     .prompt()
                     .advisors(a -> {
-                        if (filesEnabled) {
-                            a.advisors(getFilesRetrievalAugmentationAdvisor());
-                        }
+                        getRetrievalAugmentationAdvisor();
                         a.param(ChatMemory.CONVERSATION_ID, conversationDto.getSessionId().toString());
                     })
                     .system(BASE_SYSTEM_PROMPT)
@@ -79,29 +90,34 @@ public class ChatbotService {
         }
     }
 
-    private RetrievalAugmentationAdvisor getFilesRetrievalAugmentationAdvisor() {
+    private RetrievalAugmentationAdvisor getRetrievalAugmentationAdvisor() {
         String currentUserAccountId = jwtConverter.getCurrentUserAccountId();
         log.debug("Current user account id: {}", currentUserAccountId);
 
         FilterExpressionBuilder filterExpressionBuilder = new FilterExpressionBuilder();
         Filter.Expression filterExpression = filterExpressionBuilder.eq("accountId", currentUserAccountId).build();
 
-        VectorStoreDocumentRetriever delegate = VectorStoreDocumentRetriever.builder()
+        VectorStoreDocumentRetriever filesDocumentRetriever = VectorStoreDocumentRetriever.builder()
                 .similarityThreshold(filesSimilarityThreshold)
                 .vectorStore(filesVectorStore)
                 .filterExpression(filterExpression)
                 .build();
 
+        VectorStoreDocumentRetriever chunksDocumentRetriever = VectorStoreDocumentRetriever.builder()
+                .similarityThreshold(chunksSimilarityThreshold)
+                .vectorStore(chunksVectorStore)
+                .build();
+
+        DocumentRetriever documentRetriever = query -> {
+            List<Document> merged = new ArrayList<>();
+            Query findAll = Query.builder().text("e").build();
+            merged.addAll(filesDocumentRetriever.retrieve(findAll));
+            merged.addAll(chunksDocumentRetriever.retrieve(query));
+            return merged;
+        };
+
         return RetrievalAugmentationAdvisor.builder()
-                .documentRetriever(query -> {
-                    Query findAllQuery = Query.builder().text("e").build();
-                    List<Document> docs = delegate.retrieve(findAllQuery);
-
-                    log.debug("RAG retrieved {} docs for query '{}':", docs.size(), query.text());
-                    docs.forEach(doc -> log.debug("Doc: {}", doc.getText()));
-
-                    return docs;
-                })
+                .documentRetriever(documentRetriever)
                 .queryAugmenter(ContextualQueryAugmenter.builder()
                         .allowEmptyContext(true)
                         .build())
