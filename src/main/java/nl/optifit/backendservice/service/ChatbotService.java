@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import nl.optifit.backendservice.dto.ChatbotResponseDto;
 import nl.optifit.backendservice.dto.ConversationDto;
 import nl.optifit.backendservice.security.JwtConverter;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.document.Document;
@@ -63,18 +64,20 @@ public class ChatbotService {
         log.debug("Initiating chat with session id '{}'", conversationDto.getSessionId());
         long startTime = System.nanoTime();
 
+        RetrievalAugmentationAdvisor chunksRetrievalAugmentationAdvisor = getChunksRetrievalAugmentationAdvisor();
+        RetrievalAugmentationAdvisor filesRetrievalAugmentationAdvisor = getFilesRetrievalAugmentationAdvisor();
+
         try {
             long startTimeChatClient = System.nanoTime();
+
             String aiResponse = chatClient
                     .prompt()
-                    .advisors(a -> {
-                        getRetrievalAugmentationAdvisor();
-                        a.param(ChatMemory.CONVERSATION_ID, conversationDto.getSessionId().toString());
-                    })
+                    .advisors(chunksRetrievalAugmentationAdvisor,  filesRetrievalAugmentationAdvisor)
                     .system(BASE_SYSTEM_PROMPT)
                     .user(conversationDto.getUserMessage())
                     .call()
                     .content();
+
             log.debug("Chat client response time: {}ms", (System.nanoTime() - startTimeChatClient) / 1_000_000);
 
             return ChatbotResponseDto.builder()
@@ -90,7 +93,21 @@ public class ChatbotService {
         }
     }
 
-    private RetrievalAugmentationAdvisor getRetrievalAugmentationAdvisor() {
+    private RetrievalAugmentationAdvisor getChunksRetrievalAugmentationAdvisor() {
+        VectorStoreDocumentRetriever chunksDocumentRetriever = VectorStoreDocumentRetriever.builder()
+                .similarityThreshold(chunksSimilarityThreshold)
+                .vectorStore(chunksVectorStore)
+                .build();
+
+        return RetrievalAugmentationAdvisor.builder()
+                .documentRetriever(new LoggingDocumentRetriever(chunksDocumentRetriever, "CHUNKS"))
+                .queryAugmenter(ContextualQueryAugmenter.builder()
+                        .allowEmptyContext(true)
+                        .build())
+                .build();
+    }
+
+    private RetrievalAugmentationAdvisor getFilesRetrievalAugmentationAdvisor() {
         String currentUserAccountId = jwtConverter.getCurrentUserAccountId();
         log.debug("Current user account id: {}", currentUserAccountId);
 
@@ -103,24 +120,57 @@ public class ChatbotService {
                 .filterExpression(filterExpression)
                 .build();
 
-        VectorStoreDocumentRetriever chunksDocumentRetriever = VectorStoreDocumentRetriever.builder()
-                .similarityThreshold(chunksSimilarityThreshold)
-                .vectorStore(chunksVectorStore)
-                .build();
-
-        DocumentRetriever documentRetriever = query -> {
-            List<Document> merged = new ArrayList<>();
-            Query findAll = Query.builder().text("e").build();
-            merged.addAll(filesDocumentRetriever.retrieve(findAll));
-            merged.addAll(chunksDocumentRetriever.retrieve(query));
-            return merged;
-        };
-
         return RetrievalAugmentationAdvisor.builder()
-                .documentRetriever(documentRetriever)
+                .documentRetriever(new LoggingDocumentRetriever(filesDocumentRetriever, "FILES"))
                 .queryAugmenter(ContextualQueryAugmenter.builder()
                         .allowEmptyContext(true)
                         .build())
                 .build();
+    }
+
+    /**
+     * Wrapper class to log retrieved documents
+     */
+    private static class LoggingDocumentRetriever implements DocumentRetriever {
+        private final DocumentRetriever delegate;
+        private final String sourceName;
+
+        public LoggingDocumentRetriever(DocumentRetriever delegate, String sourceName) {
+            this.delegate = delegate;
+            this.sourceName = sourceName;
+        }
+
+        @NotNull
+        @Override
+        public List<Document> retrieve(Query query) {
+            long startTime = System.nanoTime();
+            List<Document> documents = delegate.retrieve(query);
+            long durationMs = (System.nanoTime() - startTime) / 1_000_000;
+
+            log.info("=== {} RAG RETRIEVAL ===", sourceName);
+            log.info("Query: '{}'", query.text());
+            log.info("Retrieved {} documents in {}ms", documents.size(), durationMs);
+
+            for (int i = 0; i < documents.size(); i++) {
+                Document doc = documents.get(i);
+                log.info("Document {} [Score: {}]:", i + 1, doc.getMetadata().get("distance"));
+                log.info("  Content: {}", truncateContent(doc.getText()));
+                log.info("  Metadata: {}", doc.getMetadata());
+            }
+
+            if (documents.isEmpty()) {
+                log.info("No documents retrieved from {}", sourceName);
+            }
+
+            log.info("=== END {} RAG RETRIEVAL ===", sourceName);
+
+            return documents;
+        }
+
+        private String truncateContent(String content) {
+            if (content == null) return "null";
+            if (content.length() <= 200) return content;
+            return content.substring(0, 200) + "... [truncated]";
+        }
     }
 }
