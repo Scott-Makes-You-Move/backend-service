@@ -4,14 +4,14 @@ import lombok.extern.slf4j.Slf4j;
 import nl.optifit.backendservice.dto.ChatbotResponseDto;
 import nl.optifit.backendservice.dto.ConversationDto;
 import nl.optifit.backendservice.security.JwtConverter;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.document.Document;
 import org.springframework.ai.rag.Query;
 import org.springframework.ai.rag.advisor.RetrievalAugmentationAdvisor;
 import org.springframework.ai.rag.generation.augmentation.ContextualQueryAugmenter;
-import org.springframework.ai.rag.generation.augmentation.QueryAugmenter;
+import org.springframework.ai.rag.retrieval.join.ConcatenationDocumentJoiner;
+import org.springframework.ai.rag.retrieval.join.DocumentJoiner;
 import org.springframework.ai.rag.retrieval.search.DocumentRetriever;
 import org.springframework.ai.rag.retrieval.search.VectorStoreDocumentRetriever;
 import org.springframework.ai.vectorstore.VectorStore;
@@ -25,6 +25,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @Service
@@ -73,7 +74,7 @@ public class ChatbotService {
 
             String aiResponse = chatClient
                     .prompt()
-                    .advisors(chunksRetrievalAugmentationAdvisor,  filesRetrievalAugmentationAdvisor)
+                    .advisors(filesRetrievalAugmentationAdvisor)
                     .system(BASE_SYSTEM_PROMPT)
                     .user(conversationDto.getUserMessage())
                     .call()
@@ -101,8 +102,10 @@ public class ChatbotService {
                 .build();
 
         return RetrievalAugmentationAdvisor.builder()
-                .documentRetriever(new LoggingDocumentRetriever(chunksDocumentRetriever, "CHUNKS"))
-                .queryAugmenter(new NoOpQueryAugmenter())
+                .documentRetriever(chunksDocumentRetriever)
+                .queryAugmenter(ContextualQueryAugmenter.builder()
+                        .allowEmptyContext(true)
+                        .build())
                 .build();
     }
 
@@ -120,64 +123,10 @@ public class ChatbotService {
                 .build();
 
         return RetrievalAugmentationAdvisor.builder()
-                .documentRetriever(new LoggingDocumentRetriever(filesDocumentRetriever, "FILES"))
-                .queryAugmenter(new NoOpQueryAugmenter())
+                .documentRetriever(filesDocumentRetriever)
+                .queryAugmenter(ContextualQueryAugmenter.builder()
+                        .allowEmptyContext(true)
+                        .build())
                 .build();
-    }
-
-    /**
-     * No-op query augmenter that returns the original query unchanged
-     */
-    private static class NoOpQueryAugmenter implements QueryAugmenter {
-        @Override
-        public Query augment(Query query, List<Document> documents) {
-            return query;
-        }
-    }
-
-    /**
-     * Wrapper class to log retrieved documents
-     */
-    private static class LoggingDocumentRetriever implements DocumentRetriever {
-        private final DocumentRetriever delegate;
-        private final String sourceName;
-
-        public LoggingDocumentRetriever(DocumentRetriever delegate, String sourceName) {
-            this.delegate = delegate;
-            this.sourceName = sourceName;
-        }
-
-        @NotNull
-        @Override
-        public List<Document> retrieve(Query query) {
-            long startTime = System.nanoTime();
-            List<Document> documents = delegate.retrieve(query);
-            long durationMs = (System.nanoTime() - startTime) / 1_000_000;
-
-            log.info("=== {} RAG RETRIEVAL ===", sourceName);
-            log.info("Query: '{}'", query.text());
-            log.info("Retrieved {} documents in {}ms", documents.size(), durationMs);
-
-            for (int i = 0; i < documents.size(); i++) {
-                Document doc = documents.get(i);
-                log.info("Document {} [Score: {}]:", i + 1, doc.getMetadata().get("distance"));
-                log.info("  Content: {}", truncateContent(doc.getText()));
-                log.info("  Metadata: {}", doc.getMetadata());
-            }
-
-            if (documents.isEmpty()) {
-                log.info("No documents retrieved from {}", sourceName);
-            }
-
-            log.info("=== END {} RAG RETRIEVAL ===", sourceName);
-
-            return documents;
-        }
-
-        private String truncateContent(String content) {
-            if (content == null) return "null";
-            if (content.length() <= 200) return content;
-            return content.substring(0, 200) + "... [truncated]";
-        }
     }
 }
