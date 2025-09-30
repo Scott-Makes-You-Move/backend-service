@@ -5,6 +5,7 @@ import nl.optifit.backendservice.dto.ChatbotResponseDto;
 import nl.optifit.backendservice.dto.ConversationDto;
 import nl.optifit.backendservice.security.JwtConverter;
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.chat.client.advisor.api.Advisor;
 import org.springframework.ai.rag.advisor.RetrievalAugmentationAdvisor;
 import org.springframework.ai.rag.generation.augmentation.ContextualQueryAugmenter;
 import org.springframework.ai.rag.retrieval.search.DocumentRetriever;
@@ -65,10 +66,16 @@ public class ChatbotService {
         try {
             long startTimeChatClient = System.nanoTime();
 
-            String aiResponse = chatClient
-                    .prompt()
-                    .advisors(List.of(chunksRAG(), filesRAG()))
+            Advisor retrievalAugmentationAdvisor = RetrievalAugmentationAdvisor.builder()
+                    .documentRetriever(VectorStoreDocumentRetriever.builder()
+                            .similarityThreshold(0.50)
+                            .vectorStore(chunksVectorStore)
+                            .build())
+                    .build();
+
+            String answer = chatClient.prompt()
                     .system(BASE_SYSTEM_PROMPT)
+                    .advisors(retrievalAugmentationAdvisor)
                     .user(conversationDto.getUserMessage())
                     .call()
                     .content();
@@ -77,7 +84,7 @@ public class ChatbotService {
 
             return ChatbotResponseDto.builder()
                     .sessionId(conversationDto.getSessionId())
-                    .aiResponse(aiResponse)
+                    .aiResponse(answer)
                     .build();
 
         } catch (Exception e) {
