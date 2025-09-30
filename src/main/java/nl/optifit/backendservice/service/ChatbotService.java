@@ -6,10 +6,12 @@ import nl.optifit.backendservice.dto.ConversationDto;
 import nl.optifit.backendservice.security.JwtConverter;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.api.Advisor;
+import org.springframework.ai.document.Document;
 import org.springframework.ai.rag.advisor.RetrievalAugmentationAdvisor;
 import org.springframework.ai.rag.generation.augmentation.ContextualQueryAugmenter;
 import org.springframework.ai.rag.retrieval.search.DocumentRetriever;
 import org.springframework.ai.rag.retrieval.search.VectorStoreDocumentRetriever;
+import org.springframework.ai.vectorstore.SearchRequest;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.ai.vectorstore.filter.Filter;
 import org.springframework.ai.vectorstore.filter.FilterExpressionBuilder;
@@ -19,7 +21,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Slf4j
 @Service
@@ -43,17 +48,21 @@ public class ChatbotService {
     private final JwtConverter jwtConverter;
     private final VectorStore filesVectorStore;
     private final VectorStore chunksVectorStore;
+    private final ChunkService chunkService;
+    private final FileService fileService;
 
     public ChatbotService(
             ChatClient chatClient,
             JwtConverter jwtConverter,
             @Qualifier("filesVectorStore") VectorStore filesVectorStore,
-            @Qualifier("chunksVectorStore") VectorStore chunksVectorStore
+            @Qualifier("chunksVectorStore") VectorStore chunksVectorStore, ChunkService chunkService, FileService fileService
     ) {
         this.chatClient = chatClient;
         this.jwtConverter = jwtConverter;
         this.filesVectorStore = filesVectorStore;
         this.chunksVectorStore = chunksVectorStore;
+        this.chunkService = chunkService;
+        this.fileService = fileService;
     }
 
     public ChatbotResponseDto initiateChat(ConversationDto conversationDto) {
@@ -67,28 +76,27 @@ public class ChatbotService {
                     .allowEmptyContext(true)
                     .build();
 
-            Advisor retrievalAugmentationAdvisor = RetrievalAugmentationAdvisor.builder()
-                    .documentRetriever(VectorStoreDocumentRetriever.builder()
-                            .similarityThreshold(0.5)
-                            .vectorStore(chunksVectorStore)
-                            .build())
-                    .queryAugmenter(queryAugmenter)
-                    .build();
+            SearchRequest chunksSearchRequest = SearchRequest.builder().query(conversationDto.getUserMessage()).build();
+            SearchRequest filesSearchRequest = SearchRequest.builder().query("e").build();
 
-            Advisor filesAugmentationAdvisor = RetrievalAugmentationAdvisor.builder()
-                    .documentRetriever(VectorStoreDocumentRetriever.builder()
-                            .similarityThreshold(0.0)
-                            .vectorStore(filesVectorStore)
-                            .filterExpression(new FilterExpressionBuilder()
-                                    .eq("accountId", jwtConverter.getCurrentUserAccountId())
-                                    .build())
-                            .build())
+            List<Document> chunksDocs = chunkService.search(chunksSearchRequest);
+            List<Document> filesDocs = fileService.search(filesSearchRequest);
+
+            log.debug("Chunk docs found {}", chunksDocs.size());
+            log.debug("File docs found {}", filesDocs.size());
+
+            String combinedContext = Stream.concat(chunksDocs.stream(), filesDocs.stream())
+                    .map(Document::getText)
+                    .collect(Collectors.joining("\n---\n"));
+
+            Advisor combinedAdvisor = RetrievalAugmentationAdvisor.builder()
+                    .documentRetriever(retriever -> Collections.singletonList(Document.builder().text(combinedContext).build()))
                     .queryAugmenter(queryAugmenter)
                     .build();
 
             String answer = chatClient.prompt()
                     .system(BASE_SYSTEM_PROMPT)
-                    .advisors(List.of(retrievalAugmentationAdvisor, filesAugmentationAdvisor))
+                    .advisors(combinedAdvisor)
                     .user(conversationDto.getUserMessage())
                     .call()
                     .content();

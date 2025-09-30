@@ -48,6 +48,11 @@ public class ChunkService {
         }
     }
 
+    public List<Document> search(SearchRequest searchRequest) {
+        log.info("Searching for chunks");
+        return vectorStore.similaritySearch(searchRequest);
+    }
+
     public List<Document> search(SearchQueryDto searchQueryDto) {
         log.info("Searching for chunks");
 

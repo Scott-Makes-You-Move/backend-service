@@ -62,6 +62,11 @@ public class FileService {
         }
     }
 
+    public List<Document> search(SearchRequest searchRequest) {
+        log.info("Searching for files");
+        return filesVectorStore.similaritySearch(searchRequest);
+    }
+
     public List<Document> search(SearchQueryDto searchQueryDto) {
         log.info("Searching for files");
 
