@@ -5,7 +5,6 @@ import nl.optifit.backendservice.dto.ChatbotResponseDto;
 import nl.optifit.backendservice.dto.ConversationDto;
 import nl.optifit.backendservice.security.JwtConverter;
 import org.springframework.ai.chat.client.ChatClient;
-import org.springframework.ai.chat.client.advisor.vectorstore.QuestionAnswerAdvisor;
 import org.springframework.ai.rag.advisor.RetrievalAugmentationAdvisor;
 import org.springframework.ai.rag.generation.augmentation.ContextualQueryAugmenter;
 import org.springframework.ai.rag.retrieval.search.DocumentRetriever;
@@ -66,7 +65,7 @@ public class ChatbotService {
 
             String aiResponse = chatClient
                     .prompt()
-                    .advisors(getQuestionAnswerAdvisor(), getRetrievalAugmentationAdvisor())
+                    .advisors(chunksRAG(), filesRAG())
                     .system(BASE_SYSTEM_PROMPT)
                     .user(conversationDto.getUserMessage())
                     .call()
@@ -87,17 +86,19 @@ public class ChatbotService {
         }
     }
 
-    private QuestionAnswerAdvisor getQuestionAnswerAdvisor() {
-        return QuestionAnswerAdvisor.builder(chunksVectorStore)
+    private RetrievalAugmentationAdvisor chunksRAG() {
+        return RetrievalAugmentationAdvisor.builder().documentRetriever(VectorStoreDocumentRetriever.builder()
+                        .vectorStore(chunksVectorStore)
+                        .topK(3)
+                        .similarityThreshold(chunksSimilarityThreshold)
+                        .build())
                 .build();
     }
 
-    private RetrievalAugmentationAdvisor getRetrievalAugmentationAdvisor() {
-        String currentUserAccountId = jwtConverter.getCurrentUserAccountId();
-        log.debug("Current user account id: {}", currentUserAccountId);
-
-        FilterExpressionBuilder filterExpressionBuilder = new FilterExpressionBuilder();
-        Filter.Expression filterExpression = filterExpressionBuilder.eq("accountId", currentUserAccountId).build();
+    private RetrievalAugmentationAdvisor filesRAG() {
+        Filter.Expression filterExpression = new FilterExpressionBuilder()
+                .eq("accountId", jwtConverter.getCurrentUserAccountId())
+                .build();
 
         DocumentRetriever fileRetriever = VectorStoreDocumentRetriever.builder()
                 .vectorStore(filesVectorStore)
