@@ -18,6 +18,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.List;
+
 @Slf4j
 @Service
 public class ChatbotService {
@@ -65,7 +67,7 @@ public class ChatbotService {
 
             String aiResponse = chatClient
                     .prompt()
-                    .advisors(chunksRAG(), filesRAG())
+                    .advisors(List.of(chunksRAG(), filesRAG()))
                     .system(BASE_SYSTEM_PROMPT)
                     .user(conversationDto.getUserMessage())
                     .call()
