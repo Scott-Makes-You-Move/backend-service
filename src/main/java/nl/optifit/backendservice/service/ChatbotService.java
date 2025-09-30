@@ -69,15 +69,26 @@ public class ChatbotService {
 
             Advisor retrievalAugmentationAdvisor = RetrievalAugmentationAdvisor.builder()
                     .documentRetriever(VectorStoreDocumentRetriever.builder()
-                            .similarityThreshold(0.50)
+                            .similarityThreshold(0.5)
                             .vectorStore(chunksVectorStore)
+                            .build())
+                    .queryAugmenter(queryAugmenter)
+                    .build();
+
+            Advisor filesAugmentationAdvisor = RetrievalAugmentationAdvisor.builder()
+                    .documentRetriever(VectorStoreDocumentRetriever.builder()
+                            .similarityThreshold(0.0)
+                            .vectorStore(filesVectorStore)
+                            .filterExpression(new FilterExpressionBuilder()
+                                    .eq("accountId", jwtConverter.getCurrentUserAccountId())
+                                    .build())
                             .build())
                     .queryAugmenter(queryAugmenter)
                     .build();
 
             String answer = chatClient.prompt()
                     .system(BASE_SYSTEM_PROMPT)
-                    .advisors(retrievalAugmentationAdvisor)
+                    .advisors(List.of(retrievalAugmentationAdvisor, filesAugmentationAdvisor))
                     .user(conversationDto.getUserMessage())
                     .call()
                     .content();
