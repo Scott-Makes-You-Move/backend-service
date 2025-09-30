@@ -5,14 +5,9 @@ import nl.optifit.backendservice.dto.ChatbotResponseDto;
 import nl.optifit.backendservice.dto.ConversationDto;
 import nl.optifit.backendservice.security.JwtConverter;
 import org.springframework.ai.chat.client.ChatClient;
-import org.springframework.ai.chat.memory.ChatMemory;
-import org.springframework.ai.document.Document;
-import org.springframework.ai.rag.Query;
+import org.springframework.ai.chat.client.advisor.vectorstore.QuestionAnswerAdvisor;
 import org.springframework.ai.rag.advisor.RetrievalAugmentationAdvisor;
 import org.springframework.ai.rag.generation.augmentation.ContextualQueryAugmenter;
-import org.springframework.ai.rag.generation.augmentation.QueryAugmenter;
-import org.springframework.ai.rag.retrieval.join.ConcatenationDocumentJoiner;
-import org.springframework.ai.rag.retrieval.join.DocumentJoiner;
 import org.springframework.ai.rag.retrieval.search.DocumentRetriever;
 import org.springframework.ai.rag.retrieval.search.VectorStoreDocumentRetriever;
 import org.springframework.ai.vectorstore.VectorStore;
@@ -23,10 +18,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 
 @Slf4j
 @Service
@@ -70,15 +61,12 @@ public class ChatbotService {
         log.debug("Initiating chat with session id '{}'", conversationDto.getSessionId());
         long startTime = System.nanoTime();
 
-        RetrievalAugmentationAdvisor chunksRetrievalAugmentationAdvisor = getChunksRetrievalAugmentationAdvisor();
-        RetrievalAugmentationAdvisor filesRetrievalAugmentationAdvisor = getFilesRetrievalAugmentationAdvisor();
-
         try {
             long startTimeChatClient = System.nanoTime();
 
             String aiResponse = chatClient
                     .prompt()
-                    .advisors(filesRetrievalAugmentationAdvisor, chunksRetrievalAugmentationAdvisor)
+                    .advisors(getQuestionAnswerAdvisor(), getRetrievalAugmentationAdvisor())
                     .system(BASE_SYSTEM_PROMPT)
                     .user(conversationDto.getUserMessage())
                     .call()
@@ -99,41 +87,30 @@ public class ChatbotService {
         }
     }
 
-    private RetrievalAugmentationAdvisor getChunksRetrievalAugmentationAdvisor() {
-        VectorStoreDocumentRetriever chunksDocumentRetriever = VectorStoreDocumentRetriever.builder()
-                .similarityThreshold(chunksSimilarityThreshold)
-                .vectorStore(chunksVectorStore)
-                .build();
-
-        QueryAugmenter queryAugmenter = ContextualQueryAugmenter.builder()
-                .allowEmptyContext(true)
-                .build();
-
-        return RetrievalAugmentationAdvisor.builder()
-                .documentRetriever(chunksDocumentRetriever)
-                .queryAugmenter(queryAugmenter)
+    private QuestionAnswerAdvisor getQuestionAnswerAdvisor() {
+        return QuestionAnswerAdvisor.builder(chunksVectorStore)
                 .build();
     }
 
-    private RetrievalAugmentationAdvisor getFilesRetrievalAugmentationAdvisor() {
+    private RetrievalAugmentationAdvisor getRetrievalAugmentationAdvisor() {
         String currentUserAccountId = jwtConverter.getCurrentUserAccountId();
         log.debug("Current user account id: {}", currentUserAccountId);
 
         FilterExpressionBuilder filterExpressionBuilder = new FilterExpressionBuilder();
         Filter.Expression filterExpression = filterExpressionBuilder.eq("accountId", currentUserAccountId).build();
 
-        VectorStoreDocumentRetriever filesDocumentRetriever = VectorStoreDocumentRetriever.builder()
-                .similarityThreshold(filesSimilarityThreshold)
+        DocumentRetriever fileRetriever = VectorStoreDocumentRetriever.builder()
                 .vectorStore(filesVectorStore)
+                .topK(1000)
                 .filterExpression(filterExpression)
                 .build();
 
-        QueryAugmenter queryAugmenter = ContextualQueryAugmenter.builder()
+        ContextualQueryAugmenter queryAugmenter = ContextualQueryAugmenter.builder()
                 .allowEmptyContext(true)
                 .build();
 
         return RetrievalAugmentationAdvisor.builder()
-                .documentRetriever(filesDocumentRetriever)
+                .documentRetriever(fileRetriever)
                 .queryAugmenter(queryAugmenter)
                 .build();
     }
