@@ -63,11 +63,16 @@ public class ChatbotService {
         try {
             long startTimeChatClient = System.nanoTime();
 
+            ContextualQueryAugmenter queryAugmenter = ContextualQueryAugmenter.builder()
+                    .allowEmptyContext(true)
+                    .build();
+
             Advisor retrievalAugmentationAdvisor = RetrievalAugmentationAdvisor.builder()
                     .documentRetriever(VectorStoreDocumentRetriever.builder()
                             .similarityThreshold(0.50)
                             .vectorStore(chunksVectorStore)
                             .build())
+                    .queryAugmenter(queryAugmenter)
                     .build();
 
             String answer = chatClient.prompt()
