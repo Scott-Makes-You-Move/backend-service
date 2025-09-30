@@ -10,6 +10,7 @@ import org.springframework.ai.document.Document;
 import org.springframework.ai.rag.Query;
 import org.springframework.ai.rag.advisor.RetrievalAugmentationAdvisor;
 import org.springframework.ai.rag.generation.augmentation.ContextualQueryAugmenter;
+import org.springframework.ai.rag.generation.augmentation.QueryAugmenter;
 import org.springframework.ai.rag.retrieval.join.ConcatenationDocumentJoiner;
 import org.springframework.ai.rag.retrieval.join.DocumentJoiner;
 import org.springframework.ai.rag.retrieval.search.DocumentRetriever;
@@ -74,7 +75,7 @@ public class ChatbotService {
 
             String aiResponse = chatClient
                     .prompt()
-                    .advisors(filesRetrievalAugmentationAdvisor)
+                    .advisors(filesRetrievalAugmentationAdvisor, chunksRetrievalAugmentationAdvisor)
                     .system(BASE_SYSTEM_PROMPT)
                     .user(conversationDto.getUserMessage())
                     .call()
@@ -101,11 +102,13 @@ public class ChatbotService {
                 .vectorStore(chunksVectorStore)
                 .build();
 
+        QueryAugmenter queryAugmenter = ContextualQueryAugmenter.builder()
+                .allowEmptyContext(true)
+                .build();
+
         return RetrievalAugmentationAdvisor.builder()
                 .documentRetriever(chunksDocumentRetriever)
-                .queryAugmenter(ContextualQueryAugmenter.builder()
-                        .allowEmptyContext(true)
-                        .build())
+                .queryAugmenter(queryAugmenter)
                 .build();
     }
 
@@ -122,11 +125,13 @@ public class ChatbotService {
                 .filterExpression(filterExpression)
                 .build();
 
+        QueryAugmenter queryAugmenter = ContextualQueryAugmenter.builder()
+                .allowEmptyContext(true)
+                .build();
+
         return RetrievalAugmentationAdvisor.builder()
                 .documentRetriever(filesDocumentRetriever)
-                .queryAugmenter(ContextualQueryAugmenter.builder()
-                        .allowEmptyContext(true)
-                        .build())
+                .queryAugmenter(queryAugmenter)
                 .build();
     }
 }
