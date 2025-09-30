@@ -76,8 +76,19 @@ public class ChatbotService {
                     .allowEmptyContext(true)
                     .build();
 
-            SearchRequest chunksSearchRequest = SearchRequest.builder().query(conversationDto.getUserMessage()).build();
-            SearchRequest filesSearchRequest = SearchRequest.builder().query("e").build();
+            SearchRequest chunksSearchRequest = SearchRequest.builder()
+                    .query(conversationDto.getUserMessage())
+                    .topK(3)
+                    .similarityThreshold(chunksSimilarityThreshold)
+                    .build();
+            SearchRequest filesSearchRequest = SearchRequest.builder()
+                    .query("e")
+                    .topK(1000)
+                    .similarityThreshold(filesSimilarityThreshold)
+                    .filterExpression(new FilterExpressionBuilder()
+                            .eq("accountId", jwtConverter.getCurrentUserAccountId())
+                            .build())
+                    .build();
 
             List<Document> chunksDocs = chunkService.search(chunksSearchRequest);
             List<Document> filesDocs = fileService.search(filesSearchRequest);
