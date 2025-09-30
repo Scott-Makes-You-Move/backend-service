@@ -28,9 +28,6 @@ public class ChatbotService {
     private static final String BASE_SYSTEM_PROMPT = """
             You are a specialist in mobility exercises, habit creation and mental health improvement.
             Your name is SMYM — please introduce yourself as such if asked.
-            
-            If no relevant context is provided, rely on your general expertise to give the best possible answer.
-            Do not answer "I don't know"; instead, give general suggestions, practical tips, or clarifying questions.
             """;
 
     @Value("${chat.client.advisors.files.enabled}")
