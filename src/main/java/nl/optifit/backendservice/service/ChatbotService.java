@@ -5,7 +5,9 @@ import nl.optifit.backendservice.dto.ChatbotResponseDto;
 import nl.optifit.backendservice.dto.ConversationDto;
 import nl.optifit.backendservice.security.JwtConverter;
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.chat.client.ChatClientResponse;
 import org.springframework.ai.chat.client.advisor.api.Advisor;
+import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.document.Document;
 import org.springframework.ai.rag.advisor.RetrievalAugmentationAdvisor;
 import org.springframework.ai.rag.generation.augmentation.ContextualQueryAugmenter;
@@ -24,6 +26,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -75,12 +78,16 @@ public class ChatbotService {
 
             List<Advisor> advisors = getAdvisors();
 
-            String answer = chatClient.prompt()
+            ChatClientResponse response = chatClient.prompt()
                     .system(BASE_SYSTEM_PROMPT)
                     .advisors(advisors)
                     .user(conversationDto.getUserMessage())
                     .call()
-                    .content();
+                    .chatClientResponse();
+
+            log.info("Chat context: {}", response.context());
+
+            String answer = response.chatResponse().getResult().getOutput().getText();
 
             log.debug("Chat client response time: {}ms", (System.nanoTime() - startTimeChatClient) / 1_000_000);
 
