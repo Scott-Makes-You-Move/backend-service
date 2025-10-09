@@ -7,7 +7,6 @@ import nl.optifit.backendservice.security.JwtConverter;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.ChatClientResponse;
 import org.springframework.ai.chat.client.advisor.api.Advisor;
-import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.document.Document;
 import org.springframework.ai.rag.advisor.RetrievalAugmentationAdvisor;
 import org.springframework.ai.rag.generation.augmentation.ContextualQueryAugmenter;
@@ -24,10 +23,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Slf4j
@@ -76,11 +72,9 @@ public class ChatbotService {
         try {
             long startTimeChatClient = System.nanoTime();
 
-            List<Advisor> advisors = getAdvisors();
-
             ChatClientResponse response = chatClient.prompt()
                     .system(BASE_SYSTEM_PROMPT)
-                    .advisors(advisors)
+                    .advisors(combinedRags())
                     .user(conversationDto.getUserMessage())
                     .call()
                     .chatClientResponse();
@@ -104,7 +98,43 @@ public class ChatbotService {
         }
     }
 
-    private RetrievalAugmentationAdvisor chunksRAG() {
+    private RetrievalAugmentationAdvisor combinedRags() {
+        ContextualQueryAugmenter queryAugmenter = ContextualQueryAugmenter.builder()
+                .allowEmptyContext(true)
+                .build();
+
+        VectorStoreDocumentRetriever chunksRetriever = VectorStoreDocumentRetriever.builder()
+                .vectorStore(chunksVectorStore)
+                .topK(chunksTopK)
+                .similarityThreshold(chunksSimilarityThreshold)
+                .build();
+
+        Filter.Expression filterExpression = new FilterExpressionBuilder()
+                .eq("accountId", jwtConverter.getCurrentUserAccountId())
+                .build();
+
+        DocumentRetriever filesRetriever = (searchRequest) -> filesVectorStore.similaritySearch(
+                SearchRequest.builder()
+                        .query("e")
+                        .filterExpression(filterExpression)
+                        .topK(filesTopK)
+                        .similarityThreshold(0.0)
+                        .build()
+        );
+
+        DocumentRetriever combinedRetriever = query -> {
+            List<Document> retrievedChunks = chunksRetriever.retrieve(query);
+            List<Document> retrievedFiles = filesRetriever.retrieve(query);
+            return Stream.concat(retrievedChunks.stream(), retrievedFiles.stream()).toList();
+        };
+
+        return RetrievalAugmentationAdvisor.builder()
+                .documentRetriever(combinedRetriever)
+                .queryAugmenter(queryAugmenter)
+                .build();
+    }
+
+    private RetrievalAugmentationAdvisor chunksRag() {
         VectorStoreDocumentRetriever documentRetriever = VectorStoreDocumentRetriever.builder()
                 .vectorStore(chunksVectorStore)
                 .topK(chunksTopK)
@@ -121,7 +151,7 @@ public class ChatbotService {
                 .build();
     }
 
-    private RetrievalAugmentationAdvisor filesRAG() {
+    private RetrievalAugmentationAdvisor filesRag() {
         Filter.Expression filterExpression = new FilterExpressionBuilder()
                 .eq("accountId", jwtConverter.getCurrentUserAccountId())
                 .build();
@@ -146,10 +176,10 @@ public class ChatbotService {
     private List<Advisor> getAdvisors() {
         List<Advisor> advisors = new ArrayList<>();
         if (chunksEnabled) {
-            advisors.add(chunksRAG());
+            advisors.add(chunksRag());
         }
         if (filesEnabled) {
-            advisors.add(filesRAG());
+            advisors.add(filesRag());
         }
 
         for (int i = 0; i < advisors.size(); i++) {
