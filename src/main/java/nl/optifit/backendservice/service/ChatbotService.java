@@ -21,6 +21,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -39,30 +40,30 @@ public class ChatbotService {
     private boolean filesEnabled;
     @Value("${chat.client.advisors.files.similarity-threshold}")
     private double filesSimilarityThreshold;
+    @Value("${chat.client.advisors.files.topK}")
+    private int filesTopK;
     @Value("${chat.client.advisors.chunks.enabled}")
     private boolean chunksEnabled;
     @Value("${chat.client.advisors.chunks.similarity-threshold}")
     private double chunksSimilarityThreshold;
+    @Value("${chat.client.advisors.chunks.topK}")
+    private int chunksTopK;
 
     private final ChatClient chatClient;
     private final JwtConverter jwtConverter;
     private final VectorStore filesVectorStore;
     private final VectorStore chunksVectorStore;
-    private final ChunkService chunkService;
-    private final FileService fileService;
 
     public ChatbotService(
             ChatClient chatClient,
             JwtConverter jwtConverter,
             @Qualifier("filesVectorStore") VectorStore filesVectorStore,
-            @Qualifier("chunksVectorStore") VectorStore chunksVectorStore, ChunkService chunkService, FileService fileService
+            @Qualifier("chunksVectorStore") VectorStore chunksVectorStore
     ) {
         this.chatClient = chatClient;
         this.jwtConverter = jwtConverter;
         this.filesVectorStore = filesVectorStore;
         this.chunksVectorStore = chunksVectorStore;
-        this.chunkService = chunkService;
-        this.fileService = fileService;
     }
 
     public ChatbotResponseDto initiateChat(ConversationDto conversationDto) {
@@ -72,42 +73,11 @@ public class ChatbotService {
         try {
             long startTimeChatClient = System.nanoTime();
 
-            ContextualQueryAugmenter queryAugmenter = ContextualQueryAugmenter.builder()
-                    .allowEmptyContext(true)
-                    .build();
-
-            SearchRequest chunksSearchRequest = SearchRequest.builder()
-                    .query(conversationDto.getUserMessage())
-                    .topK(3)
-                    .similarityThreshold(chunksSimilarityThreshold)
-                    .build();
-            SearchRequest filesSearchRequest = SearchRequest.builder()
-                    .query("e")
-                    .topK(1000)
-                    .similarityThreshold(filesSimilarityThreshold)
-                    .filterExpression(new FilterExpressionBuilder()
-                            .eq("accountId", jwtConverter.getCurrentUserAccountId())
-                            .build())
-                    .build();
-
-            List<Document> chunksDocs = chunkService.search(chunksSearchRequest);
-            List<Document> filesDocs = fileService.search(filesSearchRequest);
-
-            log.debug("Chunk docs found {}", chunksDocs.size());
-            log.debug("File docs found {}", filesDocs.size());
-
-            String combinedContext = Stream.concat(chunksDocs.stream(), filesDocs.stream())
-                    .map(Document::getText)
-                    .collect(Collectors.joining("\n---\n"));
-
-            Advisor combinedAdvisor = RetrievalAugmentationAdvisor.builder()
-                    .documentRetriever(retriever -> Collections.singletonList(Document.builder().text(combinedContext).build()))
-                    .queryAugmenter(queryAugmenter)
-                    .build();
+            List<Advisor> advisors = getAdvisors();
 
             String answer = chatClient.prompt()
                     .system(BASE_SYSTEM_PROMPT)
-                    .advisors(combinedAdvisor)
+                    .advisors(advisors)
                     .user(conversationDto.getUserMessage())
                     .call()
                     .content();
@@ -128,11 +98,19 @@ public class ChatbotService {
     }
 
     private RetrievalAugmentationAdvisor chunksRAG() {
-        return RetrievalAugmentationAdvisor.builder().documentRetriever(VectorStoreDocumentRetriever.builder()
-                        .vectorStore(chunksVectorStore)
-                        .topK(3)
-                        .similarityThreshold(chunksSimilarityThreshold)
-                        .build())
+        VectorStoreDocumentRetriever documentRetriever = VectorStoreDocumentRetriever.builder()
+                .vectorStore(chunksVectorStore)
+                .topK(chunksTopK)
+                .similarityThreshold(chunksSimilarityThreshold)
+                .build();
+
+        ContextualQueryAugmenter queryAugmenter = ContextualQueryAugmenter.builder()
+                .allowEmptyContext(true)
+                .build();
+
+        return RetrievalAugmentationAdvisor.builder()
+                .documentRetriever(documentRetriever)
+                .queryAugmenter(queryAugmenter)
                 .build();
     }
 
@@ -143,7 +121,8 @@ public class ChatbotService {
 
         DocumentRetriever fileRetriever = VectorStoreDocumentRetriever.builder()
                 .vectorStore(filesVectorStore)
-                .topK(1000)
+                .topK(filesTopK)
+                .similarityThreshold(filesSimilarityThreshold)
                 .filterExpression(filterExpression)
                 .build();
 
@@ -155,5 +134,16 @@ public class ChatbotService {
                 .documentRetriever(fileRetriever)
                 .queryAugmenter(queryAugmenter)
                 .build();
+    }
+
+    private List<Advisor> getAdvisors() {
+        List<Advisor> advisors = new ArrayList<>();
+        if (chunksEnabled) {
+            advisors.add(chunksRAG());
+        }
+        if (filesEnabled) {
+            advisors.add(filesRAG());
+        }
+        return advisors;
     }
 }
