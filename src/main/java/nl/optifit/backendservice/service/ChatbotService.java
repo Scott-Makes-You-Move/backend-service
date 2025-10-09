@@ -126,20 +126,23 @@ public class ChatbotService {
                 .eq("accountId", jwtConverter.getCurrentUserAccountId())
                 .build();
 
-        DocumentRetriever fileRetriever = VectorStoreDocumentRetriever.builder()
-                .vectorStore(filesVectorStore)
-                .topK(filesTopK)
-                .similarityThreshold(filesSimilarityThreshold)
-                .filterExpression(filterExpression)
-                .build();
-
-        ContextualQueryAugmenter queryAugmenter = ContextualQueryAugmenter.builder()
-                .allowEmptyContext(true)
-                .build();
+        // Custom retriever: ignores user query, only uses accountId filter
+        DocumentRetriever fileRetriever = (searchRequest) -> {
+            return filesVectorStore.similaritySearch(
+                    SearchRequest.builder()
+                            .filterExpression(filterExpression)
+                            .topK(filesTopK)                 // get N files for account
+                            .similarityThreshold(0.0)        // disable semantic filtering
+                            .build()
+            );
+        };
 
         return RetrievalAugmentationAdvisor.builder()
                 .documentRetriever(fileRetriever)
-                .queryAugmenter(queryAugmenter)
+                // no query augmenter needed because we ignore query anyway
+                .queryAugmenter(ContextualQueryAugmenter.builder()
+                        .allowEmptyContext(true)
+                        .build())
                 .build();
     }
 
@@ -151,6 +154,11 @@ public class ChatbotService {
         if (filesEnabled) {
             advisors.add(filesRAG());
         }
+
+        for (int i = 0; i < advisors.size(); i++) {
+            log.debug("Advisor {}: '{}'", i, advisors.get(i).getClass().getSimpleName());
+        }
+
         return advisors;
     }
 }
