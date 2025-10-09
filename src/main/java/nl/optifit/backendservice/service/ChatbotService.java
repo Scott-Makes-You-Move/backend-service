@@ -126,20 +126,17 @@ public class ChatbotService {
                 .eq("accountId", jwtConverter.getCurrentUserAccountId())
                 .build();
 
-        // Custom retriever: ignores user query, only uses accountId filter
-        DocumentRetriever fileRetriever = (searchRequest) -> {
-            return filesVectorStore.similaritySearch(
-                    SearchRequest.builder()
-                            .filterExpression(filterExpression)
-                            .topK(filesTopK)                 // get N files for account
-                            .similarityThreshold(0.0)        // disable semantic filtering
-                            .build()
-            );
-        };
+        DocumentRetriever fileRetriever = (searchRequest) -> filesVectorStore.similaritySearch(
+                SearchRequest.builder()
+                        .query("e")
+                        .filterExpression(filterExpression)
+                        .topK(filesTopK)
+                        .similarityThreshold(0.0)
+                        .build()
+        );
 
         return RetrievalAugmentationAdvisor.builder()
                 .documentRetriever(fileRetriever)
-                // no query augmenter needed because we ignore query anyway
                 .queryAugmenter(ContextualQueryAugmenter.builder()
                         .allowEmptyContext(true)
                         .build())
