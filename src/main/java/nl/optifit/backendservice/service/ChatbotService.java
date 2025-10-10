@@ -95,6 +95,8 @@ public class ChatbotService {
                 finalBaseSystemPrompt += "\n\n" + search.stream();
             }
 
+            log.info("Final base system prompt: '{}'", finalBaseSystemPrompt);
+
             ChatClientResponse response = chatClient.prompt()
                     .system(finalBaseSystemPrompt)
                     .advisors(getAdvisors())
