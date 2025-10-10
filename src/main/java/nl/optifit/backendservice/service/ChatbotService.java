@@ -31,8 +31,8 @@ import java.util.stream.Stream;
 public class ChatbotService {
 
     private static final String BASE_SYSTEM_PROMPT = """
-            You are a specialist in mobility exercises, habit creation and mental health improvement.
-            Your name is SMYM — please introduce yourself as such if asked.
+            You are SMYM — please introduce yourself as such if asked - a specialist in mobility exercises, habit creation and mental health improvement.
+            If the user’s question is unrelated to this area, you should still try to answer it to the best of your ability.
             """;
 
     @Value("${chat.client.advisors.files.enabled}")
