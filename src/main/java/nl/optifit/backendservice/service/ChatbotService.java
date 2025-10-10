@@ -54,17 +54,20 @@ public class ChatbotService {
     private final JwtConverter jwtConverter;
     private final VectorStore filesVectorStore;
     private final VectorStore chunksVectorStore;
+    private final FileService fileService;
 
     public ChatbotService(
             ChatClient chatClient,
             JwtConverter jwtConverter,
             @Qualifier("filesVectorStore") VectorStore filesVectorStore,
-            @Qualifier("chunksVectorStore") VectorStore chunksVectorStore
+            @Qualifier("chunksVectorStore") VectorStore chunksVectorStore,
+            FileService fileService
     ) {
         this.chatClient = chatClient;
         this.jwtConverter = jwtConverter;
         this.filesVectorStore = filesVectorStore;
         this.chunksVectorStore = chunksVectorStore;
+        this.fileService = fileService;
     }
 
     public ChatbotResponseDto initiateChat(ConversationDto conversationDto) {
@@ -74,8 +77,26 @@ public class ChatbotService {
         try {
             long startTimeChatClient = System.nanoTime();
 
+            Filter.Expression filterExpression = new FilterExpressionBuilder()
+                    .eq("accountId", jwtConverter.getCurrentUserAccountId())
+                    .build();
+
+            SearchRequest searchRequest = SearchRequest.builder()
+                    .filterExpression(filterExpression)
+                    .topK(filesTopK)
+                    .similarityThreshold(filesSimilarityThreshold)
+                    .build();
+
+            List<Document> search = fileService.search(searchRequest);
+            String finalBaseSystemPrompt = BASE_SYSTEM_PROMPT;
+
+            if (!search.isEmpty()) {
+                finalBaseSystemPrompt = BASE_SYSTEM_PROMPT + "These are the user's history notes. Use them if relevant. If not, ignore them.";
+                finalBaseSystemPrompt += "\n\n" + search.stream();
+            }
+
             ChatClientResponse response = chatClient.prompt()
-                    .system(BASE_SYSTEM_PROMPT)
+                    .system(finalBaseSystemPrompt)
                     .advisors(getAdvisors())
                     .user(conversationDto.getUserMessage())
                     .call()
