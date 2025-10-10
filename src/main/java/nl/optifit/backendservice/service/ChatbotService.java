@@ -82,6 +82,7 @@ public class ChatbotService {
                     .build();
 
             SearchRequest searchRequest = SearchRequest.builder()
+                    .query("e")
                     .filterExpression(filterExpression)
                     .topK(filesTopK)
                     .similarityThreshold(filesSimilarityThreshold)
