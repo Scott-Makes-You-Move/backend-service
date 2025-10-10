@@ -4,9 +4,10 @@ import lombok.extern.slf4j.Slf4j;
 import nl.optifit.backendservice.dto.ChatbotResponseDto;
 import nl.optifit.backendservice.dto.ConversationDto;
 import nl.optifit.backendservice.security.JwtConverter;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.ChatClientResponse;
-import org.springframework.ai.chat.client.advisor.api.Advisor;
+import org.springframework.ai.chat.prompt.PromptTemplate;
 import org.springframework.ai.document.Document;
 import org.springframework.ai.rag.advisor.RetrievalAugmentationAdvisor;
 import org.springframework.ai.rag.generation.augmentation.ContextualQueryAugmenter;
@@ -23,16 +24,16 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-import java.util.stream.Stream;
 
 @Slf4j
 @Service
 public class ChatbotService {
 
     private static final String BASE_SYSTEM_PROMPT = """
-            You are SMYM — please introduce yourself as such if asked - a specialist in mobility exercises, habit creation and mental health improvement.
-            If the user’s question is unrelated to this area, you should still try to answer it to the best of your ability.
+            You are a specialist in mobility exercises, habit creation and mental health improvement.
+            Your name is SMYM — please introduce yourself as such if asked.
             """;
 
     @Value("${chat.client.advisors.files.enabled}")
@@ -74,7 +75,7 @@ public class ChatbotService {
 
             ChatClientResponse response = chatClient.prompt()
                     .system(BASE_SYSTEM_PROMPT)
-                    .advisors(combinedRags())
+                    .advisors(getAdvisors())
                     .user(conversationDto.getUserMessage())
                     .call()
                     .chatClientResponse();
@@ -98,35 +99,17 @@ public class ChatbotService {
         }
     }
 
-    private RetrievalAugmentationAdvisor combinedRags() {
-        ContextualQueryAugmenter queryAugmenter = ContextualQueryAugmenter.builder()
-                .allowEmptyContext(true)
-                .build();
-
-        VectorStoreDocumentRetriever chunksRetriever = VectorStoreDocumentRetriever.builder()
-                .vectorStore(chunksVectorStore)
-                .topK(chunksTopK)
-                .similarityThreshold(chunksSimilarityThreshold)
-                .build();
-
-        Filter.Expression filterExpression = new FilterExpressionBuilder()
-                .eq("accountId", jwtConverter.getCurrentUserAccountId())
-                .build();
-
-        DocumentRetriever filesRetriever = (searchRequest) -> filesVectorStore.similaritySearch(
-                SearchRequest.builder()
-                        .query("e")
-                        .filterExpression(filterExpression)
-                        .topK(filesTopK)
-                        .similarityThreshold(0.0)
-                        .build()
+    private RetrievalAugmentationAdvisor getAdvisors() {
+        PromptTemplate emptyContextPromptTemplate = new PromptTemplate(
+                "The user asked: {query}. No relevant documents were found, but try to answer anyway."
         );
 
-        DocumentRetriever combinedRetriever = query -> {
-            List<Document> retrievedChunks = chunksRetriever.retrieve(query);
-            List<Document> retrievedFiles = filesRetriever.retrieve(query);
-            return Stream.concat(retrievedChunks.stream(), retrievedFiles.stream()).toList();
-        };
+        ContextualQueryAugmenter queryAugmenter = ContextualQueryAugmenter.builder()
+                .allowEmptyContext(true)
+                .emptyContextPromptTemplate(emptyContextPromptTemplate)
+                .build();
+
+        DocumentRetriever combinedRetriever = getCombinedRetriever();
 
         return RetrievalAugmentationAdvisor.builder()
                 .documentRetriever(combinedRetriever)
@@ -134,58 +117,48 @@ public class ChatbotService {
                 .build();
     }
 
-    private RetrievalAugmentationAdvisor chunksRag() {
-        VectorStoreDocumentRetriever documentRetriever = VectorStoreDocumentRetriever.builder()
+    @NotNull
+    private DocumentRetriever getCombinedRetriever() {
+        if (!chunksEnabled && !filesEnabled) {
+            return query -> Collections.emptyList();
+        }
+
+        return query -> {
+            List<Document> documents = new ArrayList<>();
+
+            if (chunksEnabled) {
+                documents.addAll(getChunksRetriever().retrieve(query));
+            }
+            if (filesEnabled) {
+                documents.addAll(getFilesRetriever().retrieve(query));
+            }
+
+            return documents;
+        };
+    }
+
+    @NotNull
+    private DocumentRetriever getChunksRetriever() {
+        return VectorStoreDocumentRetriever.builder()
                 .vectorStore(chunksVectorStore)
                 .topK(chunksTopK)
                 .similarityThreshold(chunksSimilarityThreshold)
                 .build();
-
-        ContextualQueryAugmenter queryAugmenter = ContextualQueryAugmenter.builder()
-                .allowEmptyContext(true)
-                .build();
-
-        return RetrievalAugmentationAdvisor.builder()
-                .documentRetriever(documentRetriever)
-                .queryAugmenter(queryAugmenter)
-                .build();
     }
 
-    private RetrievalAugmentationAdvisor filesRag() {
+    @NotNull
+    private DocumentRetriever getFilesRetriever() {
         Filter.Expression filterExpression = new FilterExpressionBuilder()
                 .eq("accountId", jwtConverter.getCurrentUserAccountId())
                 .build();
 
-        DocumentRetriever fileRetriever = (searchRequest) -> filesVectorStore.similaritySearch(
+        return query -> filesVectorStore.similaritySearch(
                 SearchRequest.builder()
-                        .query("e")
+                        .query("e") // this should find all documents
                         .filterExpression(filterExpression)
                         .topK(filesTopK)
-                        .similarityThreshold(0.0)
+                        .similarityThreshold(filesSimilarityThreshold)
                         .build()
         );
-
-        return RetrievalAugmentationAdvisor.builder()
-                .documentRetriever(fileRetriever)
-                .queryAugmenter(ContextualQueryAugmenter.builder()
-                        .allowEmptyContext(true)
-                        .build())
-                .build();
-    }
-
-    private List<Advisor> getAdvisors() {
-        List<Advisor> advisors = new ArrayList<>();
-        if (chunksEnabled) {
-            advisors.add(chunksRag());
-        }
-        if (filesEnabled) {
-            advisors.add(filesRag());
-        }
-
-        for (int i = 0; i < advisors.size(); i++) {
-            log.debug("Advisor {}: '{}'", i, advisors.get(i).getClass().getSimpleName());
-        }
-
-        return advisors;
     }
 }
