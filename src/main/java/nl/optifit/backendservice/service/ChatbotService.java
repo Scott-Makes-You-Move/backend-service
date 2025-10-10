@@ -77,37 +77,16 @@ public class ChatbotService {
         try {
             long startTimeChatClient = System.nanoTime();
 
-            Filter.Expression filterExpression = new FilterExpressionBuilder()
-                    .eq("accountId", jwtConverter.getCurrentUserAccountId())
-                    .build();
-
-            SearchRequest searchRequest = SearchRequest.builder()
-                    .query("e")
-                    .filterExpression(filterExpression)
-                    .topK(filesTopK)
-                    .similarityThreshold(filesSimilarityThreshold)
-                    .build();
-
-            List<Document> search = fileService.search(searchRequest);
-            String finalBaseSystemPrompt = BASE_SYSTEM_PROMPT;
-
-            if (!search.isEmpty()) {
-                finalBaseSystemPrompt = BASE_SYSTEM_PROMPT + "These are the user's history notes. Use them if relevant. If not, ignore them.";
-                finalBaseSystemPrompt += "\n\n" + search.stream();
-            }
+            String finalBaseSystemPrompt = getFinalBasePrompt();
 
             log.info("Final base system prompt: '{}'", finalBaseSystemPrompt);
 
-            ChatClientResponse response = chatClient.prompt()
+            String answer = chatClient.prompt()
                     .system(finalBaseSystemPrompt)
                     .advisors(getAdvisors())
                     .user(conversationDto.getUserMessage())
                     .call()
-                    .chatClientResponse();
-
-            log.info("Chat context: {}", response.context());
-
-            String answer = response.chatResponse().getResult().getOutput().getText();
+                    .content();
 
             log.debug("Chat client response time: {}ms", (System.nanoTime() - startTimeChatClient) / 1_000_000);
 
@@ -121,6 +100,30 @@ public class ChatbotService {
             log.error("Error processing chat request in {}ms: {}", durationMs, e.getMessage(), e);
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
                     "Error processing chat request", e);
+        }
+    }
+
+    private String getFinalBasePrompt() {
+        Filter.Expression filterExpression = new FilterExpressionBuilder()
+                .eq("accountId", jwtConverter.getCurrentUserAccountId())
+                .build();
+
+        SearchRequest searchRequest = SearchRequest.builder()
+                .query("e")
+                .filterExpression(filterExpression)
+                .topK(filesTopK)
+                .similarityThreshold(filesSimilarityThreshold)
+                .build();
+
+        List<Document> documents = fileService.search(searchRequest);
+
+        if (documents.isEmpty()) {
+            return BASE_SYSTEM_PROMPT;
+        } else {
+            return BASE_SYSTEM_PROMPT + "These are the user's history notes. Use them if relevant. If not, ignore them. %n%s"
+                    .formatted(documents.stream()
+                            .map(doc -> "%s%n".formatted(doc.getText()))
+                            .toList());
         }
     }
 
