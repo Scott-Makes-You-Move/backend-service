@@ -46,7 +46,8 @@ public class FileService {
         log.info("Searching for files");
 
         Filter.Expression accountFilter = new FilterExpressionBuilder()
-                .eq("accountId", searchQueryDto.filterExpression()).build();
+                .eq("accountId", searchQueryDto.filterExpression())
+                .build();
 
         SearchRequest searchRequest = SearchRequest.builder()
                 .query(searchQueryDto.query())
@@ -86,11 +87,9 @@ public class FileService {
                             )))
                     .toList();
 
-            Filter.Expression filterExpression = new FilterExpressionBuilder()
-                    .eq("accountId", userRepresentation.getId())
-                    .build();
+            List<String> filesToDelete = files.stream().map(File::getId).toList();
 
-            filesVectorStore.delete(filterExpression); // first delete all existing documents for this user
+            filesVectorStore.delete(filesToDelete); // first delete all existing documents for this user
             filesVectorStore.add(documents); // then add the new ones
             log.info("Files synced for user '{}'", userRepresentation.getId());
         } catch (IOException e) {
