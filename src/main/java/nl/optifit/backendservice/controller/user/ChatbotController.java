@@ -25,6 +25,7 @@ public class ChatbotController {
 
     @PostMapping("/initiate")
     public ResponseEntity<ChatbotResponseDto> initiateChatbotConversation(@RequestBody ConversationDto conversationDto) {
+        log.info("POST Initiate Chat REST API called");
         ChatbotResponseDto chatbotResponseDto = chatbotService.initiateChat(conversationDto);
         return ResponseEntity.ok(chatbotResponseDto);
     }

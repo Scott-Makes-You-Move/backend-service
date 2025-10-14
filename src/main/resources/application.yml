@@ -3,6 +3,8 @@ spring:
     name: backend-service
   jpa:
     open-in-view: false
+  flyway:
+    locations: classpath:db/migration
 
 server:
   port: 9000

@@ -30,21 +30,21 @@ public class ChunkController {
 
     @PostMapping("/upload")
     public ResponseEntity<Document> storeChunk(@RequestBody ChunkDto chunkDto) {
-        log.info("Storing chunk '{}'", chunkDto.id());
+        log.info("POST Store Chunk REST API called");
         Document document = chunkService.storeChunk(chunkDto);
         return ResponseEntity.ok(document);
     }
 
     @PostMapping("/upload/batch")
     public ResponseEntity<List<Document>> storeBatchChunks(@RequestParam("file") MultipartFile file) {
-        log.info("Storing batch chunks");
+        log.info("POST Store Batch Chunks REST API called");
         List<Document> savedChunks = chunkService.storeChunks(file);
         return ResponseEntity.ok(savedChunks);
     }
 
     @PostMapping("/search")
     public ResponseEntity<List<Document>> search(@RequestBody SearchQueryDto searchQueryDto) throws Exception {
-        log.info("Performing search");
+        log.info("POST Search Chunks REST API called");
         List<Document> search = chunkService.search(searchQueryDto);
         return ResponseEntity.ok(search);
     }

@@ -52,8 +52,8 @@ public class SessionService {
     private final KeycloakService keycloakService;
     private final NotificationService notificationService;
 
-    public PagedResponseDto<SessionDto> getSessionsForAccount(String accountId, String sessionStartDateString,
-                                                              SessionStatus sessionStatus, int page, int size, String direction, String sortBy) {
+    public PagedResponseDto<SessionDto> findAllForAccount(String accountId, String sessionStartDateString,
+                                                          SessionStatus sessionStatus, int page, int size, String direction, String sortBy) {
 
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.fromString(direction), sortBy));
 
@@ -177,7 +177,7 @@ public class SessionService {
         return session.getAccount().getId().equals(accountId);
     }
 
-    public SessionDto getSingleSessionForAccount(String accountId, String sessionId) {
+    public SessionDto findSessionForAccount(String accountId, String sessionId) {
         return sessionRepository.findByIdAndAccountId(UUID.fromString(sessionId), accountId)
                 .map(SessionDto::fromSession)
                 .orElseThrow(() -> new NotFoundException(String.format("Could not find session '%s' for account '%s'", sessionId, accountId)));

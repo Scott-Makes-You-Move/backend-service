@@ -23,12 +23,12 @@ public class LeaderboardController {
     private final LeaderboardService leaderboardService;
 
     @GetMapping
-    public ResponseEntity<PagedResponseDto<LeaderboardDto>> getLeaderboard(@RequestParam(defaultValue = "0") int page,
-                                                                           @RequestParam(defaultValue = "10") int size,
-                                                                           @RequestParam(defaultValue = "desc") String direction,
-                                                                           @RequestParam(defaultValue = "completionRate") String sortBy) {
-        log.info("GET Leaderboard REST API called");
-        PagedResponseDto<LeaderboardDto> leaderboard = leaderboardService.getLeaderboard(page, size, direction, sortBy);
-        return ResponseEntity.ok(leaderboard);
+    public ResponseEntity<PagedResponseDto<LeaderboardDto>> getLeaderboards(@RequestParam(defaultValue = "0") int page,
+                                                                            @RequestParam(defaultValue = "10") int size,
+                                                                            @RequestParam(defaultValue = "desc") String direction,
+                                                                            @RequestParam(defaultValue = "completionRate") String sortBy) {
+        log.info("Get Leaderboards REST API called");
+        PagedResponseDto<LeaderboardDto> all = leaderboardService.findAll(page, size, direction, sortBy);
+        return ResponseEntity.ok(all);
     }
 }

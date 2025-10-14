@@ -21,8 +21,11 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
+import java.util.Random;
 
 import static nl.optifit.backendservice.model.SessionStatus.COMPLETED;
 import static nl.optifit.backendservice.model.SessionStatus.OVERDUE;
@@ -34,7 +37,7 @@ public class LeaderboardService {
     private final KeycloakService keycloakService;
     private final LeaderboardRepository leaderboardRepository;
 
-    public PagedResponseDto<LeaderboardDto> getLeaderboard(int page, int size, String direction, String sortBy) {
+    public PagedResponseDto<LeaderboardDto> findAll(int page, int size, String direction, String sortBy) {
         log.debug("Retrieving leaderboard with page '{}', size '{}', direction '{}', sortBy '{}'", page, size, direction, sortBy);
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.fromString(direction), sortBy));
 
@@ -106,14 +109,55 @@ public class LeaderboardService {
 
     public void resetLeaderboard() {
         log.debug("Resetting leaderboard");
+
         List<Leaderboard> leaderboards = leaderboardRepository.findAll();
+        String recentWinner = findRecentWinner(leaderboards);
+
         leaderboards.forEach(leaderboard -> {
+
+            if (leaderboard.getAccountId().equals(recentWinner)) {
+                leaderboard.setRecentWinner(true);
+            }
+
             leaderboard.setCurrentStreak(0);
             leaderboard.setLongestStreak(0);
             leaderboard.setCompletionRate(0.0);
             leaderboard.setLastUpdated(LocalDateTime.now());
             leaderboard.setResetAt(LocalDateTime.now());
         });
+
         leaderboardRepository.saveAll(leaderboards);
+    }
+
+    private static String findRecentWinner(List<Leaderboard> leaderboards) {
+        List<Leaderboard> sorted = sortLeaderboards(leaderboards);
+
+        Leaderboard top = sorted.get(0);
+        List<Leaderboard> topCandidates = sorted.stream()
+                .filter(l -> Objects.equals(l.getCompletionRate(), top.getCompletionRate())
+                        && Objects.equals(l.getLongestStreak(), top.getLongestStreak())
+                        && Objects.equals(l.getCurrentStreak(), top.getCurrentStreak()))
+                .toList();
+
+        Leaderboard winner = topCandidates.size() == 1
+                ? topCandidates.get(0)
+                : topCandidates.get(new Random().nextInt(topCandidates.size()));
+
+        return winner.getAccountId();
+    }
+
+    private static List<Leaderboard> sortLeaderboards(List<Leaderboard> leaderboards) {
+        if (leaderboards == null || leaderboards.isEmpty()) {
+            throw new IllegalArgumentException("No leaderboards found");
+        }
+
+        Comparator<Leaderboard> comparator = Comparator
+                .comparing(Leaderboard::getCompletionRate, Comparator.reverseOrder())
+                .thenComparing(Leaderboard::getLongestStreak, Comparator.reverseOrder())
+                .thenComparing(Leaderboard::getCurrentStreak, Comparator.reverseOrder());
+
+        List<Leaderboard> sorted = new ArrayList<>(leaderboards);
+        sorted.sort(comparator);
+        return sorted;
     }
 }

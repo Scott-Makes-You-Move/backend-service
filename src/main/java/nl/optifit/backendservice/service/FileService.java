@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Slf4j
@@ -41,26 +42,6 @@ public class FileService {
                 .forEach(this::addUserFilesToCosmos);
     }
 
-    private void addUserFilesToCosmos(UserRepresentation userRepresentation) {
-        try {
-            log.info("Syncing files for user '{}'", userRepresentation.getUsername());
-            List<File> files = driveService.getFilesForUser(userRepresentation.getUsername());
-            List<Document> documents = files.stream()
-                    .map(file -> new FileDto(file.getId(), userRepresentation.getId(), driveService.readContent(file)))
-                    .map(FileDto::toDocument)
-                    .toList();
-            filesVectorStore.add(documents);
-            log.info("Files synced for user '{}'", userRepresentation.getId());
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    public List<Document> search(SearchRequest searchRequest) {
-        log.info("Searching for files");
-        return filesVectorStore.similaritySearch(searchRequest);
-    }
-
     public List<Document> search(SearchQueryDto searchQueryDto) {
         log.info("Searching for files");
 
@@ -68,12 +49,52 @@ public class FileService {
                 .eq("accountId", searchQueryDto.filterExpression()).build();
 
         SearchRequest searchRequest = SearchRequest.builder()
-                .query(" ")
-                .topK(1000)
-                .similarityThreshold(0.0)
+                .query(searchQueryDto.query())
+                .topK(searchQueryDto.topK())
+                .similarityThreshold(searchQueryDto.similarityThreshold())
                 .filterExpression(accountFilter)
                 .build();
 
         return filesVectorStore.similaritySearch(searchRequest);
+    }
+
+    public List<Document> search(int topK, double similarityThreshold, Filter.Expression filterExpression) {
+        log.info("Searching for all files");
+
+        SearchRequest searchRequest = SearchRequest.builder()
+                .query("e")
+                .topK(topK)
+                .similarityThreshold(similarityThreshold)
+                .filterExpression(filterExpression)
+                .build();
+
+        return filesVectorStore.similaritySearch(searchRequest);
+    }
+
+    private void addUserFilesToCosmos(UserRepresentation userRepresentation) {
+        try {
+            log.info("Syncing files for user '{}'", userRepresentation.getUsername());
+            List<File> files = driveService.getFilesForUser(userRepresentation.getUsername());
+            List<Document> documents = files.stream()
+                    .map(file -> new Document(
+                            file.getId(),
+                            driveService.readContent(file),
+                            Map.of(
+                                    "accountId", userRepresentation.getId(),
+                                    "version", String.valueOf(file.getVersion()
+                                    )
+                            )))
+                    .toList();
+
+            Filter.Expression filterExpression = new FilterExpressionBuilder()
+                    .eq("accountId", userRepresentation.getId())
+                    .build();
+
+            filesVectorStore.delete(filterExpression); // first delete all existing documents for this user
+            filesVectorStore.add(documents); // then add the new ones
+            log.info("Files synced for user '{}'", userRepresentation.getId());
+        } catch (IOException e) {
+            log.error("Error while syncing files for user '{}': {}", userRepresentation.getUsername(), e.getMessage(), e);
+        }
     }
 }

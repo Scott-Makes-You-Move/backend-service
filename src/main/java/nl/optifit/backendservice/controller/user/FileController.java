@@ -27,14 +27,14 @@ public class FileController {
 
     @PostMapping("/sync")
     public ResponseEntity<Void> syncFiles() {
-        log.info("Syncing files");
+        log.info("POST Sync Files REST API called");
         fileService.syncFiles();
         return ResponseEntity.ok().build();
     }
 
     @PostMapping("/search")
-    public ResponseEntity<List<Document>> search(@RequestBody SearchQueryDto searchQueryDto) throws Exception {
-        log.info("Performing search");
+    public ResponseEntity<List<Document>> search(@RequestBody SearchQueryDto searchQueryDto) {
+        log.info("POST Search Files REST API called");
         List<Document> search = fileService.search(searchQueryDto);
         return ResponseEntity.ok(search);
     }

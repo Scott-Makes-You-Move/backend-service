@@ -45,9 +45,15 @@ public class Leaderboard implements Serializable {
     @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss")
     private LocalDateTime resetAt = LocalDateTime.now();
     @Column(nullable = false)
-    private Double completionRate;
+    @Builder.Default
+    private Double completionRate = 0.0;
     @Column(nullable = false)
-    private Integer currentStreak;
+    @Builder.Default
+    private Integer currentStreak = 0;
     @Column(nullable = false)
-    private Integer longestStreak;
+    @Builder.Default
+    private Integer longestStreak = 0;
+    @Column(nullable = false)
+    @Builder.Default
+    private Boolean recentWinner = false;
 }

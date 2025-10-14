@@ -74,17 +74,17 @@ public class AccountController {
                                                                               @RequestParam(defaultValue = "DESC") String direction,
                                                                               @RequestParam(defaultValue = "sessionStart") String sortBy) {
         log.info("GET Account Sessions REST API called");
-        PagedResponseDto<SessionDto> accountSessions = sessionService.getSessionsForAccount(accountId, sessionStartDate, sessionStatus, page, size, direction, sortBy);
-        return ResponseEntity.ok(accountSessions);
+        PagedResponseDto<SessionDto> all = sessionService.findAllForAccount(accountId, sessionStartDate, sessionStatus, page, size, direction, sortBy);
+        return ResponseEntity.ok(all);
     }
 
     @PreAuthorize("@jwtConverter.currentUserMatches(#accountId) and @sessionService.sessionBelongsToAccount(#sessionId, #accountId)")
     @GetMapping("/{accountId}/sessions/{sessionId}")
-    public ResponseEntity<SessionDto> getSessionsForAccount(@PathVariable String accountId,
-                                                            @PathVariable String sessionId) {
+    public ResponseEntity<SessionDto> getSessionForAccount(@PathVariable String accountId,
+                                                           @PathVariable String sessionId) {
         log.info("GET Account Sessions REST API called");
-        SessionDto accountSessions = sessionService.getSingleSessionForAccount(accountId, sessionId);
-        return ResponseEntity.ok(accountSessions);
+        SessionDto session = sessionService.findSessionForAccount(accountId, sessionId);
+        return ResponseEntity.ok(session);
     }
 
     @PreAuthorize("@jwtConverter.currentUserMatches(#accountId) and @sessionService.sessionBelongsToAccount(#sessionId, #accountId)")
@@ -116,10 +116,10 @@ public class AccountController {
         return ResponseEntity.ok(accountMobilities);
     }
 
-//    @PreAuthorize("@jwtConverter.isAccountCurrentUser(#accountId)") TODO: Check who will be able to POST mobilities
+    @PreAuthorize("@jwtConverter.currentUserHasRole('smym-admin')")
     @PostMapping("/{accountId}/mobilities")
     public ResponseEntity<MobilityDto> createMobility(@PathVariable String accountId,
-                                                   @RequestBody @Valid MobilityDto mobilityDTO) {
+                                                      @RequestBody @Valid MobilityDto mobilityDTO) {
         log.info("POST Account Mobilities REST API called");
         MobilityDto mobility = mobilityService.saveMobilityForAccount(accountId, mobilityDTO);
         return ResponseEntity.status(HttpStatus.CREATED).body(mobility);
@@ -137,10 +137,10 @@ public class AccountController {
         return ResponseEntity.ok(accountBiometrics);
     }
 
-    //    @PreAuthorize("@jwtConverter.isAccountCurrentUser(#accountId)") TODO: Check who will be able to POST biometrics
+    @PreAuthorize("@jwtConverter.currentUserHasRole('smym-admin')")
     @PostMapping("/{accountId}/biometrics")
     public ResponseEntity<BiometricsDto> createBiometric(@PathVariable String accountId,
-                                                      @RequestBody @Valid BiometricsDto biometricsDTO) {
+                                                         @RequestBody @Valid BiometricsDto biometricsDTO) {
         log.info("POST Account Biometrics REST API called");
         BiometricsDto biometrics = biometricsService.saveBiometricForAccount(accountId, biometricsDTO);
         return ResponseEntity.status(HttpStatus.CREATED).body(biometrics);
