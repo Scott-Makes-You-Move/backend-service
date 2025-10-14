@@ -75,8 +75,18 @@ public class FileService {
     private void addUserFilesToCosmos(UserRepresentation userRepresentation) {
         try {
             log.info("Syncing files for user '{}'", userRepresentation.getUsername());
-            List<File> files = driveService.getFilesForUser(userRepresentation.getUsername());
-            List<Document> documents = files.stream()
+            List<File> filesInDrive = driveService.getFilesForUser(userRepresentation.getUsername());
+
+            Filter.Expression filter = new FilterExpressionBuilder()
+                    .eq("accountId", userRepresentation.getId())
+                    .build();
+
+            SearchRequest searchRequest = SearchRequest.builder().filterExpression(filter).build();
+            List<String> fileIds = filesVectorStore.similaritySearch(searchRequest).stream()
+                    .map(Document::getId).toList();
+            filesVectorStore.delete(fileIds);
+
+            List<Document> documents = filesInDrive.stream()
                     .map(file -> new Document(
                             file.getId(),
                             driveService.readContent(file),
@@ -87,10 +97,7 @@ public class FileService {
                             )))
                     .toList();
 
-            List<String> filesToDelete = files.stream().map(File::getId).toList();
-
-            filesVectorStore.delete(filesToDelete); // first delete all existing documents for this user
-            filesVectorStore.add(documents); // then add the new ones
+            filesVectorStore.add(documents);
             log.info("Files synced for user '{}'", userRepresentation.getId());
         } catch (IOException e) {
             log.error("Error while syncing files for user '{}': {}", userRepresentation.getUsername(), e.getMessage(), e);
