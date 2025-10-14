@@ -1,44 +1,25 @@
 package nl.optifit.backendservice.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 import nl.optifit.backendservice.model.Account;
 import nl.optifit.backendservice.model.Biometrics;
 
 import java.time.LocalDate;
 
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
-public class BiometricsDto {
-    @JsonFormat(pattern = "yyyy-MM-dd")
-    private LocalDate measuredOn;
-    private Double weight;
-    private Double fat;
-    private Integer visceralFat;
+public record BiometricsDto(@JsonFormat(pattern = "yyyy-MM-dd") LocalDate measuredOn, double weight, double fat,
+                            int visceralFat) {
 
     public static BiometricsDto fromBiometrics(Biometrics biometrics) {
-        return BiometricsDto.builder()
-                .measuredOn(biometrics.getMeasuredOn())
-                .weight(biometrics.getWeight())
-                .fat(biometrics.getFat())
-                .visceralFat(biometrics.getVisceralFat())
-                .build();
+        return new BiometricsDto(biometrics.getMeasuredOn(), biometrics.getWeight(), biometrics.getFat(), biometrics.getVisceralFat());
     }
 
     public static Biometrics toBiometrics(Account account, BiometricsDto biometricsDTO) {
         return Biometrics.builder()
                 .account(account)
-                .measuredOn(biometricsDTO.getMeasuredOn())
-                .weight(biometricsDTO.getWeight())
-                .fat(biometricsDTO.getFat())
-                .visceralFat(biometricsDTO.getVisceralFat())
+                .measuredOn(biometricsDTO.measuredOn())
+                .weight(biometricsDTO.weight())
+                .fat(biometricsDTO.fat())
+                .visceralFat(biometricsDTO.visceralFat())
                 .build();
     }
 }

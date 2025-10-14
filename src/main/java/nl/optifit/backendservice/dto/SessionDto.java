@@ -13,27 +13,20 @@ import nl.optifit.backendservice.model.SessionStatus;
 import java.time.ZonedDateTime;
 import java.util.Objects;
 
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
-public class SessionDto {
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSZ", timezone = "Europe/Amsterdam")
-    private ZonedDateTime sessionStartTime;
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSZ", timezone = "Europe/Amsterdam")
-    private ZonedDateTime sessionExecutionTime;
-    private ExerciseType exerciseType;
-    private SessionStatus sessionStatus;
-    private String sessionVideoUrl;
+public record SessionDto(
+        @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSZ", timezone = "Europe/Amsterdam") ZonedDateTime sessionStartTime,
+        @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSZ", timezone = "Europe/Amsterdam") ZonedDateTime sessionExecutionTime,
+        ExerciseType exerciseType,
+        SessionStatus sessionStatus,
+        String sessionVideoUrl) {
 
     public static SessionDto fromSession(Session session) {
-        return SessionDto.builder()
-                .sessionStartTime(session.getSessionStart())
-                .sessionExecutionTime(session.getSessionExecutionTime())
-                .exerciseType(session.getExerciseType())
-                .sessionStatus(session.getSessionStatus())
-                .sessionVideoUrl(Objects.isNull(session.getExerciseVideo()) ? null : session.getExerciseVideo().getVideoUrl())
-                .build();
+        return new SessionDto(
+                session.getSessionStart(),
+                session.getSessionExecutionTime(),
+                session.getExerciseType(),
+                session.getSessionStatus(),
+                session.getExerciseVideo() == null ? null : session.getExerciseVideo().getVideoUrl()
+        );
     }
 }

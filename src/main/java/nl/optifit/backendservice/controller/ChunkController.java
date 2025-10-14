@@ -30,7 +30,7 @@ public class ChunkController {
 
     @PostMapping("/upload")
     public ResponseEntity<Document> storeChunk(@RequestBody ChunkDto chunkDto) {
-        log.info("Storing chunk '{}'", chunkDto.getId());
+        log.info("Storing chunk '{}'", chunkDto.id());
         Document document = chunkService.storeChunk(chunkDto);
         return ResponseEntity.ok(document);
     }

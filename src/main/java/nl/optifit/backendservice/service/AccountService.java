@@ -74,12 +74,12 @@ public class AccountService {
         UserHealthProfileDto userHealthProfile = calculateUserHealthProfile(accountId);
         double minBodyFat, maxBodyFat;
 
-        switch (userHealthProfile.getGender()) {
+        switch (userHealthProfile.sex()) {
             case "Male" -> {
-                if (userHealthProfile.getAge() <= 39) {
+                if (userHealthProfile.age() <= 39) {
                     minBodyFat = 7;
                     maxBodyFat = 20;
-                } else if (userHealthProfile.getAge() <= 59) {
+                } else if (userHealthProfile.age() <= 59) {
                     minBodyFat = 10;
                     maxBodyFat = 22;
                 } else {
@@ -88,10 +88,10 @@ public class AccountService {
                 }
             }
             case "Female" -> {
-                if (userHealthProfile.getAge() <= 39) {
+                if (userHealthProfile.age() <= 39) {
                     minBodyFat = 21;
                     maxBodyFat = 33;
-                } else if (userHealthProfile.getAge() <= 59) {
+                } else if (userHealthProfile.age() <= 59) {
                     minBodyFat = 23;
                     maxBodyFat = 34;
                 } else {
@@ -102,14 +102,14 @@ public class AccountService {
             default -> throw new IllegalStateException("Invalid gender");
         }
 
-        double fatPercentile = (userHealthProfile.getFat() - minBodyFat) / (maxBodyFat - minBodyFat);
-        if (fatPercentile < 0 ) {
+        double fatPercentile = (userHealthProfile.fat() - minBodyFat) / (maxBodyFat - minBodyFat);
+        if (fatPercentile < 0) {
             fatPercentile = 0;
         } else if (fatPercentile > 1) {
             fatPercentile = 1;
         }
 
-        double visceralFatScore = (maxVisceralHealthy - userHealthProfile.getVisceralFat()) / (double) (maxVisceralHealthy - minVisceralHealthy);
+        double visceralFatScore = (maxVisceralHealthy - userHealthProfile.visceralFat()) / (double) (maxVisceralHealthy - minVisceralHealthy);
         if (visceralFatScore < 0) {
             visceralFatScore = 0;
         } else if (visceralFatScore > 1) {
@@ -118,26 +118,19 @@ public class AccountService {
 
         double healthIndex = (1 - fatPercentile) * visceralFatScore * 100;
 
-        return HealthIndexDto.builder().healthIndex(healthIndex).build();
+        return new HealthIndexDto(healthIndex);
     }
-
 
     public UserHealthProfileDto calculateUserHealthProfile(String accountId) {
         UserResource userResource = keycloakService.findUserById(accountId).orElse(null);
         String dateOfBirthString = userResource.toRepresentation().getAttributes().get("dob").stream().findFirst().orElseThrow();
-        String gender = userResource.toRepresentation().getAttributes().get("gender").stream().findFirst().orElseThrow();
+        String sex = userResource.toRepresentation().getAttributes().get("sex").stream().findFirst().orElseThrow();
 
         LocalDate dateOfBirth = LocalDate.parse(dateOfBirthString, DATE_OF_BIRTH_FORMATTER);
         int age = Period.between(dateOfBirth, LocalDate.now()).getYears();
 
         Biometrics recentBiometrics = biometricsService.findMostRecentBiometricsForAccount(accountId);
 
-        return UserHealthProfileDto.builder()
-                .gender(gender)
-                .age(age)
-                .weight(recentBiometrics.getWeight())
-                .fat(recentBiometrics.getFat())
-                .visceralFat(recentBiometrics.getVisceralFat())
-                .build();
+        return new UserHealthProfileDto(sex, age, recentBiometrics.getWeight(), recentBiometrics.getFat(), recentBiometrics.getVisceralFat());
     }
 }

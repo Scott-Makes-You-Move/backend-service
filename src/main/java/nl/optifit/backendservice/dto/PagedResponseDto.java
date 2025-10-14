@@ -1,33 +1,12 @@
 package nl.optifit.backendservice.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 import org.springframework.data.domain.Page;
 
 import java.util.List;
 
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
-public class PagedResponseDto<T> {
-    private List<T> content;
-    private int page;
-    private int size;
-    private long totalElements;
-    private int totalPages;
+public record PagedResponseDto<T>(List<T> content, int page, int size, long totalElements, int totalPages) {
 
     public static <T> PagedResponseDto<T> fromPage(Page<T> page) {
-        return PagedResponseDto.<T>builder()
-                .content(page.getContent())
-                .page(page.getNumber())
-                .size(page.getNumberOfElements())
-                .totalElements(page.getTotalElements())
-                .totalPages(page.getTotalPages())
-                .build();
+        return new PagedResponseDto<>(page.getContent(), page.getNumber(), page.getNumberOfElements(), page.getTotalElements(), page.getTotalPages());
     }
 }

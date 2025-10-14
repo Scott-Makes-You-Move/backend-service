@@ -71,7 +71,7 @@ public class ChatbotService {
     }
 
     public ChatbotResponseDto initiateChat(ConversationDto conversationDto) {
-        log.debug("Initiating chat with session id '{}'", conversationDto.getSessionId());
+        log.debug("Initiating chat with session id '{}'", conversationDto.sessionId());
         long startTime = System.nanoTime();
 
         try {
@@ -84,16 +84,13 @@ public class ChatbotService {
             String answer = chatClient.prompt()
                     .system(finalBaseSystemPrompt)
                     .advisors(getAdvisors())
-                    .user(conversationDto.getUserMessage())
+                    .user(conversationDto.userMessage())
                     .call()
                     .content();
 
             log.debug("Chat client response time: {}ms", (System.nanoTime() - startTimeChatClient) / 1_000_000);
 
-            return ChatbotResponseDto.builder()
-                    .sessionId(conversationDto.getSessionId())
-                    .aiResponse(answer)
-                    .build();
+            return new ChatbotResponseDto(conversationDto.sessionId(), answer);
 
         } catch (Exception e) {
             long durationMs = (System.nanoTime() - startTime) / 1_000_000;

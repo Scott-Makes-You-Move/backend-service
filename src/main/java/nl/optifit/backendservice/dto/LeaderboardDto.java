@@ -1,29 +1,10 @@
 package nl.optifit.backendservice.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 import nl.optifit.backendservice.model.Leaderboard;
 
-@Getter
-@Setter
-@AllArgsConstructor
-@NoArgsConstructor
-@Builder
-public class LeaderboardDto {
-    private String fullName;
-    private Double completionRate;
-    private Integer currentStreak;
-    private Integer longestStreak;
+public record LeaderboardDto(String fullName, Double completionRate, Integer currentStreak, Integer longestStreak) {
 
     public static LeaderboardDto fromLeaderboard(String fullName, Leaderboard leaderboard) {
-        return LeaderboardDto.builder()
-                .fullName(fullName)
-                .completionRate(leaderboard.getCompletionRate())
-                .currentStreak(leaderboard.getCurrentStreak())
-                .longestStreak(leaderboard.getLongestStreak())
-                .build();
+        return new LeaderboardDto(fullName, leaderboard.getCompletionRate(), leaderboard.getCurrentStreak(), leaderboard.getLongestStreak());
     }
 }

@@ -26,10 +26,10 @@ public class ChunkService {
     }
 
     public Document storeChunk(ChunkDto chunkDto) {
-        log.info("Storing chunk '{}'", chunkDto.getId());
+        log.info("Storing chunk '{}'", chunkDto.id());
         Document document = chunkDto.toDocument();
         vectorStore.add(List.of(document));
-        log.info("Chunk '{}' stored", chunkDto.getId());
+        log.info("Chunk '{}' stored", chunkDto.id());
         return document;
     }
 
@@ -57,10 +57,10 @@ public class ChunkService {
         log.info("Searching for chunks");
 
         SearchRequest searchRequest = SearchRequest.builder()
-                .query(searchQueryDto.getQuery())
-                .topK(searchQueryDto.getTopK())
-                .similarityThreshold(searchQueryDto.getSimilarityThreshold())
-                .filterExpression(searchQueryDto.getFilterExpression())
+                .query(searchQueryDto.query())
+                .topK(searchQueryDto.topK())
+                .similarityThreshold(searchQueryDto.similarityThreshold())
+                .filterExpression(searchQueryDto.filterExpression())
                 .build();
 
         return vectorStore.similaritySearch(searchRequest);

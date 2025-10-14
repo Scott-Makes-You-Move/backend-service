@@ -46,13 +46,7 @@ public class FileService {
             log.info("Syncing files for user '{}'", userRepresentation.getUsername());
             List<File> files = driveService.getFilesForUser(userRepresentation.getUsername());
             List<Document> documents = files.stream()
-                    .map(file ->
-                            FileDto.builder()
-                                    .id(file.getId())
-                                    .accountId(userRepresentation.getId())
-                                    .content(driveService.readContent(file))
-                                    .build()
-                    )
+                    .map(file -> new FileDto(file.getId(), userRepresentation.getId(), driveService.readContent(file)))
                     .map(FileDto::toDocument)
                     .toList();
             filesVectorStore.add(documents);
@@ -71,7 +65,7 @@ public class FileService {
         log.info("Searching for files");
 
         Filter.Expression accountFilter = new FilterExpressionBuilder()
-                .eq("accountId", searchQueryDto.getFilterExpression()).build();
+                .eq("accountId", searchQueryDto.filterExpression()).build();
 
         SearchRequest searchRequest = SearchRequest.builder()
                 .query(" ")
