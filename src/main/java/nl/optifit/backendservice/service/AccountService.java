@@ -5,6 +5,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import nl.optifit.backendservice.dto.AccountDto;
 import nl.optifit.backendservice.dto.HealthIndexDto;
+import nl.optifit.backendservice.dto.PagedResponseDto;
+import nl.optifit.backendservice.dto.UserDto;
 import nl.optifit.backendservice.dto.UserHealthProfileDto;
 import nl.optifit.backendservice.model.Account;
 import nl.optifit.backendservice.model.Biometrics;
@@ -12,6 +14,10 @@ import nl.optifit.backendservice.model.Leaderboard;
 import nl.optifit.backendservice.repository.AccountRepository;
 import org.keycloak.admin.client.resource.UserResource;
 import org.keycloak.representations.idm.UserRepresentation;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,6 +26,8 @@ import java.time.LocalDate;
 import java.time.Period;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -32,6 +40,23 @@ public class AccountService {
     private final KeycloakService keycloakService;
     private final BiometricsService biometricsService;
     private final DriveService driveService;
+
+    public PagedResponseDto<UserDto> findAccounts(int page, int size, String direction, String sortBy) {
+        log.info("Finding accounts with page '{}', size '{}', direction '{}', sortBy '{}'", page, size, direction, sortBy);
+
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.fromString(direction), sortBy));
+
+        Page<Account> accounts = accountRepository.findAll(pageable);
+
+        return accounts.stream()
+                .map(account -> keycloakService.findUserById(account.getId()))
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .map(UserResource::toRepresentation)
+                .map(UserDto::fromUserRepresentation)
+                .collect(Collectors.collectingAndThen(Collectors.toList(), users ->
+                        new PagedResponseDto<>(users, page, size, accounts.getTotalElements(), accounts.getTotalPages())));
+    }
 
     @Transactional
     public AccountDto createAccount(String accountId) throws IOException {

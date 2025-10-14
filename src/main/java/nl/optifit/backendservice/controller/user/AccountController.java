@@ -1,4 +1,4 @@
-package nl.optifit.backendservice.controller;
+package nl.optifit.backendservice.controller.user;
 
 import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -12,6 +12,7 @@ import nl.optifit.backendservice.dto.HealthIndexDto;
 import nl.optifit.backendservice.dto.MobilityDto;
 import nl.optifit.backendservice.dto.PagedResponseDto;
 import nl.optifit.backendservice.dto.SessionDto;
+import nl.optifit.backendservice.dto.UserDto;
 import nl.optifit.backendservice.model.SessionStatus;
 import nl.optifit.backendservice.service.AccountService;
 import nl.optifit.backendservice.service.BiometricsService;
@@ -44,7 +45,18 @@ public class AccountController {
     private final MobilityService mobilityService;
     private final SessionService sessionService;
 
-    @PreAuthorize("@jwtConverter.isAccountCurrentUser(#accountId)")
+    @PreAuthorize("@jwtConverter.currentUserHasRole('smym-admin')")
+    @GetMapping
+    public ResponseEntity<PagedResponseDto<UserDto>> findAccounts(@RequestParam(defaultValue = "0") int page,
+                                                                  @RequestParam(defaultValue = "10") int size,
+                                                                  @RequestParam(defaultValue = "DESC") String direction,
+                                                                  @RequestParam(defaultValue = "lastName") String sortBy) {
+        log.info("GET Accounts REST API called");
+        PagedResponseDto<UserDto> accounts = accountService.findAccounts(page, size, direction, sortBy);
+        return ResponseEntity.ok(accounts);
+    }
+
+    @PreAuthorize("@jwtConverter.currentUserMatches(#accountId)")
     @GetMapping("{accountId}/healthindex")
     public ResponseEntity<HealthIndexDto> calculateHealthIndex(@PathVariable String accountId) {
         log.info("GET Health Index REST API called");
@@ -52,7 +64,7 @@ public class AccountController {
         return ResponseEntity.ok(healthIndex);
     }
 
-    @PreAuthorize("@jwtConverter.isAccountCurrentUser(#accountId)")
+    @PreAuthorize("@jwtConverter.currentUserMatches(#accountId)")
     @GetMapping("/{accountId}/sessions")
     public ResponseEntity<PagedResponseDto<SessionDto>> getSessionsForAccount(@PathVariable String accountId,
                                                                               @RequestParam(required = false) String sessionStartDate,
@@ -66,7 +78,7 @@ public class AccountController {
         return ResponseEntity.ok(accountSessions);
     }
 
-    @PreAuthorize("@jwtConverter.isAccountCurrentUser(#accountId) and @sessionService.sessionBelongsToAccount(#sessionId, #accountId)")
+    @PreAuthorize("@jwtConverter.currentUserMatches(#accountId) and @sessionService.sessionBelongsToAccount(#sessionId, #accountId)")
     @GetMapping("/{accountId}/sessions/{sessionId}")
     public ResponseEntity<SessionDto> getSessionsForAccount(@PathVariable String accountId,
                                                             @PathVariable String sessionId) {
@@ -75,7 +87,7 @@ public class AccountController {
         return ResponseEntity.ok(accountSessions);
     }
 
-    @PreAuthorize("@jwtConverter.isAccountCurrentUser(#accountId) and @sessionService.sessionBelongsToAccount(#sessionId, #accountId)")
+    @PreAuthorize("@jwtConverter.currentUserMatches(#accountId) and @sessionService.sessionBelongsToAccount(#sessionId, #accountId)")
     @PutMapping("/{accountId}/sessions/{sessionId}")
     public ResponseEntity<SessionDto> updateSession(@PathVariable String accountId,
                                                     @PathVariable String sessionId) {
@@ -92,7 +104,7 @@ public class AccountController {
         return ResponseEntity.status(HttpStatus.CREATED).body(createdAccount);
     }
 
-    @PreAuthorize("@jwtConverter.isAccountCurrentUser(#accountId)")
+    @PreAuthorize("@jwtConverter.currentUserMatches(#accountId)")
     @GetMapping("/{accountId}/mobilities")
     public ResponseEntity<PagedResponseDto<MobilityDto>> getMobilitiesForAccount(@PathVariable String accountId,
                                                                                  @RequestParam(defaultValue = "0") int page,
@@ -113,7 +125,7 @@ public class AccountController {
         return ResponseEntity.status(HttpStatus.CREATED).body(mobility);
     }
 
-    @PreAuthorize("@jwtConverter.isAccountCurrentUser(#accountId)")
+    @PreAuthorize("@jwtConverter.currentUserMatches(#accountId)")
     @GetMapping("/{accountId}/biometrics")
     public ResponseEntity<PagedResponseDto<BiometricsDto>> getBiometricsForAccount(@PathVariable String accountId,
                                                                                    @RequestParam(defaultValue = "0") int page,

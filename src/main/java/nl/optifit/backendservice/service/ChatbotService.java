@@ -6,7 +6,6 @@ import nl.optifit.backendservice.dto.ConversationDto;
 import nl.optifit.backendservice.security.JwtConverter;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.ai.chat.client.ChatClient;
-import org.springframework.ai.chat.client.ChatClientResponse;
 import org.springframework.ai.chat.prompt.PromptTemplate;
 import org.springframework.ai.document.Document;
 import org.springframework.ai.rag.advisor.RetrievalAugmentationAdvisor;
@@ -102,7 +101,7 @@ public class ChatbotService {
 
     private String getFinalBasePrompt() {
         Filter.Expression filterExpression = new FilterExpressionBuilder()
-                .eq("accountId", jwtConverter.getCurrentUserAccountId())
+                .eq("accountId", jwtConverter.getCurrentUserId())
                 .build();
 
         SearchRequest searchRequest = SearchRequest.builder()
@@ -174,7 +173,7 @@ public class ChatbotService {
     @NotNull
     private DocumentRetriever getFilesRetriever() {
         Filter.Expression filterExpression = new FilterExpressionBuilder()
-                .eq("accountId", jwtConverter.getCurrentUserAccountId())
+                .eq("accountId", jwtConverter.getCurrentUserId())
                 .build();
 
         return query -> filesVectorStore.similaritySearch(

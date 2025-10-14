@@ -1,10 +1,9 @@
-package nl.optifit.backendservice.controller;
+package nl.optifit.backendservice.controller.user;
 
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import nl.optifit.backendservice.dto.FileDto;
 import nl.optifit.backendservice.dto.SearchQueryDto;
 import nl.optifit.backendservice.service.FileService;
 import org.springframework.ai.document.Document;

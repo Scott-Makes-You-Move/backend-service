@@ -1,6 +1,7 @@
 package nl.optifit.backendservice.security;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -14,6 +15,7 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtGra
 import org.springframework.stereotype.Component;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -21,6 +23,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+@Slf4j
 @RequiredArgsConstructor
 @Component
 public class JwtConverter implements Converter<Jwt, AbstractAuthenticationToken> {
@@ -42,7 +45,7 @@ public class JwtConverter implements Converter<Jwt, AbstractAuthenticationToken>
         return new JwtAuthenticationToken(jwt, authorities, principal);
     }
 
-    public boolean isAccountCurrentUser(String accountId) {
+    public boolean currentUserMatches(String accountId) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (!(authentication instanceof JwtAuthenticationToken jwtAuth) || !authentication.isAuthenticated()) {
             return false;
@@ -52,11 +55,32 @@ public class JwtConverter implements Converter<Jwt, AbstractAuthenticationToken>
         return jwt.getSubject().equals(accountId);
     }
 
-    public String getCurrentUserAccountId() {
+    public boolean currentUserHasRole(String role) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (!(authentication instanceof JwtAuthenticationToken jwtAuth) || !authentication.isAuthenticated()) {
+            return false;
+        }
+        Jwt jwt = jwtAuth.getToken();
+
+        Map<String, Object> realmAccess = (Map<String, Object>) jwt.getClaims().get("realm_access");
+
+        if (realmAccess == null) {
+            return false;
+        }
+
+        List<String> roles = (List<String>) realmAccess.get("roles");
+        if (roles == null) {
+            return false;
+        }
+
+        return roles.contains(role);
+    }
+
+    public String getCurrentUserId() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-        if (authentication instanceof JwtAuthenticationToken) {
-            return ((JwtAuthenticationToken) authentication).getToken().getSubject();
+        if (authentication instanceof JwtAuthenticationToken jwtAuth) {
+            return jwtAuth.getToken().getSubject();
         }
 
         throw new IllegalStateException("No current user found");
