@@ -27,6 +27,7 @@
         <azure-identity.version>1.17.0</azure-identity.version>
         <resteasy.version>6.2.12.Final</resteasy.version>
         <netty.version>4.1.124.Final</netty.version>
+        <flyway.version>11.14.0</flyway.version>
     </properties>
 
     <dependencies>
@@ -209,6 +210,7 @@
         <dependency>
             <groupId>org.flywaydb</groupId>
             <artifactId>flyway-core</artifactId>
+            <version>${flyway.version}</version>
         </dependency>
     </dependencies>
 
