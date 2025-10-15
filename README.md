@@ -45,6 +45,8 @@ spring:
   datasource:
     url: jdbc:h2:mem:backend-service
     username: sa
+  flyway:
+    enabled: false
   h2:
     console:
       enabled: true
