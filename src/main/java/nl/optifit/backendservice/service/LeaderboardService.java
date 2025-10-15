@@ -115,13 +115,10 @@ public class LeaderboardService {
 
         leaderboards.forEach(leaderboard -> {
 
-            if (leaderboard.getAccountId().equals(recentWinner)) {
-                leaderboard.setRecentWinner(true);
-            }
-
             leaderboard.setCurrentStreak(0);
             leaderboard.setLongestStreak(0);
             leaderboard.setCompletionRate(0.0);
+            leaderboard.setRecentWinner(leaderboard.getAccountId().equals(recentWinner));
             leaderboard.setLastUpdated(LocalDateTime.now());
             leaderboard.setResetAt(LocalDateTime.now());
         });
