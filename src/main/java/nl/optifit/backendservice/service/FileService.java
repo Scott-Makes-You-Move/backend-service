@@ -38,14 +38,17 @@ public class FileService {
     public void syncFiles() throws InterruptedException {
         log.info("Syncing files");
         long startSyncTime = System.nanoTime();
-        Thread virtualThread = Thread.ofVirtual().start(() -> {
+
+        try (var executor = Executors.newVirtualThreadPerTaskExecutor()) {
             accountService.findAllAccounts().stream()
                     .map(account -> keycloakService.findUserById(account.getId()))
                     .flatMap(Optional::stream)
                     .map(UserResource::toRepresentation)
-                    .forEach(this::addUserFilesToCosmos);
-        });
-        virtualThread.join();
+                    .forEach(userRepresentation ->
+                            executor.submit(() -> addUserFilesToCosmos(userRepresentation)));
+
+        }
+
         log.info("Finished syncing files in {} ms", (System.nanoTime() - startSyncTime) / 1000000);
     }
 
