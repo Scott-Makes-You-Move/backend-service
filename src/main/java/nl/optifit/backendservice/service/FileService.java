@@ -81,7 +81,7 @@ public class FileService {
                     .eq("accountId", userRepresentation.getId())
                     .build();
 
-            SearchRequest searchRequest = SearchRequest.builder().filterExpression(filter).build();
+            SearchRequest searchRequest = SearchRequest.builder().query("e").filterExpression(filter).build();
             List<String> fileIds = filesVectorStore.similaritySearch(searchRequest).stream()
                     .map(Document::getId).toList();
             filesVectorStore.delete(fileIds);
