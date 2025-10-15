@@ -30,7 +30,7 @@ public class DriveCronScheduler {
     private final FileService fileService;
 
     @Scheduled(cron = "#{@cronProperties.drive.sync}", zone = EUROPE_AMSTERDAM)
-    public void syncFiles() {
+    public void syncFiles() throws InterruptedException {
         fileService.syncFiles();
     }
 }

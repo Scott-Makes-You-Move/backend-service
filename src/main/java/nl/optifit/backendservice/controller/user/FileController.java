@@ -36,7 +36,7 @@ public class FileController {
     private final DriveService driveService;
 
     @PostMapping("/sync")
-    public ResponseEntity<Void> syncFiles() {
+    public ResponseEntity<Void> syncFiles() throws InterruptedException {
         log.info("POST Sync Files REST API called");
         fileService.syncFiles();
         return ResponseEntity.ok().build();

@@ -18,6 +18,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.Executors;
 
 @Slf4j
 @Service
@@ -34,12 +35,15 @@ public class FileService {
         this.driveService = driveService;
     }
 
-    public void syncFiles() {
-        accountService.findAllAccounts().stream()
-                .map(account -> keycloakService.findUserById(account.getId()))
-                .flatMap(Optional::stream)
-                .map(UserResource::toRepresentation)
-                .forEach(this::addUserFilesToCosmos);
+    public void syncFiles() throws InterruptedException {
+        Thread virtualThread = Thread.ofVirtual().start(() -> {
+            accountService.findAllAccounts().stream()
+                    .map(account -> keycloakService.findUserById(account.getId()))
+                    .flatMap(Optional::stream)
+                    .map(UserResource::toRepresentation)
+                    .forEach(this::addUserFilesToCosmos);
+        });
+        virtualThread.join();
     }
 
     public List<Document> search(SearchQueryDto searchQueryDto) {
