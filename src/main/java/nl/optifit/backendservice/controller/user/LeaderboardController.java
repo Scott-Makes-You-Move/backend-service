@@ -31,4 +31,11 @@ public class LeaderboardController {
         PagedResponseDto<LeaderboardDto> all = leaderboardService.findAll(page, size, direction, sortBy);
         return ResponseEntity.ok(all);
     }
+
+    @GetMapping("/recent-winner")
+    public ResponseEntity<LeaderboardDto> getRecentWinner() {
+        log.info("Get Leaderboards Recent Winner REST API called");
+        LeaderboardDto recentWinner = leaderboardService.findByRecentWinner();
+        return ResponseEntity.ok(recentWinner);
+    }
 }

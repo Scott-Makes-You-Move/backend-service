@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Random;
 
 import static nl.optifit.backendservice.model.SessionStatus.COMPLETED;
@@ -49,6 +50,14 @@ public class LeaderboardService {
         return PagedResponseDto.fromPage(leaderboardDtoPage);
     }
 
+    public LeaderboardDto findByRecentWinner() {
+        Optional<Leaderboard> recentWinner = leaderboardRepository.findByRecentWinnerTrue();
+        return recentWinner.map(leaderboard -> {
+            UserResource user = keycloakService.findUserById(leaderboard.getAccount().getId()).orElseThrow(() -> new RuntimeException("User not found"));
+            return LeaderboardDto.fromLeaderboard(String.format("%s %s", user.toRepresentation().getFirstName(), user.toRepresentation().getLastName()), leaderboard);
+        }).orElseThrow(() -> new NotFoundException("No recent winner found"));
+    }
+
     public void updateLeaderboard(Session latestSession) {
         Account account = latestSession.getAccount();
         log.debug("Updating leaderboard for account '{}'", account.getId());
@@ -68,23 +77,6 @@ public class LeaderboardService {
                 .currentStreak(0)
                 .longestStreak(0)
                 .build();
-    }
-
-    private Leaderboard updateStreak(Session latestSession, Leaderboard leaderboard) {
-        Account account = latestSession.getAccount();
-        SessionStatus sessionStatus = latestSession.getSessionStatus();
-
-        if (sessionStatus.equals(COMPLETED)) {
-            leaderboard.setCurrentStreak(leaderboard.getCurrentStreak() + 1);
-            leaderboard.setLongestStreak(Math.max(leaderboard.getCurrentStreak(), leaderboard.getLongestStreak()));
-        }
-        if (sessionStatus.equals(OVERDUE)) {
-            leaderboard.setCurrentStreak(0);
-        }
-        leaderboard.setCompletionRate(calculateSessionCompletionRate(account, leaderboard));
-        leaderboard.setLastUpdated(LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS));
-
-        return leaderboard;
     }
 
     public double calculateSessionCompletionRate(Account account, Leaderboard leaderboard) {
@@ -124,6 +116,23 @@ public class LeaderboardService {
         });
 
         leaderboardRepository.saveAll(leaderboards);
+    }
+
+    private Leaderboard updateStreak(Session latestSession, Leaderboard leaderboard) {
+        Account account = latestSession.getAccount();
+        SessionStatus sessionStatus = latestSession.getSessionStatus();
+
+        if (sessionStatus.equals(COMPLETED)) {
+            leaderboard.setCurrentStreak(leaderboard.getCurrentStreak() + 1);
+            leaderboard.setLongestStreak(Math.max(leaderboard.getCurrentStreak(), leaderboard.getLongestStreak()));
+        }
+        if (sessionStatus.equals(OVERDUE)) {
+            leaderboard.setCurrentStreak(0);
+        }
+        leaderboard.setCompletionRate(calculateSessionCompletionRate(account, leaderboard));
+        leaderboard.setLastUpdated(LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS));
+
+        return leaderboard;
     }
 
     private static String findRecentWinner(List<Leaderboard> leaderboards) {

@@ -10,4 +10,6 @@ import java.util.UUID;
 @Repository
 public interface LeaderboardRepository extends JpaRepository<Leaderboard, UUID> {
     Optional<Leaderboard> findByAccountId(String accountId);
+
+    Optional<Leaderboard> findByRecentWinnerTrue();
 }
