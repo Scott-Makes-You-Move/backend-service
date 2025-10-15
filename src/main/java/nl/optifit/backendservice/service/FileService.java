@@ -36,6 +36,8 @@ public class FileService {
     }
 
     public void syncFiles() throws InterruptedException {
+        log.info("Syncing files");
+        long startSyncTime = System.nanoTime();
         Thread virtualThread = Thread.ofVirtual().start(() -> {
             accountService.findAllAccounts().stream()
                     .map(account -> keycloakService.findUserById(account.getId()))
@@ -44,6 +46,7 @@ public class FileService {
                     .forEach(this::addUserFilesToCosmos);
         });
         virtualThread.join();
+        log.info("Finished syncing files in {} ms", (System.nanoTime() - startSyncTime) / 1000000);
     }
 
     public List<Document> search(SearchQueryDto searchQueryDto) {
