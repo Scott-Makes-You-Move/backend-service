@@ -28,8 +28,6 @@ public class SessionCronScheduler {
 
     public static final String EUROPE_AMSTERDAM = "Europe/Amsterdam";
 
-    private final ExecutorService executor = Executors.newFixedThreadPool(20);
-
     private final AccountService accountService;
     private final SessionService sessionService;
 
