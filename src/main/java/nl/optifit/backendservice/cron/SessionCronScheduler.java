@@ -7,9 +7,11 @@ import nl.optifit.backendservice.model.Session;
 import nl.optifit.backendservice.model.SessionStatus;
 import nl.optifit.backendservice.service.AccountService;
 import nl.optifit.backendservice.service.SessionService;
+import org.keycloak.admin.client.resource.UserResource;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
@@ -63,18 +65,27 @@ public class SessionCronScheduler {
     }
 
     private void createSessionsForAllAccounts(ExerciseType exerciseType) {
-        accountService.findAllAccounts().forEach(account ->
-                CompletableFuture.runAsync(() ->
-                        sessionService.createSessionForAccount(account, exerciseType), executor
-                )
-        );
+        log.info("Creating '{}' session for all accounts", exerciseType.getDisplayName());
+        long startSyncTime = System.nanoTime();
+
+        try (var executor = Executors.newVirtualThreadPerTaskExecutor()) {
+            accountService.findAllAccounts()
+                    .forEach(account -> executor.submit(() -> sessionService.createSessionForAccount(account, exerciseType)));
+        }
+
+        log.info("Finished creating sessions in {} ms", (System.nanoTime() - startSyncTime) / 1000000);
     }
 
     private void updateSessionStatusForAllAccounts() {
-        sessionService.getByStatus(SessionStatus.NEW)
-                .stream()
-                .map(Session::getId)
-                .map(UUID::toString)
-                .forEach(sessionService::updateSessionForAccount);
+        log.info("Updating sessions with status NEW for all accounts");
+        long startSyncTime = System.nanoTime();
+
+        try (var executor = Executors.newVirtualThreadPerTaskExecutor()) {
+            sessionService.getByStatus(SessionStatus.NEW)
+                    .stream()
+                    .map(session -> session.getId().toString())
+                    .forEach(uuidString -> executor.submit(() -> sessionService.updateSessionForAccount(uuidString)));
+        }
+        log.info("Finished updating sessions in {} ms", (System.nanoTime() - startSyncTime) / 1000000);
     }
 }
