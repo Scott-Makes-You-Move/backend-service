@@ -100,7 +100,7 @@ public class AccountController {
     @PostMapping
     public ResponseEntity<AccountDto> createAccount(@RequestBody AccountDto accountDTO) throws IOException {
         log.info("POST Account REST API called");
-        AccountDto createdAccount = accountService.createAccount(accountDTO.accountId());
+        AccountDto createdAccount = accountService.createAccount(accountDTO.accountId(), accountDTO.timezone());
         return ResponseEntity.status(HttpStatus.CREATED).body(createdAccount);
     }
 

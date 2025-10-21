@@ -59,9 +59,9 @@ public class AccountService {
     }
 
     @Transactional
-    public AccountDto createAccount(String accountId) throws IOException {
-        log.info("Creating account '{}'", accountId);
-        Account account = Account.builder().id(accountId).build();
+    public AccountDto createAccount(String accountId, String timezone) throws IOException {
+        log.info("Creating account '{}' with timezone '{}'", accountId, timezone);
+        Account account = Account.builder().id(accountId).timezone(timezone).build();
         Leaderboard leaderboard = leaderboardService.createLeaderboardForAccount(account);
         account.setLeaderboard(leaderboard);
         Account savedAccount = accountRepository.save(account);
