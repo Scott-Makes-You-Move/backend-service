@@ -32,6 +32,9 @@ public class Account implements Serializable {
     @Id
     @Column(name = "account_id", nullable = false, unique = true)
     private String id;
+    @Builder.Default
+    @Column(name = "timezone", nullable = false)
+    private String timezone = "Europe/Amsterdam";
     @OneToOne(mappedBy = "account", cascade = CascadeType.ALL, orphanRemoval = true)
     @PrimaryKeyJoinColumn
     @JsonManagedReference
