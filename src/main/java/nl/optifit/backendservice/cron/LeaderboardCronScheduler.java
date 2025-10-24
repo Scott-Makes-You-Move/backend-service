@@ -8,7 +8,10 @@ import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.time.temporal.ChronoField;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 @Slf4j
@@ -17,13 +20,13 @@ import java.util.List;
 public class LeaderboardCronScheduler {
 
     private final LeaderboardService leaderboardService;
-    private final LeaderboardSchedule schedule;
+    private final LeaderboardSchedule leaderboardSchedule;
 
-    private static final List<String> REGIONS = List.of("Europe/Amsterdam", "Australia/Sydney");
+    private static final List<String> TIME_ZONES = List.of("Europe/Amsterdam", "Australia/Sydney");
 
-    @Scheduled(cron = "0 */15 * * * *") // run every 15 minutes globally
+    @Scheduled(cron = "0 0 * * * *")
     public void run() {
-        REGIONS.forEach(this::processRegion);
+        TIME_ZONES.forEach(this::processRegion);
     }
 
     private void processRegion(String zoneId) {
@@ -38,12 +41,11 @@ public class LeaderboardCronScheduler {
     }
 
     private boolean shouldReset(LocalDate date, LocalTime now) {
-        if (!date.getDayOfWeek().equals(schedule.resetDayOfWeek())) return false;
+        if (!date.getDayOfWeek().equals(leaderboardSchedule.getResetDayOfWeek())) return false;
 
-        // “5#1” means the *first* Friday, so week = 1
         int weekOfMonth = date.get(ChronoField.ALIGNED_WEEK_OF_MONTH);
-        if (weekOfMonth != schedule.resetWeek()) return false;
+        if (weekOfMonth != leaderboardSchedule.getResetWeek()) return false;
 
-        return now.equals(schedule.resetTime());
+        return now.equals(leaderboardSchedule.getResetTime());
     }
 }

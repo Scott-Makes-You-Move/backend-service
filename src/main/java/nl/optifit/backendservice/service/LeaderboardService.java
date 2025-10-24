@@ -99,23 +99,30 @@ public class LeaderboardService {
                 : 0;
     }
 
-    public void resetLeaderboard() {
-        log.debug("Resetting leaderboard");
+    public void resetLeaderboard(String timeZone) {
+        log.info("Resetting leaderboards for timezone {}", timeZone);
+        LocalDateTime now = LocalDateTime.now();
 
-        List<Leaderboard> leaderboards = leaderboardRepository.findAll();
-        String recentWinner = findRecentWinner(leaderboards);
+        List<Leaderboard> leaderboardsForTimezone = leaderboardRepository.findByAccount_Timezone(timeZone);
+        if (leaderboardsForTimezone.isEmpty()) {
+            log.warn("No leaderboards found for timezone {}", timeZone);
+            return;
+        }
 
-        leaderboards.forEach(leaderboard -> {
+        String recentWinner = findRecentWinner(leaderboardsForTimezone);
 
+        leaderboardsForTimezone.forEach(leaderboard -> {
+            boolean isRecentWinner = leaderboard.getAccountId().equalsIgnoreCase(recentWinner);
             leaderboard.setCurrentStreak(0);
             leaderboard.setLongestStreak(0);
             leaderboard.setCompletionRate(0.0);
-            leaderboard.setRecentWinner(leaderboard.getAccountId().equals(recentWinner));
-            leaderboard.setLastUpdated(LocalDateTime.now());
-            leaderboard.setResetAt(LocalDateTime.now());
+            leaderboard.setRecentWinner(isRecentWinner);
+            leaderboard.setLastUpdated(now);
+            leaderboard.setResetAt(now);
         });
 
-        leaderboardRepository.saveAll(leaderboards);
+        leaderboardRepository.saveAll(leaderboardsForTimezone);
+        log.info("Leaderboard reset complete for timezone {}", timeZone);
     }
 
     private Leaderboard updateStreak(Session latestSession, Leaderboard leaderboard) {

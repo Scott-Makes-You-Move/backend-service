@@ -25,11 +25,9 @@ import java.util.Optional;
 @Component
 public class DriveCronScheduler {
 
-    public static final String EUROPE_AMSTERDAM = "Europe/Amsterdam";
-
     private final FileService fileService;
 
-    @Scheduled(cron = "#{@cronProperties.drive.sync}", zone = EUROPE_AMSTERDAM)
+    @Scheduled(cron = "0 0 18 ? * 6")
     public void syncFiles() throws InterruptedException {
         fileService.syncFiles();
     }

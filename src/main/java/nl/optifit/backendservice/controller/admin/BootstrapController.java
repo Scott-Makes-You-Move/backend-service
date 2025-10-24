@@ -37,6 +37,8 @@ import static nl.optifit.backendservice.model.ExerciseType.SHOULDER;
 @RestController
 public class BootstrapController {
 
+    private static final List<String> TIME_ZONES = List.of("Europe/Amsterdam", "Australia/Sydney");
+
     private final AccountRepository accountRepository;
     private final ExerciseVideoRepository exerciseVideoRepository;
     private final SessionRepository sessionRepository;
@@ -67,7 +69,7 @@ public class BootstrapController {
             case "sessions" -> sessionRepository.deleteAll();
             case "biometrics" -> biometricsRepository.deleteAll();
             case "mobility" -> mobilityRepository.deleteAll();
-            case "leaderboard" -> leaderboardService.resetLeaderboard();
+            case "leaderboard" -> TIME_ZONES.forEach(leaderboardService::resetLeaderboard);
             default -> accountRepository.deleteAll();
         }
         return ResponseEntity.noContent().build();

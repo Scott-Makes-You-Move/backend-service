@@ -45,14 +45,14 @@ public class SessionCronScheduler {
 
         log.debug("Checking region '{}' at '{}'", zoneId, localTime);
 
-        if (matches(localTime, schedule.morning().create())) createSessions(zoneId, HIP);
-        if (matches(localTime, schedule.morning().update())) updateSessions(zoneId);
+        if (matches(localTime, schedule.getMorning().create())) createSessions(zoneId, HIP);
+        if (matches(localTime, schedule.getMorning().update())) updateSessions(zoneId);
 
-        if (matches(localTime, schedule.lunch().create())) createSessions(zoneId, SHOULDER);
-        if (matches(localTime, schedule.lunch().update())) updateSessions(zoneId);
+        if (matches(localTime, schedule.getLunch().create())) createSessions(zoneId, SHOULDER);
+        if (matches(localTime, schedule.getLunch().update())) updateSessions(zoneId);
 
-        if (matches(localTime, schedule.afternoon().create())) createSessions(zoneId, BACK);
-        if (matches(localTime, schedule.afternoon().update())) updateSessions(zoneId);
+        if (matches(localTime, schedule.getAfternoon().create())) createSessions(zoneId, BACK);
+        if (matches(localTime, schedule.getAfternoon().update())) updateSessions(zoneId);
     }
 
     private boolean matches(LocalTime now, LocalTime target) {
