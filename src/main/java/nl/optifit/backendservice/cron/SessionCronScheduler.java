@@ -25,7 +25,7 @@ import static nl.optifit.backendservice.model.ExerciseType.SHOULDER;
 @Component
 public class SessionCronScheduler {
 
-    private static final List<String> TIME_ZONES = List.of(
+    private static final List<String> SUPPORTED_TIMEZONES = List.of(
             "Europe/Amsterdam",
             "Australia/Sydney"
     );
@@ -36,7 +36,7 @@ public class SessionCronScheduler {
 
     @Scheduled(cron = "0 */30 * * * *")
     public void processRegions() {
-        TIME_ZONES.forEach(this::processRegion);
+        SUPPORTED_TIMEZONES.forEach(this::processRegion);
     }
 
     private void processRegion(String timezone) {
