@@ -92,6 +92,11 @@ public class AccountService {
         return accountRepository.findAll();
     }
 
+    public List<Account> findAllAccountsByTimezone(String timezone) {
+        log.debug("Finding all accounts for timezone '{}'", timezone);
+        return accountRepository.findAllByTimezone(timezone);
+    }
+
     public HealthIndexDto calculateHealthIndex(String accountId) {
         int maxVisceralHealthy = 12;
         int minVisceralHealthy = 1;

@@ -3,18 +3,17 @@ package nl.optifit.backendservice.cron;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import nl.optifit.backendservice.model.ExerciseType;
-import nl.optifit.backendservice.model.Session;
 import nl.optifit.backendservice.model.SessionStatus;
 import nl.optifit.backendservice.service.AccountService;
 import nl.optifit.backendservice.service.SessionService;
-import org.keycloak.admin.client.resource.UserResource;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import java.util.Optional;
-import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
+import java.time.LocalTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
+import java.util.List;
 import java.util.concurrent.Executors;
 
 import static nl.optifit.backendservice.model.ExerciseType.BACK;
@@ -26,64 +25,54 @@ import static nl.optifit.backendservice.model.ExerciseType.SHOULDER;
 @Component
 public class SessionCronScheduler {
 
-    public static final String EUROPE_AMSTERDAM = "Europe/Amsterdam";
+    private static final List<String> TIME_ZONES = List.of(
+            "Europe/Amsterdam",
+            "Australia/Sydney"
+    );
 
+    private final SessionSchedule schedule;
     private final AccountService accountService;
     private final SessionService sessionService;
 
-    // 0 42 13 * * ? For testing purposes
-    @Scheduled(cron = "#{@cronProperties.sessions.morning.create}", zone = EUROPE_AMSTERDAM)
-    public void createMorningSession() {
-        createSessionsForAllAccounts(HIP);
+    @Scheduled(cron = "0 */30 * * * *")
+    public void processRegions() {
+        TIME_ZONES.forEach(this::processRegion);
     }
 
-    @Scheduled(cron = "#{@cronProperties.sessions.lunch.create}", zone = EUROPE_AMSTERDAM)
-    public void createLunchSession() {
-        createSessionsForAllAccounts(SHOULDER);
+    private void processRegion(String zoneId) {
+        ZonedDateTime now = ZonedDateTime.now(ZoneId.of(zoneId));
+        LocalTime localTime = now.toLocalTime().truncatedTo(ChronoUnit.MINUTES);
+
+        log.debug("Checking region '{}' at '{}'", zoneId, localTime);
+
+        if (matches(localTime, schedule.morning().create())) createSessions(zoneId, HIP);
+        if (matches(localTime, schedule.morning().update())) updateSessions(zoneId);
+
+        if (matches(localTime, schedule.lunch().create())) createSessions(zoneId, SHOULDER);
+        if (matches(localTime, schedule.lunch().update())) updateSessions(zoneId);
+
+        if (matches(localTime, schedule.afternoon().create())) createSessions(zoneId, BACK);
+        if (matches(localTime, schedule.afternoon().update())) updateSessions(zoneId);
     }
 
-    @Scheduled(cron = "#{@cronProperties.sessions.afternoon.create}", zone = EUROPE_AMSTERDAM)
-    public void createAfternoonSession() {
-        createSessionsForAllAccounts(BACK);
+    private boolean matches(LocalTime now, LocalTime target) {
+        return now.equals(target);
     }
 
-    @Scheduled(cron = "#{@cronProperties.sessions.morning.update}", zone = EUROPE_AMSTERDAM)
-    public void updateMorningSession() {
-        updateSessionStatusForAllAccounts();
-    }
-
-    @Scheduled(cron = "#{@cronProperties.sessions.lunch.update}", zone = EUROPE_AMSTERDAM)
-    public void updateLunchSession() {
-        updateSessionStatusForAllAccounts();
-    }
-
-    @Scheduled(cron = "#{@cronProperties.sessions.afternoon.update}", zone = EUROPE_AMSTERDAM)
-    public void updateAfternoonSession() {
-        updateSessionStatusForAllAccounts();
-    }
-
-    private void createSessionsForAllAccounts(ExerciseType exerciseType) {
-        log.info("Creating '{}' session for all accounts", exerciseType.getDisplayName());
-        long startSyncTime = System.nanoTime();
-
-        try (var executor = Executors.newVirtualThreadPerTaskExecutor()) {
-            accountService.findAllAccounts()
-                    .forEach(account -> executor.submit(() -> sessionService.createSessionForAccount(account, exerciseType)));
+    private void createSessions(String zoneId, ExerciseType type) {
+        log.debug("Creating '{}' sessions for timezone '{}'", type, zoneId);
+        try (var exec = Executors.newVirtualThreadPerTaskExecutor()) {
+            accountService.findAllAccountsByTimezone(zoneId)
+                    .forEach(account -> exec.submit(() -> sessionService.createSessionForAccount(account, type)));
         }
-
-        log.info("Finished creating sessions in {} ms", (System.nanoTime() - startSyncTime) / 1000000);
     }
 
-    private void updateSessionStatusForAllAccounts() {
-        log.info("Updating sessions with status NEW for all accounts");
-        long startSyncTime = System.nanoTime();
-
-        try (var executor = Executors.newVirtualThreadPerTaskExecutor()) {
-            sessionService.getByStatus(SessionStatus.NEW)
-                    .stream()
-                    .map(session -> session.getId().toString())
-                    .forEach(uuidString -> executor.submit(() -> sessionService.updateSessionForAccount(uuidString)));
+    private void updateSessions(String zoneId) {
+        log.debug("Updating NEW sessions for '{}'", zoneId);
+        try (var exec = Executors.newVirtualThreadPerTaskExecutor()) {
+            sessionService.getByStatus(SessionStatus.NEW).stream()
+                    .filter(session -> zoneId.equals(session.getAccount().getTimezone()))
+                    .forEach(session -> exec.submit(() -> sessionService.updateSessionForAccount(session.getId().toString())));
         }
-        log.info("Finished updating sessions in {} ms", (System.nanoTime() - startSyncTime) / 1000000);
     }
 }
