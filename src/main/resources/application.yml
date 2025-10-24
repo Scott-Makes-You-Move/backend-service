@@ -14,3 +14,21 @@ server:
 springdoc:
   swagger-ui:
     path: /swagger-ui.html
+
+cron:
+  sessions:
+    morning:
+      create: "10:00"
+      update: "11:00"
+    lunch:
+      create: "13:30"
+      update: "14:30"
+    afternoon:
+      create: "15:00"
+      update: "16:00"
+  leaderboard:
+    reset-time: "12:00"
+    reset-day-of-week: FRIDAY
+    reset-week: 1
+  drive:
+    sync: "0 0 18 ? * 6"
