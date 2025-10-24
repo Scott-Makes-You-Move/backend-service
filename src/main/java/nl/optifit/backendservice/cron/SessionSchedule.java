@@ -10,7 +10,7 @@ import java.time.LocalTime;
 @Getter
 @Setter
 @Configuration
-@ConfigurationProperties(prefix = "cron.session")
+@ConfigurationProperties(prefix = "cron.sessions")
 public class SessionSchedule {
     private TimeSlot morning;
     private TimeSlot lunch;
