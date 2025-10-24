@@ -30,7 +30,7 @@ public class SessionCronScheduler {
             "Australia/Sydney"
     );
 
-    private final SessionSchedule schedule;
+    private final SessionSchedule sessionSchedule;
     private final AccountService accountService;
     private final SessionService sessionService;
 
@@ -39,39 +39,39 @@ public class SessionCronScheduler {
         TIME_ZONES.forEach(this::processRegion);
     }
 
-    private void processRegion(String zoneId) {
-        ZonedDateTime now = ZonedDateTime.now(ZoneId.of(zoneId));
+    private void processRegion(String timezone) {
+        ZonedDateTime now = ZonedDateTime.now(ZoneId.of(timezone));
         LocalTime localTime = now.toLocalTime().truncatedTo(ChronoUnit.MINUTES);
 
-        log.debug("Checking region '{}' at '{}'", zoneId, localTime);
+        log.debug("Checking timezone '{}' at '{}'", timezone, localTime);
 
-        if (matches(localTime, schedule.getMorning().create())) createSessions(zoneId, HIP);
-        if (matches(localTime, schedule.getMorning().update())) updateSessions(zoneId);
+        if (matches(localTime, sessionSchedule.getMorning().create())) createSessions(timezone, HIP);
+        if (matches(localTime, sessionSchedule.getMorning().update())) updateSessions(timezone);
 
-        if (matches(localTime, schedule.getLunch().create())) createSessions(zoneId, SHOULDER);
-        if (matches(localTime, schedule.getLunch().update())) updateSessions(zoneId);
+        if (matches(localTime, sessionSchedule.getLunch().create())) createSessions(timezone, SHOULDER);
+        if (matches(localTime, sessionSchedule.getLunch().update())) updateSessions(timezone);
 
-        if (matches(localTime, schedule.getAfternoon().create())) createSessions(zoneId, BACK);
-        if (matches(localTime, schedule.getAfternoon().update())) updateSessions(zoneId);
+        if (matches(localTime, sessionSchedule.getAfternoon().create())) createSessions(timezone, BACK);
+        if (matches(localTime, sessionSchedule.getAfternoon().update())) updateSessions(timezone);
     }
 
     private boolean matches(LocalTime now, LocalTime target) {
         return now.equals(target);
     }
 
-    private void createSessions(String zoneId, ExerciseType type) {
-        log.debug("Creating '{}' sessions for timezone '{}'", type, zoneId);
+    private void createSessions(String timezone, ExerciseType type) {
+        log.debug("Creating '{}' sessions for timezone '{}'", type, timezone);
         try (var exec = Executors.newVirtualThreadPerTaskExecutor()) {
-            accountService.findAllAccountsByTimezone(zoneId)
+            accountService.findAllAccountsByTimezone(timezone)
                     .forEach(account -> exec.submit(() -> sessionService.createSessionForAccount(account, type)));
         }
     }
 
-    private void updateSessions(String zoneId) {
-        log.debug("Updating NEW sessions for '{}'", zoneId);
+    private void updateSessions(String timezone) {
+        log.debug("Updating NEW sessions for '{}'", timezone);
         try (var exec = Executors.newVirtualThreadPerTaskExecutor()) {
             sessionService.getByStatus(SessionStatus.NEW).stream()
-                    .filter(session -> zoneId.equals(session.getAccount().getTimezone()))
+                    .filter(session -> timezone.equals(session.getAccount().getTimezone()))
                     .forEach(session -> exec.submit(() -> sessionService.updateSessionForAccount(session.getId().toString())));
         }
     }
