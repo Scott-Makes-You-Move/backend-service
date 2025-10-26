@@ -12,7 +12,7 @@
     <groupId>nl.optifit</groupId>
     <artifactId>backend-service</artifactId>
     <version>1.0.0-SNAPSHOT</version>
-    <packaging>war</packaging>
+    <packaging>jar</packaging>
     <name>backend-service</name>
     <description>backend-service</description>
 
@@ -352,16 +352,6 @@
                 <version>${netty.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
-            </dependency>
-            <dependency>
-                <groupId>io.projectreactor.netty</groupId>
-                <artifactId>reactor-netty-core</artifactId>
-                <version>1.1.24</version>
-            </dependency>
-            <dependency>
-                <groupId>io.projectreactor.netty</groupId>
-                <artifactId>reactor-netty-http</artifactId>
-                <version>1.1.24</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
