@@ -75,6 +75,7 @@ public class BootstrapController {
 
     private void bootstrapExerciseVideos() {
         log.info("Bootstrapping exercise videos");
+
         ExerciseVideo hipLow = ExerciseVideo.builder().exerciseType(HIP).score(1).videoUrl("https://youtu.be/-7mdU1-eEpk").build();
         ExerciseVideo hipMedium = ExerciseVideo.builder().exerciseType(HIP).score(2).videoUrl("https://youtu.be/uceJ4BlkYeM").build();
         ExerciseVideo hipHigh = ExerciseVideo.builder().exerciseType(HIP).score(3).videoUrl("https://youtu.be/KXfQJKzXYrM").build();
