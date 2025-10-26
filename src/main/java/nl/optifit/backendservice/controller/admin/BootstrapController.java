@@ -37,11 +37,6 @@ import static nl.optifit.backendservice.model.ExerciseType.SHOULDER;
 @RestController
 public class BootstrapController {
 
-    private static final List<String> SUPPORTED_TIMEZONES = List.of(
-            "Europe/Amsterdam",
-            "Australia/Sydney"
-    );
-
     private final AccountRepository accountRepository;
     private final ExerciseVideoRepository exerciseVideoRepository;
     private final SessionRepository sessionRepository;
@@ -54,11 +49,11 @@ public class BootstrapController {
      */
     @PostMapping
     public ResponseEntity<String> bootstrapData(@RequestParam("repository") String repository) {
-        switch (repository) {
-            case "videos" -> bootstrapExerciseVideos();
-            default -> log.warn("Repository '{}' not recognized", repository);
+        if (repository.equals("videos")) {
+            bootstrapExerciseVideos();
+        } else {
+            log.warn("Repository '{}' not recognized", repository);
         }
-
         return ResponseEntity.status(HttpStatus.CREATED).body("Bootstrap exercise videos successful");
     }
 
@@ -72,7 +67,7 @@ public class BootstrapController {
             case "sessions" -> sessionRepository.deleteAll();
             case "biometrics" -> biometricsRepository.deleteAll();
             case "mobility" -> mobilityRepository.deleteAll();
-            case "leaderboard" -> SUPPORTED_TIMEZONES.forEach(leaderboardService::resetLeaderboard);
+            case "leaderboard" -> leaderboardService.resetLeaderboard();
             default -> accountRepository.deleteAll();
         }
         return ResponseEntity.noContent().build();

@@ -2,7 +2,6 @@ package nl.optifit.backendservice.service;
 
 import com.google.api.services.drive.model.File;
 import lombok.extern.slf4j.Slf4j;
-import nl.optifit.backendservice.dto.FileDto;
 import nl.optifit.backendservice.dto.SearchQueryDto;
 import org.keycloak.admin.client.resource.UserResource;
 import org.keycloak.representations.idm.UserRepresentation;

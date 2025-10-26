@@ -4,26 +4,14 @@ import lombok.extern.slf4j.Slf4j;
 import nl.optifit.backendservice.dto.ChatbotResponseDto;
 import nl.optifit.backendservice.dto.ConversationDto;
 import nl.optifit.backendservice.security.JwtConverter;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.ai.chat.client.ChatClient;
-import org.springframework.ai.chat.prompt.PromptTemplate;
 import org.springframework.ai.document.Document;
-import org.springframework.ai.rag.advisor.RetrievalAugmentationAdvisor;
-import org.springframework.ai.rag.generation.augmentation.ContextualQueryAugmenter;
-import org.springframework.ai.rag.retrieval.search.DocumentRetriever;
-import org.springframework.ai.rag.retrieval.search.VectorStoreDocumentRetriever;
-import org.springframework.ai.vectorstore.SearchRequest;
-import org.springframework.ai.vectorstore.VectorStore;
-import org.springframework.ai.vectorstore.filter.Filter;
 import org.springframework.ai.vectorstore.filter.FilterExpressionBuilder;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 

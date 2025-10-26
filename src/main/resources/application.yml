@@ -27,8 +27,6 @@ cron:
       create: "15:00"
       update: "16:00"
   leaderboard:
-    reset-time: "12:00"
-    reset-day-of-week: FRIDAY
-    reset-week: 1
+    reset: "0 0 6 1 * ?"
   drive:
     sync: "0 0 18 ? * 6"

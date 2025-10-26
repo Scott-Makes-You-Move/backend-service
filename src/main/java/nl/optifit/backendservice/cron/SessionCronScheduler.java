@@ -9,6 +9,7 @@ import nl.optifit.backendservice.service.SessionService;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import java.time.DayOfWeek;
 import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -16,6 +17,8 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.concurrent.Executors;
 
+import static java.time.DayOfWeek.SATURDAY;
+import static java.time.DayOfWeek.SUNDAY;
 import static nl.optifit.backendservice.model.ExerciseType.BACK;
 import static nl.optifit.backendservice.model.ExerciseType.HIP;
 import static nl.optifit.backendservice.model.ExerciseType.SHOULDER;
@@ -42,6 +45,11 @@ public class SessionCronScheduler {
     private void processRegion(String timezone) {
         ZonedDateTime now = ZonedDateTime.now(ZoneId.of(timezone));
         LocalTime localTime = now.toLocalTime().truncatedTo(ChronoUnit.MINUTES);
+        DayOfWeek dayOfWeek = now.getDayOfWeek();
+
+        if (dayOfWeek.equals(SATURDAY) || dayOfWeek.equals(SUNDAY)) {
+            return;
+        }
 
         log.debug("Checking timezone '{}' at '{}'", timezone, localTime);
 

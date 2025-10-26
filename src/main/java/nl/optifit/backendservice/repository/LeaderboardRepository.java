@@ -13,6 +13,4 @@ public interface LeaderboardRepository extends JpaRepository<Leaderboard, UUID> 
     Optional<Leaderboard> findByAccountId(String accountId);
 
     Optional<Leaderboard> findByRecentWinnerTrue();
-
-    List<Leaderboard> findByAccount_Timezone(String timezone);
 }
