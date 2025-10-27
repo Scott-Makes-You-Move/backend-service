@@ -43,6 +43,11 @@ spring:
 chat:
   client:
     advisors:
+      chat-memory:
+        enabled: ${CHAT_CLIENT_ADVISORS_CHAT-MEMORY_ENABLED:true}
+        max-messages: 20
+      logging:
+        enabled: ${CHAT_CLIENT_ADVISORS_LOGGING_ENABLED:true}
       masking:
         enabled: ${CHAT_CLIENT_ADVISORS_MASKING_ENABLED:true}
       chunks:

@@ -5,15 +5,19 @@ import nl.optifit.backendservice.dto.ChatbotResponseDto;
 import nl.optifit.backendservice.dto.ConversationDto;
 import nl.optifit.backendservice.security.JwtConverter;
 import org.springframework.ai.chat.client.ChatClient;
-import org.springframework.ai.document.Document;
+import org.springframework.ai.rag.advisor.RetrievalAugmentationAdvisor;
+import org.springframework.ai.rag.generation.augmentation.ContextualQueryAugmenter;
+import org.springframework.ai.rag.retrieval.search.VectorStoreDocumentRetriever;
+import org.springframework.ai.vectorstore.VectorStore;
+import org.springframework.ai.vectorstore.filter.Filter;
 import org.springframework.ai.vectorstore.filter.FilterExpressionBuilder;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -34,16 +38,16 @@ public class ChatbotService {
 
     private final ChatClient chatClient;
     private final JwtConverter jwtConverter;
-    private final FileService fileService;
+    private final VectorStore filesVectorStore;
 
-    public ChatbotService(
-            ChatClient chatClient,
-            JwtConverter jwtConverter,
-            FileService fileService
-    ) {
+    private final static ContextualQueryAugmenter QUERY_AUGMENTER = ContextualQueryAugmenter.builder()
+            .allowEmptyContext(true)
+            .build();
+
+    public ChatbotService(ChatClient chatClient, JwtConverter jwtConverter, @Qualifier("filesVectorStore") VectorStore filesVectorStore) {
         this.chatClient = chatClient;
         this.jwtConverter = jwtConverter;
-        this.fileService = fileService;
+        this.filesVectorStore = filesVectorStore;
     }
 
     public ChatbotResponseDto initiateChat(ConversationDto conversationDto) {
@@ -53,13 +57,13 @@ public class ChatbotService {
         try {
             long startTimeChatClient = System.nanoTime();
 
-            String finalBaseSystemPrompt = getFinalBasePrompt();
+            var request = chatClient.prompt().system(BASE_SYSTEM_PROMPT);
 
-            String answer = chatClient.prompt()
-                    .system(finalBaseSystemPrompt)
-                    .user(conversationDto.userMessage())
-                    .call()
-                    .content();
+            if (filesEnabled) {
+                request.advisors(List.of(filesRetrievalAugmentationAdvisor()));
+            }
+
+            String answer = request.user(conversationDto.userMessage()).call().content();
 
             log.debug("Chat client response time: {}ms", (System.nanoTime() - startTimeChatClient) / 1_000_000);
 
@@ -73,30 +77,21 @@ public class ChatbotService {
         }
     }
 
-    private String getFinalBasePrompt() {
-        if (!filesEnabled) {
-            return BASE_SYSTEM_PROMPT;
-        }
-
-        var filter = new FilterExpressionBuilder()
+    private RetrievalAugmentationAdvisor filesRetrievalAugmentationAdvisor() {
+        Filter.Expression filterExpression = new FilterExpressionBuilder()
                 .eq("accountId", jwtConverter.getCurrentUserId())
                 .build();
 
-        List<Document> documents = fileService.search(filesTopK, filesSimilarityThreshold, filter);
+        VectorStoreDocumentRetriever filesRetriever = VectorStoreDocumentRetriever.builder()
+                .vectorStore(filesVectorStore)
+                .filterExpression(filterExpression)
+                .topK(filesTopK)
+                .similarityThreshold(filesSimilarityThreshold)
+                .build();
 
-        if (documents.isEmpty()) {
-            return BASE_SYSTEM_PROMPT;
-        }
-
-        String joinedNotes = documents.stream()
-                .map(Document::getText)
-                .collect(Collectors.joining(System.lineSeparator() + System.lineSeparator()));
-
-        String finalBaseSystemPrompt = BASE_SYSTEM_PROMPT + System.lineSeparator() +
-                "These are the user's history notes. Use them if relevant. If not, ignore them." +
-                System.lineSeparator() + joinedNotes;
-
-        log.debug("Final base system prompt: {}", finalBaseSystemPrompt);
-        return finalBaseSystemPrompt;
+        return RetrievalAugmentationAdvisor.builder()
+                .documentRetriever(filesRetriever)
+                .queryAugmenter(QUERY_AUGMENTER)
+                .build();
     }
 }

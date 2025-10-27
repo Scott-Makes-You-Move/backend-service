@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import nl.optifit.backendservice.advisor.MaskingAdvisor;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
+import org.springframework.ai.chat.client.advisor.SimpleLoggerAdvisor;
 import org.springframework.ai.chat.client.advisor.api.Advisor;
 import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.chat.memory.MessageWindowChatMemory;
@@ -13,7 +14,10 @@ import org.springframework.ai.rag.advisor.RetrievalAugmentationAdvisor;
 import org.springframework.ai.rag.generation.augmentation.ContextualQueryAugmenter;
 import org.springframework.ai.rag.retrieval.search.VectorStoreDocumentRetriever;
 import org.springframework.ai.vectorstore.VectorStore;
+import org.springframework.ai.vectorstore.filter.FilterExpressionBuilder;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -21,14 +25,28 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
-@RequiredArgsConstructor
 @Configuration
 public class AiConfiguration {
 
     private final VectorStore chunksVectorStore;
+    private final VectorStore filesVectorStore;
+
+    public AiConfiguration(@Qualifier("chunksVectorStore") VectorStore chunksVectorStore, @Qualifier("filesVectorStore") VectorStore filesVectorStore) {
+        this.chunksVectorStore = chunksVectorStore;
+        this.filesVectorStore = filesVectorStore;
+    }
 
     @Value("${chat.client.advisors.masking.enabled}")
     private boolean maskingEnabled;
+
+    @Value("${chat.client.advisors.chat-memory.enabled}")
+    private boolean chatMemoryEnabled;
+    @Value("${chat.client.advisors.chat-memory.max-messages}")
+    private int maxMessages;
+
+    @Value("${chat.client.advisors.logging.enabled}")
+    private boolean loggingEnabled;
+
     @Value("${chat.client.advisors.chunks.enabled}")
     private boolean chunksEnabled;
     @Value("${chat.client.advisors.chunks.similarity-threshold}")
@@ -37,31 +55,36 @@ public class AiConfiguration {
     private int chunksTopK;
 
     @Bean
-    public ChatMemory chatMemory() {
-        return MessageWindowChatMemory.builder().maxMessages(20).build();
-    }
-
-    @Bean
     public ChatClient chatClient(ChatModel chatModel, ChatMemory chatMemory) {
-        MessageChatMemoryAdvisor messageChatMemoryAdvisor = MessageChatMemoryAdvisor.builder(chatMemory).build();
-
-        ChatClient.Builder chatClientBuilder = ChatClient.builder(chatModel);
-
         List<Advisor> advisors = new ArrayList<>();
-        advisors.add(messageChatMemoryAdvisor);
 
+        if (chatMemoryEnabled) {
+            advisors.add(MessageChatMemoryAdvisor.builder(chatMemory).build());
+        }
+        if (loggingEnabled) {
+            advisors.add(new SimpleLoggerAdvisor());
+        }
         if (maskingEnabled) {
-            MaskingAdvisor maskingAdvisor = new MaskingAdvisor();
-            advisors.add(maskingAdvisor);
+            advisors.add(new MaskingAdvisor());
         }
         if (chunksEnabled) {
-            advisors.add(getChunksAdvisor());
+            advisors.add(retrievalAugmentationAdvisor());
         }
 
-        return chatClientBuilder.defaultAdvisors(advisors).build();
+        return ChatClient.builder(chatModel)
+                .defaultAdvisors(advisors)
+                .build();
     }
 
-    private RetrievalAugmentationAdvisor getChunksAdvisor() {
+    @ConditionalOnProperty(name = "chat.client.advisors.chat-memory.enabled", havingValue = "true")
+    @Bean
+    public ChatMemory chatMemory() {
+        return MessageWindowChatMemory.builder().maxMessages(maxMessages).build();
+    }
+
+    @ConditionalOnProperty(name = "chat.client.advisors.chunks.enabled", havingValue = "true")
+    @Bean
+    public RetrievalAugmentationAdvisor retrievalAugmentationAdvisor() {
         ContextualQueryAugmenter queryAugmenter = ContextualQueryAugmenter.builder()
                 .allowEmptyContext(true)
                 .build();

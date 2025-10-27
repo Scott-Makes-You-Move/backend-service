@@ -30,3 +30,7 @@ cron:
     reset: "0 0 6 1 * ?"
   drive:
     sync: "0 0 18 ? * 6"
+
+logging:
+  level:
+    org.springframework.ai.chat.client.advisor: DEBUG
