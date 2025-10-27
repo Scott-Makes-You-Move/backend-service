@@ -44,7 +44,7 @@ chat:
   client:
     advisors:
       chat-memory:
-        enabled: ${CHAT_CLIENT_ADVISORS_CHAT-MEMORY_ENABLED:true}
+        enabled: ${CHAT_CLIENT_ADVISORS_CHATMEMORY_ENABLED:true}
         max-messages: 20
       logging:
         enabled: ${CHAT_CLIENT_ADVISORS_LOGGING_ENABLED:true}
