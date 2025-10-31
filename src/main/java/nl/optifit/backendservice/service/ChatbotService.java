@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -36,7 +37,7 @@ public class ChatbotService {
     private final JwtConverter jwtConverter;
     private final ChatRetrievalOrchestrator orchestrator;
 
-    public ChatbotResponseDto initiateChat(ConversationDto conversationDto) {
+    public ChatbotResponseDto initiateChat(ConversationDto conversationDto) throws ExecutionException, InterruptedException {
         log.debug("Initiating chat with session id '{}'", conversationDto.sessionId());
         long startTime = System.nanoTime();
 

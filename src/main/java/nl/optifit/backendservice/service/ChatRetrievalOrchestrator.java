@@ -7,6 +7,8 @@ import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executors;
 import java.util.stream.Stream;
 
 @RequiredArgsConstructor
@@ -21,22 +23,21 @@ public class ChatRetrievalOrchestrator {
     private final FileService fileService;
     private final ChunkService chunkService;
 
-    public List<Document> buildContext(String accountId, String query) {
+    public List<Document> buildContext(String accountId, String query) throws ExecutionException, InterruptedException {
         if (!chunksEnabled && !filesEnabled) {
             return List.of();
         }
 
-        List<Document> files = new ArrayList<>();
-        List<Document> chunks = new ArrayList<>();
+        var executor = Executors.newVirtualThreadPerTaskExecutor();
 
-        if (filesEnabled) {
-            files = fileService.search(accountId);
+        try (executor) {
+            var filesFuture = executor.submit(() -> filesEnabled ? fileService.search(accountId) : List.<Document>of());
+            var chunksFuture = executor.submit(() -> chunksEnabled ? chunkService.search(query) : List.<Document>of());
+
+            var files = filesFuture.get();
+            var chunks = chunksFuture.get();
+
+            return Stream.concat(files.stream(), chunks.stream()).toList();
         }
-
-        if (chunksEnabled) {
-            chunks = chunkService.search(query);
-        }
-
-        return Stream.concat(files.stream(), chunks.stream()).toList();
     }
 }

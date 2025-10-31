@@ -13,6 +13,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.concurrent.ExecutionException;
+
 @Slf4j
 @RequiredArgsConstructor
 @SecurityRequirement(name = "Bearer Authentication")
@@ -24,7 +26,7 @@ public class ChatbotController {
     private final ChatbotService chatbotService;
 
     @PostMapping("/initiate")
-    public ResponseEntity<ChatbotResponseDto> initiateChatbotConversation(@RequestBody ConversationDto conversationDto) {
+    public ResponseEntity<ChatbotResponseDto> initiateChatbotConversation(@RequestBody ConversationDto conversationDto) throws ExecutionException, InterruptedException {
         log.info("POST Initiate Chat REST API called");
         ChatbotResponseDto chatbotResponseDto = chatbotService.initiateChat(conversationDto);
         return ResponseEntity.ok(chatbotResponseDto);
