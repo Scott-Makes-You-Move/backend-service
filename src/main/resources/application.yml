@@ -7,6 +7,10 @@ spring:
     locations: classpath:db/migration
     baseline-on-migrate: true
     baseline-version: 0
+  autoconfigure:
+    exclude:
+      - org.zalando.problem.spring.web.autoconfigure.security.ProblemSecurityAutoConfiguration
+      - org.zalando.problem.spring.web.autoconfigure.ProblemJacksonAutoConfiguration
 
 server:
   port: 9000
