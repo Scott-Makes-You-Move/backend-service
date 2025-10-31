@@ -52,11 +52,11 @@ chat:
         enabled: ${CHAT_CLIENT_ADVISORS_MASKING_ENABLED:true}
       chunks:
         enabled: ${CHAT_CLIENT_ADVISORS_CHUNKS_ENABLED:true}
-        similarity-threshold: ${CHAT_CLIENT_ADVISORS_RAG_SIMILARITY_THRESHOLD:0.1}
+        similarityThreshold: ${CHAT_CLIENT_ADVISORS_RAG_SIMILARITY_THRESHOLD:0.1}
         topK: ${CHAT_CLIENT_ADVISORS_RAG_TOP_K:3}
       files:
         enabled: ${CHAT_CLIENT_ADVISORS_FILES_ENABLED:true}
-        similarity-threshold: ${CHAT_CLIENT_ADVISORS_FILES_SIMILARITY_THRESHOLD:0.1}
+        similarityThreshold: ${CHAT_CLIENT_ADVISORS_FILES_SIMILARITY_THRESHOLD:0.1}
         topK: ${CHAT_CLIENT_ADVISORS_FILES_TOP_K:1000}
 
 google:
