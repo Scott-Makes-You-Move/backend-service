@@ -1,25 +1,24 @@
 package nl.optifit.backendservice.service;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import nl.optifit.backendservice.dto.ChatbotResponseDto;
 import nl.optifit.backendservice.dto.ConversationDto;
 import nl.optifit.backendservice.security.JwtConverter;
 import org.springframework.ai.chat.client.ChatClient;
-import org.springframework.ai.rag.advisor.RetrievalAugmentationAdvisor;
-import org.springframework.ai.rag.generation.augmentation.ContextualQueryAugmenter;
-import org.springframework.ai.rag.retrieval.search.VectorStoreDocumentRetriever;
-import org.springframework.ai.vectorstore.VectorStore;
-import org.springframework.ai.vectorstore.filter.Filter;
-import org.springframework.ai.vectorstore.filter.FilterExpressionBuilder;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.ai.chat.messages.SystemMessage;
+import org.springframework.ai.chat.messages.UserMessage;
+import org.springframework.ai.chat.prompt.Prompt;
+import org.springframework.ai.document.Document;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
+@RequiredArgsConstructor
 @Service
 public class ChatbotService {
 
@@ -33,41 +32,28 @@ public class ChatbotService {
             If retrieval context conflicts with general knowledge, prefer the retrieval context.
             """;
 
-    @Value("${chat.client.advisors.files.enabled}")
-    private boolean filesEnabled;
-    @Value("${chat.client.advisors.files.similarity-threshold}")
-    private double filesSimilarityThreshold;
-    @Value("${chat.client.advisors.files.topK}")
-    private int filesTopK;
-
     private final ChatClient chatClient;
     private final JwtConverter jwtConverter;
-    private final VectorStore filesVectorStore;
-
-    private final static ContextualQueryAugmenter QUERY_AUGMENTER = ContextualQueryAugmenter.builder()
-            .allowEmptyContext(true)
-            .build();
-
-    public ChatbotService(ChatClient chatClient, JwtConverter jwtConverter, @Qualifier("filesVectorStore") VectorStore filesVectorStore) {
-        this.chatClient = chatClient;
-        this.jwtConverter = jwtConverter;
-        this.filesVectorStore = filesVectorStore;
-    }
+    private final ChatRetrievalOrchestrator orchestrator;
 
     public ChatbotResponseDto initiateChat(ConversationDto conversationDto) {
         log.debug("Initiating chat with session id '{}'", conversationDto.sessionId());
         long startTime = System.nanoTime();
 
+        List<Document> documents = orchestrator.buildContext(jwtConverter.getCurrentUserId(), conversationDto.userMessage());
+        Prompt prompt = new Prompt(List.of(
+                new SystemMessage(BASE_SYSTEM_PROMPT),
+                new UserMessage(documentsToText(documents)),
+                new UserMessage(conversationDto.userMessage())
+        ));
+
         try {
             long startTimeChatClient = System.nanoTime();
 
-            var request = chatClient.prompt().system(BASE_SYSTEM_PROMPT);
+            String answer = chatClient.prompt(prompt)
+                    .call()
+                    .content();
 
-            if (filesEnabled) {
-                request.advisors(List.of(filesRetrievalAugmentationAdvisor()));
-            }
-
-            String answer = request.user(conversationDto.userMessage()).call().content();
 
             log.debug("Chat client response time: {}ms", (System.nanoTime() - startTimeChatClient) / 1_000_000);
 
@@ -81,21 +67,9 @@ public class ChatbotService {
         }
     }
 
-    private RetrievalAugmentationAdvisor filesRetrievalAugmentationAdvisor() {
-        Filter.Expression filterExpression = new FilterExpressionBuilder()
-                .eq("accountId", jwtConverter.getCurrentUserId())
-                .build();
-
-        VectorStoreDocumentRetriever filesRetriever = VectorStoreDocumentRetriever.builder()
-                .vectorStore(filesVectorStore)
-                .filterExpression(filterExpression)
-                .topK(filesTopK)
-                .similarityThreshold(filesSimilarityThreshold)
-                .build();
-
-        return RetrievalAugmentationAdvisor.builder()
-                .documentRetriever(filesRetriever)
-                .queryAugmenter(QUERY_AUGMENTER)
-                .build();
+    private String documentsToText(List<Document> docs) {
+        return docs.stream()
+                .map(Document::getText)
+                .collect(Collectors.joining("\n\n---\n\n"));
     }
 }

@@ -26,20 +26,11 @@ import java.util.List;
 public class FileController {
 
     private final FileService fileService;
-    private final VectorStore filesVectorStore;
-    private final DriveService driveService;
 
     @PostMapping("/sync")
-    public ResponseEntity<Void> syncFiles() throws InterruptedException {
+    public ResponseEntity<Void> syncFiles() {
         log.info("POST Sync Files REST API called");
         fileService.syncFiles();
         return ResponseEntity.ok().build();
-    }
-
-    @PostMapping("/search")
-    public ResponseEntity<List<Document>> search(@RequestBody SearchQueryDto searchQueryDto) {
-        log.info("POST Search Files REST API called");
-        List<Document> search = fileService.search(searchQueryDto);
-        return ResponseEntity.ok(search);
     }
 }

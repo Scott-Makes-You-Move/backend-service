@@ -4,12 +4,12 @@ import org.springframework.ai.vectorstore.SearchRequest;
 
 public record SearchQueryDto(String query, int topK, double similarityThreshold, String filterExpression) {
 
-    public static SearchRequest toSearchRequest(SearchQueryDto searchQueryDto) {
+    public SearchRequest toSearchRequest() {
         return SearchRequest.builder()
-                .query(searchQueryDto.query())
-                .topK(searchQueryDto.topK())
-                .similarityThreshold(searchQueryDto.similarityThreshold())
-                .filterExpression(searchQueryDto.filterExpression())
+                .query(this.query())
+                .topK(this.topK())
+                .similarityThreshold(this.similarityThreshold())
+                .filterExpression(this.filterExpression())
                 .build();
     }
 }

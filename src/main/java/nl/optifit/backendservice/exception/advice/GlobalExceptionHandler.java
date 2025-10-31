@@ -2,14 +2,21 @@ package nl.optifit.backendservice.exception.advice;
 
 import jakarta.ws.rs.NotFoundException;
 import lombok.extern.slf4j.Slf4j;
-import nl.optifit.backendservice.exception.BootstrapException;
+import org.apiguardian.api.API;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.context.request.NativeWebRequest;
+import org.zalando.problem.Problem;
+import org.zalando.problem.spring.common.HttpStatusAdapter;
+import org.zalando.problem.spring.web.advice.ProblemHandling;
 
 import java.io.IOException;
 
+import static org.apiguardian.api.API.Status.INTERNAL;
 import static org.springframework.http.HttpStatus.CONFLICT;
 import static org.springframework.http.HttpStatus.FORBIDDEN;
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
@@ -18,41 +25,21 @@ import static org.springframework.http.HttpStatus.SERVICE_UNAVAILABLE;
 
 @Slf4j
 @RestControllerAdvice
-public class GlobalExceptionHandler {
+public class GlobalExceptionHandler implements ProblemHandling {
 
-    @ExceptionHandler(value = { BootstrapException.class })
-    public ResponseEntity<ErrorResponse> handleBootstrapFailure(BootstrapException ex) {
-        log.error("Handling bootstrap failure", ex);
-        return new ResponseEntity<>(ErrorResponse.of(INTERNAL_SERVER_ERROR.value(), ex), INTERNAL_SERVER_ERROR);
+    @API(status = INTERNAL)
+    @ExceptionHandler
+    ResponseEntity<Problem> handleNotFoundException(
+            final NotFoundException exception,
+            final NativeWebRequest request) {
+        return create(new HttpStatusAdapter(NOT_FOUND), exception, request);
     }
 
-    @ExceptionHandler(value = { IllegalStateException.class })
-    public ResponseEntity<ErrorResponse> handleConflicts(IllegalStateException ex) {
-        log.error("Handling conflict error", ex);
-        return new ResponseEntity<>(ErrorResponse.of(CONFLICT.value(), ex), CONFLICT);
-    }
-
-    @ExceptionHandler(value = { NotFoundException.class })
-    public ResponseEntity<ErrorResponse> handleNotFound(NotFoundException ex) {
-        log.error("Handling not found error", ex);
-        return new ResponseEntity<>(ErrorResponse.of(NOT_FOUND.value(), ex), NOT_FOUND);
-    }
-
-    @ExceptionHandler(value = {AuthorizationDeniedException.class})
-    public ResponseEntity<ErrorResponse> handleAuthorizationDenied(AuthorizationDeniedException ex) {
-        log.error("Handling authorization denied error", ex);
-        return new ResponseEntity<>(ErrorResponse.of(FORBIDDEN.value(), ex), FORBIDDEN);
-    }
-
-    @ExceptionHandler(value = { IOException.class })
-    public ResponseEntity<ErrorResponse> handleServiceUnavailable(IOException ex) {
-        log.error("Handling IO error", ex);
-        return new ResponseEntity<>(ErrorResponse.of(SERVICE_UNAVAILABLE.value(), ex), SERVICE_UNAVAILABLE);
-    }
-
-    @ExceptionHandler(value = { Exception.class })
-    public ResponseEntity<ErrorResponse> handleAll(Exception ex) {
-        log.error("Handling fallback error", ex);
-        return new ResponseEntity<>(ErrorResponse.of(INTERNAL_SERVER_ERROR.value(), ex), INTERNAL_SERVER_ERROR);
+    @API(status = INTERNAL)
+    @ExceptionHandler({Exception.class, IOException.class, IllegalStateException.class, NullPointerException.class})
+    ResponseEntity<Problem> handleExceptions(
+            final Exception exception,
+            final NativeWebRequest request) {
+        return create(new HttpStatusAdapter(INTERNAL_SERVER_ERROR), exception, request);
     }
 }

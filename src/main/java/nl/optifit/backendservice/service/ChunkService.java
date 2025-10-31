@@ -8,61 +8,75 @@ import org.springframework.ai.document.Document;
 import org.springframework.ai.vectorstore.SearchRequest;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Stream;
 
 @Slf4j
 @Service
 public class ChunkService {
-    private final ObjectMapper objectMapper;
-    private final VectorStore vectorStore;
 
-    public ChunkService(ObjectMapper objectMapper, @Qualifier("chunksVectorStore") VectorStore vectorStore) {
+    @Value("${chat.client.advisors.chunks.similarityThreshold}")
+    private double chunksSimilarityThreshold;
+    @Value("${chat.client.advisors.chunks.topK}")
+    private int chunksTopK;
+
+    private final ObjectMapper objectMapper;
+    private final VectorStore chunksVectorStore;
+
+    public ChunkService(ObjectMapper objectMapper, @Qualifier("chunksVectorStore") VectorStore chunksVectorStore) {
         this.objectMapper = objectMapper;
-        this.vectorStore = vectorStore;
+        this.chunksVectorStore = chunksVectorStore;
     }
 
     public Document storeChunk(ChunkDto chunkDto) {
-        log.info("Storing chunk '{}'", chunkDto.id());
         Document document = chunkDto.toDocument();
-        vectorStore.add(List.of(document));
-        log.info("Chunk '{}' stored", chunkDto.id());
+        storeChunks(List.of(document));
         return document;
     }
 
     public List<Document> storeChunks(MultipartFile file) {
-        try {
-            List<Document> documents = Arrays.asList(objectMapper.readValue(file.getInputStream(), ChunkDto[].class)).stream()
-                    .map(ChunkDto::toDocument)
-                    .toList();
-
-            vectorStore.add(documents);
-            log.info("Chunks stored");
+        try (var inputStream = file.getInputStream()) {
+            ChunkDto[] chunkDtos = objectMapper.readValue(inputStream, ChunkDto[].class);
+            List<Document> documents = Stream.of(chunkDtos).map(ChunkDto::toDocument).toList();
+            storeChunks(documents);
             return documents;
-        } catch (Exception exception) {
-            log.error("Error while storing chunks", exception);
-            throw new RuntimeException(exception);
+        } catch (IOException ioException) {
+            log.error("Error while storing chunks: ", ioException);
+            throw new RuntimeException(ioException);
         }
+    }
+
+    public void storeChunks(List<Document> documents) {
+        chunksVectorStore.add(documents);
+        log.debug("Stored {} chunks", documents.size());
     }
 
     public List<Document> search(SearchRequest searchRequest) {
         log.info("Searching for chunks");
-        return vectorStore.similaritySearch(searchRequest);
+        return chunksVectorStore.similaritySearch(searchRequest);
+    }
+
+    public List<Document> search(String query) {
+        SearchRequest searchRequest = fromQueryString(query);
+        return search(searchRequest);
     }
 
     public List<Document> search(SearchQueryDto searchQueryDto) {
-        log.info("Searching for chunks");
+        SearchRequest searchRequest = searchQueryDto.toSearchRequest();
+        return search(searchRequest);
+    }
 
-        SearchRequest searchRequest = SearchRequest.builder()
-                .query(searchQueryDto.query())
-                .topK(searchQueryDto.topK())
-                .similarityThreshold(searchQueryDto.similarityThreshold())
-                .filterExpression(searchQueryDto.filterExpression())
+    private SearchRequest fromQueryString(String query) {
+        return SearchRequest.builder()
+                .query(query)
+                .topK(chunksTopK)
+                .similarityThreshold(chunksSimilarityThreshold)
                 .build();
-
-        return vectorStore.similaritySearch(searchRequest);
     }
 }
