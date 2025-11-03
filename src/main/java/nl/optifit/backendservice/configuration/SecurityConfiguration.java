@@ -31,8 +31,16 @@ import java.net.URI;
 @EnableMethodSecurity
 public class SecurityConfiguration {
 
+    public static final String[] PERMITTED_PATHS = {
+            "/swagger-ui/**",
+            "/swagger-ui.html",
+            "/v3/api-docs/**",
+            "/v3/api-docs",
+            "/webjars/**",
+            "/h2-console/**"
+    };
     private final JwtConverter jwtConverter;
-    private final ObjectMapper objectMapper;
+    private final ObjectMapper mapper;
 
     @Bean
     @ConditionalOnProperty(name = "app.security.enabled", havingValue = "false")
@@ -47,24 +55,21 @@ public class SecurityConfiguration {
     @Bean
     @ConditionalOnProperty(name = "app.security.enabled", havingValue = "true")
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http.csrf(AbstractHttpConfigurer::disable).authorizeHttpRequests(authz -> authz
-                .requestMatchers(
-                        "/swagger-ui/**",
-                        "/swagger-ui.html",
-                        "/v3/api-docs/**",
-                        "/v3/api-docs",
-                        "/webjars/**",
-                        "/h2-console/**"
-                ).permitAll()
-                .anyRequest().authenticated());
-        http.headers(headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::disable));
-        http.sessionManagement(sess -> sess.sessionCreationPolicy(
-                SessionCreationPolicy.STATELESS));
-        http.oauth2ResourceServer(oauth2 -> oauth2.jwt(
-                jwt -> jwt.jwtAuthenticationConverter(jwtConverter))
-        );
-
-        return http.build();
+        return http
+                .securityMatcher("/**")
+                .csrf(AbstractHttpConfigurer::disable)
+                .authorizeHttpRequests(authz ->
+                        authz
+                                .requestMatchers(PERMITTED_PATHS).permitAll()
+                                .anyRequest().authenticated())
+                .headers(headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::disable))
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .exceptionHandling(exceptionHandling ->
+                        exceptionHandling
+                                .authenticationEntryPoint(problemAuthenticationEntryPoint())
+                                .accessDeniedHandler(problemAccessDeniedHandler()))
+                .oauth2ResourceServer(oauth2 -> oauth2.jwt(jwt -> jwt.jwtAuthenticationConverter(jwtConverter)))
+                .build();
     }
 
     @Bean
@@ -81,7 +86,7 @@ public class SecurityConfiguration {
 
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.setContentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE);
-            response.getWriter().write(objectMapper.writeValueAsString(problem));
+            response.getWriter().write(mapper.writeValueAsString(problem));
         };
     }
 
@@ -99,7 +104,7 @@ public class SecurityConfiguration {
 
             response.setStatus(HttpServletResponse.SC_FORBIDDEN);
             response.setContentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE);
-            response.getWriter().write(objectMapper.writeValueAsString(problem));
+            response.getWriter().write(mapper.writeValueAsString(problem));
         };
     }
 }
