@@ -29,8 +29,7 @@ import static nl.optifit.backendservice.model.ExerciseType.SHOULDER;
 public class SessionCronScheduler {
 
     private static final List<String> SUPPORTED_TIMEZONES = List.of(
-            "Europe/Amsterdam",
-            "Australia/Sydney"
+            "Europe/Amsterdam"
     );
 
     private final SessionSchedule sessionSchedule;

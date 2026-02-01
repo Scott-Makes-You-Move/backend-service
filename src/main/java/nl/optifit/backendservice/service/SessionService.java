@@ -182,4 +182,10 @@ public class SessionService {
                 .map(SessionDto::fromSession)
                 .orElseThrow(() -> new NotFoundException(String.format("Could not find session '%s' for account '%s'", sessionId, accountId)));
     }
+
+    public void removeStaleSessions() {
+        ZonedDateTime yesterday = ZonedDateTime.now(ZoneId.of("Europe/Amsterdam")).minusDays(1);
+        log.debug("Removing sessions older than {}", yesterday);
+        sessionRepository.deleteSessionsOlderThan(yesterday);
+    }
 }

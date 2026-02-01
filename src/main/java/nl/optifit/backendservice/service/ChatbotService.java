@@ -18,6 +18,8 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
+import static nl.optifit.backendservice.configuration.ChatClientConfiguration.ACCOUNT_ID_CONTEXT_KEY;
+
 @Slf4j
 @RequiredArgsConstructor
 @Service
@@ -35,42 +37,21 @@ public class ChatbotService {
 
     private final ChatClient chatClient;
     private final JwtConverter jwtConverter;
-    private final ChatRetrievalOrchestrator orchestrator;
 
     public ChatbotResponseDto initiateChat(ConversationDto conversationDto) throws ExecutionException, InterruptedException {
         log.debug("Initiating chat with session id '{}'", conversationDto.sessionId());
-        long startTime = System.nanoTime();
+        long startTimeChatClient = System.nanoTime();
 
-        List<Document> documents = orchestrator.buildContext(jwtConverter.getCurrentUserId(), conversationDto.userMessage());
-        Prompt prompt = new Prompt(List.of(
-                new SystemMessage(BASE_SYSTEM_PROMPT),
-                new UserMessage(documentsToText(documents)),
-                new UserMessage(conversationDto.userMessage())
-        ));
+        String accountId = "332e5598-00c4-417a-8dca-206ad1ca4bdc";
 
-        try {
-            long startTimeChatClient = System.nanoTime();
+        String answer = chatClient.prompt(conversationDto.userMessage())
+                .system(BASE_SYSTEM_PROMPT)
+                .advisors(a -> a.param(ACCOUNT_ID_CONTEXT_KEY, accountId))
+                .call()
+                .content();
 
-            String answer = chatClient.prompt(prompt)
-                    .call()
-                    .content();
+        log.debug("Chat client response time: {}ms", (System.nanoTime() - startTimeChatClient) / 1_000_000);
 
-
-            log.debug("Chat client response time: {}ms", (System.nanoTime() - startTimeChatClient) / 1_000_000);
-
-            return new ChatbotResponseDto(conversationDto.sessionId(), answer);
-
-        } catch (Exception e) {
-            long durationMs = (System.nanoTime() - startTime) / 1_000_000;
-            log.error("Error processing chat request in {}ms: {}", durationMs, e.getMessage(), e);
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
-                    "Error processing chat request", e);
-        }
-    }
-
-    private String documentsToText(List<Document> docs) {
-        return docs.stream()
-                .map(Document::getText)
-                .collect(Collectors.joining("\n\n---\n\n"));
+        return new ChatbotResponseDto(conversationDto.sessionId(), answer);
     }
 }

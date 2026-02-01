@@ -14,7 +14,7 @@ public class DriveCronScheduler {
     private final FileService fileService;
 
     @Scheduled(cron = "${cron.drive.sync}", zone = "UTC")
-    public void syncFiles() throws InterruptedException {
+    public void syncFiles() {
         fileService.syncFiles();
     }
 }
