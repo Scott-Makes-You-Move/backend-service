@@ -2,6 +2,8 @@ package nl.optifit.backendservice.dto;
 
 import nl.optifit.backendservice.model.Leaderboard;
 
+import java.util.Objects;
+
 public record LeaderboardDto(
         String fullName,
         int score,
@@ -12,7 +14,8 @@ public record LeaderboardDto(
 
     public static LeaderboardDto fromLeaderboard(String fullName, Leaderboard leaderboard) {
         return new LeaderboardDto(
-                fullName, leaderboard.getScore(),
+                fullName,
+                Objects.requireNonNullElse(leaderboard.getScore(), 0),
                 leaderboard.getCompletionRate(),
                 leaderboard.getCurrentStreak(),
                 leaderboard.getLongestStreak(),
