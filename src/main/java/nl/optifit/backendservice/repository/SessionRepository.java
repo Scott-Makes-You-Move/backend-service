@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.ZonedDateTime;
 import java.util.List;
@@ -20,7 +21,8 @@ public interface SessionRepository extends JpaRepository<Session, UUID>, JpaSpec
 
     Optional<Session> findByIdAndAccountId(UUID uuid, String accountId);
 
-    @Modifying
+    @Transactional
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("DELETE FROM Session s WHERE s.sessionStart < :cutoffDate")
     int deleteSessionsOlderThan(@Param("cutoffDate") ZonedDateTime cutoffDate);
 }
