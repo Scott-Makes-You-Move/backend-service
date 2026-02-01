@@ -53,6 +53,11 @@ public class DriveService {
     public void createDriveFolderInRoot(String folderName) throws IOException {
         log.info("Creating Google Drive folder '{}' in root folder", folderName);
 
+        if (folderExists(folderName)) {
+            log.debug("Folder '{}' already exists. Not creating.", folderName);
+            return;
+        }
+
         File folder = new File()
                 .setName(folderName)
                 .setMimeType("application/vnd.google-apps.folder")
@@ -83,7 +88,7 @@ public class DriveService {
     }
 
     public String readContent(File file) {
-        try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
+        try (var outputStream = new ByteArrayOutputStream()) {
             if (DOCS_MIME_TYPE.equals(file.getMimeType())) {
                 drive.files().export(file.getId(), TEXT_PLAIN)
                         .executeMediaAndDownloadTo(outputStream);
@@ -104,5 +109,15 @@ public class DriveService {
             log.error("Failed to read file '{}': {}", file.getName(), e.getMessage(), e);
             throw new RuntimeException(e);
         }
+    }
+
+    private boolean folderExists(String username) throws IOException {
+        List<File> folders = drive.files().list()
+                .setQ("name='" + username + "' and '" + rootFolderId + "' in parents and mimeType='application/vnd.google-apps.folder'")
+                .setFields("files(id, name)")
+                .execute()
+                .getFiles();
+
+        return !folders.isEmpty();
     }
 }
