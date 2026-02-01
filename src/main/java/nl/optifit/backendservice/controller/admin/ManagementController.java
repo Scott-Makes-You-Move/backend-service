@@ -5,7 +5,6 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import nl.optifit.backendservice.cron.DriveCronScheduler;
 import nl.optifit.backendservice.service.FileService;
 import nl.optifit.backendservice.service.SessionService;
 import org.springframework.http.ResponseEntity;
@@ -23,7 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/v1/management")
 @Tag(name = "Management", description = "Operations related management")
 @RestController
-public class CronController {
+public class ManagementController {
 
     private final FileService fileService;
     private final SessionService sessionService;
