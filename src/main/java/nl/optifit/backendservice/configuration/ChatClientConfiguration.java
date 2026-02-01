@@ -38,8 +38,16 @@ public class ChatClientConfiguration {
     private int maxMessages;
     @Value("${chat.client.advisors.files.enabled}")
     private boolean filesEnabled;
+    @Value("${chat.client.advisors.files.similarityThreshold}")
+    private double filesSimilarityThreshold;
+    @Value("${chat.client.advisors.files.topK}")
+    private int filesTopK;
     @Value("${chat.client.advisors.chunks.enabled}")
     private boolean chunksEnabled;
+    @Value("${chat.client.advisors.chunks.similarityThreshold}")
+    private double chunksSimilarityThreshold;
+    @Value("${chat.client.advisors.chunks.topK}")
+    private int chunksTopK;
     @Value("${chat.client.advisors.masking.enabled}")
     private boolean maskingEnabled;
     @Value("${chat.client.advisors.logging.enabled}")
@@ -99,8 +107,8 @@ public class ChatClientConfiguration {
 
                 DocumentRetriever filesRetriever = VectorStoreDocumentRetriever.builder()
                         .vectorStore(filesVectorStore)
-                        .similarityThreshold(0.0)
-                        .topK(5)
+                        .similarityThreshold(filesSimilarityThreshold)
+                        .topK(filesTopK)
                         .filterExpression(new FilterExpressionBuilder()
                                 .eq(ACCOUNT_ID_CONTEXT_KEY, accountId)
                                 .build())
@@ -112,8 +120,8 @@ public class ChatClientConfiguration {
             if (chunksEnabled) {
                 DocumentRetriever chunksRetriever = VectorStoreDocumentRetriever.builder()
                         .vectorStore(chunksVectorStore)
-                        .similarityThreshold(0.5)
-                        .topK(5)
+                        .similarityThreshold(chunksSimilarityThreshold)
+                        .topK(chunksTopK)
                         .build();
 
                 chunksDocs = chunksRetriever.retrieve(query);

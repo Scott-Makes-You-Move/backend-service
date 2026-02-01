@@ -19,19 +19,6 @@ spring:
         endpoint: ${AZURE_COSMOSDB_ENDPOINT:http://someendpoint.com}
         key: ${AZURE_COSMOSDB_KEY:somekey}
         database-name: ${AZURE_COSMOSDB_DATABASE:test-database}
-        containers:
-          chunks:
-            container-name: chunks
-            partition-key-path: ${AZURE_COSMOSDB_CHUNKS_PARTITION_KEY_PATH:/id}
-            metadata-fields: topic,subtopic
-            vector-store-throughput: 1000
-            vector-dimensions: 1536
-          files:
-            container-name: files
-            partition-key-path: ${AZURE_COSMOSDB_FILES_PARTITION_KEY_PATH:/id}
-            metadata-fields: accountId
-            vector-store-throughput: 1000
-            vector-dimensions: 1536
     openai:
       api-key: ${OPENAI_API_KEY:somekey}
       options:
