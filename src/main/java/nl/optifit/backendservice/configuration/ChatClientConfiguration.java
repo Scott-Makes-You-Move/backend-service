@@ -100,6 +100,7 @@ public class ChatClientConfiguration {
             List<Document> chunksDocs = new ArrayList<>();
 
             if (filesEnabled) {
+                long startTime = System.nanoTime();
                 String accountId = query.context().get(ACCOUNT_ID_CONTEXT_KEY).toString();
                 if (StringUtils.isBlank(accountId)) {
                     throw new IllegalArgumentException("Missing required context key: '%s'".formatted(ACCOUNT_ID_CONTEXT_KEY));
@@ -115,9 +116,11 @@ public class ChatClientConfiguration {
                         .build();
 
                 filesDocs = filesRetriever.retrieve(query);
+                log.debug("Files RAG response time: {}ms", (System.nanoTime() - startTime) / 1_000_000);
             }
 
             if (chunksEnabled) {
+                long startTime = System.nanoTime();
                 DocumentRetriever chunksRetriever = VectorStoreDocumentRetriever.builder()
                         .vectorStore(chunksVectorStore)
                         .similarityThreshold(chunksSimilarityThreshold)
@@ -125,6 +128,7 @@ public class ChatClientConfiguration {
                         .build();
 
                 chunksDocs = chunksRetriever.retrieve(query);
+                log.debug("Chunks RAG response time: {}ms", (System.nanoTime() - startTime) / 1_000_000);
             }
 
             log.info("Retrieved {} files and {} chunks documents for query: '{}'", filesDocs.size(), chunksDocs.size(), query.text());

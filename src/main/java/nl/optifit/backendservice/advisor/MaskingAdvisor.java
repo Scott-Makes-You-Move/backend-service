@@ -38,12 +38,17 @@ public class MaskingAdvisor implements CallAdvisor {
 
     @Override
     public ChatClientResponse adviseCall(ChatClientRequest request, CallAdvisorChain chain) {
+
         try {
+            long startTime = System.nanoTime();
+
             ChatClientRequest maskedRequest = createMaskedRequest(request);
-
             ChatClientResponse response = chain.nextCall(maskedRequest);
+            ChatClientResponse chatClientResponse = unmaskResponse(response);
 
-            return unmaskResponse(response);
+            log.debug("Masking response time: {}ms", (System.nanoTime() - startTime) / 1_000_000);
+
+            return chatClientResponse;
         } catch (Exception e) {
             log.error("Masking advisor processing failed", e);
             return chain.nextCall(request);
