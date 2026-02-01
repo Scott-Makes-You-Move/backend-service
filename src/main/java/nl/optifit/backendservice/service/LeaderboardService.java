@@ -17,6 +17,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -26,7 +27,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 
 import static nl.optifit.backendservice.model.SessionStatus.COMPLETED;
 import static nl.optifit.backendservice.model.SessionStatus.OVERDUE;
@@ -73,6 +74,7 @@ public class LeaderboardService {
         return Leaderboard.builder()
                 .account(account)
                 .lastUpdated(LocalDateTime.now())
+                .score(0)
                 .completionRate(0.0)
                 .currentStreak(0)
                 .longestStreak(0)
@@ -114,9 +116,7 @@ public class LeaderboardService {
         leaderboards.forEach(leaderboard -> {
             boolean isRecentWinner = leaderboard.getAccountId().equalsIgnoreCase(recentWinner);
 
-            leaderboard.setCurrentStreak(0);
-            leaderboard.setLongestStreak(0);
-            leaderboard.setCompletionRate(0.0);
+            leaderboard.setScore(0);
             leaderboard.setRecentWinner(isRecentWinner);
             leaderboard.setLastUpdated(now);
             leaderboard.setResetAt(now);
@@ -131,10 +131,12 @@ public class LeaderboardService {
         SessionStatus sessionStatus = latestSession.getSessionStatus();
 
         if (sessionStatus.equals(COMPLETED)) {
+            leaderboard.setScore(calculateScore(leaderboard.getScore(), latestSession.getSessionStart(), latestSession.getSessionExecutionTime()));
             leaderboard.setCurrentStreak(leaderboard.getCurrentStreak() + 1);
             leaderboard.setLongestStreak(Math.max(leaderboard.getCurrentStreak(), leaderboard.getLongestStreak()));
         }
         if (sessionStatus.equals(OVERDUE)) {
+            leaderboard.setScore(calculateScore(leaderboard.getScore(), latestSession.getSessionStart(), latestSession.getSessionExecutionTime()));
             leaderboard.setCurrentStreak(0);
         }
         leaderboard.setCompletionRate(calculateSessionCompletionRate(account, leaderboard));
@@ -144,34 +146,44 @@ public class LeaderboardService {
     }
 
     private static String findRecentWinner(List<Leaderboard> leaderboards) {
-        List<Leaderboard> sorted = sortLeaderboards(leaderboards);
+        List<Leaderboard> sorted = sortLeaderboardsByScore(leaderboards);
 
-        Leaderboard top = sorted.get(0);
+        Leaderboard top = sorted.getFirst();
+
         List<Leaderboard> topCandidates = sorted.stream()
-                .filter(l -> Objects.equals(l.getCompletionRate(), top.getCompletionRate())
-                        && Objects.equals(l.getLongestStreak(), top.getLongestStreak())
-                        && Objects.equals(l.getCurrentStreak(), top.getCurrentStreak()))
+                .filter(l -> Objects.equals(l.getScore(), top.getScore()))
                 .toList();
 
         Leaderboard winner = topCandidates.size() == 1
-                ? topCandidates.get(0)
-                : topCandidates.get(new Random().nextInt(topCandidates.size()));
+                ? topCandidates.getFirst()
+                : topCandidates.get(ThreadLocalRandom.current().nextInt(topCandidates.size()));
 
         return winner.getAccountId();
     }
 
-    private static List<Leaderboard> sortLeaderboards(List<Leaderboard> leaderboards) {
+    private static List<Leaderboard> sortLeaderboardsByScore(List<Leaderboard> leaderboards) {
         if (leaderboards == null || leaderboards.isEmpty()) {
             throw new IllegalArgumentException("No leaderboards found");
         }
 
         Comparator<Leaderboard> comparator = Comparator
-                .comparing(Leaderboard::getCompletionRate, Comparator.reverseOrder())
-                .thenComparing(Leaderboard::getLongestStreak, Comparator.reverseOrder())
-                .thenComparing(Leaderboard::getCurrentStreak, Comparator.reverseOrder());
+                .comparing(Leaderboard::getScore, Comparator.nullsFirst(Comparator.naturalOrder()))
+                .reversed();
 
         List<Leaderboard> sorted = new ArrayList<>(leaderboards);
         sorted.sort(comparator);
         return sorted;
+    }
+
+    private static int calculateScore(Integer currentScore, ZonedDateTime sessionStartTime, ZonedDateTime sessionExecutionTime) {
+        long elapsedSeconds = Duration.between(sessionStartTime, sessionExecutionTime).getSeconds();
+        long totalSeconds = 3600;
+        elapsedSeconds = Math.clamp(elapsedSeconds, 0, totalSeconds);
+        long remainingSeconds = totalSeconds - elapsedSeconds;
+
+        int sessionScore = (int) ((remainingSeconds * 100) / totalSeconds);
+        int sessionScoreComputed = Math.max(sessionScore, 25); // If score below 25, then just return 25
+
+        return currentScore == null ? sessionScoreComputed : currentScore + sessionScoreComputed;
     }
 }
