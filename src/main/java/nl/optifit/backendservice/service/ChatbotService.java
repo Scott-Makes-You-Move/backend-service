@@ -38,15 +38,13 @@ public class ChatbotService {
     private final ChatClient chatClient;
     private final JwtConverter jwtConverter;
 
-    public ChatbotResponseDto initiateChat(ConversationDto conversationDto) throws ExecutionException, InterruptedException {
+    public ChatbotResponseDto initiateChat(ConversationDto conversationDto) {
         log.debug("Initiating chat with session id '{}'", conversationDto.sessionId());
         long startTimeChatClient = System.nanoTime();
 
-        String accountId = "332e5598-00c4-417a-8dca-206ad1ca4bdc";
-
         String answer = chatClient.prompt(conversationDto.userMessage())
                 .system(BASE_SYSTEM_PROMPT)
-                .advisors(a -> a.param(ACCOUNT_ID_CONTEXT_KEY, accountId))
+                .advisors(a -> a.param(ACCOUNT_ID_CONTEXT_KEY, jwtConverter.getCurrentUserId()))
                 .call()
                 .content();
 
