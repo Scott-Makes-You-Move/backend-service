@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 @PreAuthorize("@jwtConverter.currentUserHasRole('smym-admin')")
 @SecurityRequirement(name = "Bearer Authentication")
 @RequestMapping("/api/v1/management")
-@Tag(name = "Bootstrap", description = "Operations related to bootstrapping")
+@Tag(name = "Management", description = "Operations related management")
 @RestController
 public class CronController {
 
