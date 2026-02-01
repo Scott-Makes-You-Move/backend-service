@@ -2,7 +2,7 @@
 
 ## Overview
 
-This project is a backend service designed to manage user accounts, biometrics, leaderboards, mobility data, and progress tracking. It integrates with Keycloak for authentication and utilizes JPA repositories to interact with the database. The service is built using Spring Boot and PostgreSQL, with support for Docker-based development.
+This project is a backend service designed to manage user accounts, biometrics, leaderboards, mobility data, and progress tracking. It integrates with Keycloak for authentication and uses JPA repositories to interact with the database. The service is built using Spring Boot and PostgreSQL, with support for Docker-based development.
 
 ## Project Structure
 ```
