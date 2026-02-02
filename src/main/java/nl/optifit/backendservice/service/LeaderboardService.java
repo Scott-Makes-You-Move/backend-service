@@ -44,14 +44,6 @@ public class LeaderboardService {
     private final KeycloakService keycloakService;
     private final LeaderboardRepository leaderboardRepository;
 
-    /**
-     * Retrieves all leaderboards.
-     * @param page
-     * @param size
-     * @param direction
-     * @param sortBy
-     * @return
-     */
     public PagedResponseDto<LeaderboardDto> findAll(int page, int size, String direction, String sortBy) {
         log.debug("Retrieving leaderboard with page '{}', size '{}', direction '{}', sortBy '{}'", page, size, direction, sortBy);
 
@@ -73,6 +65,7 @@ public class LeaderboardService {
                     }
                 })
                 .filter(Objects::nonNull)
+                .sorted(resolveSort(sortBy, direction))
                 .collect(Collectors.collectingAndThen(Collectors.toList(), leaderboardDtos -> {
                     PageImpl<LeaderboardDto> leaderBoardDtoPage = new PageImpl<>(leaderboardDtos, PageRequest.of(page, size), leaderboardDtos.size());
                     return PagedResponseDto.fromPage(leaderBoardDtoPage);
@@ -213,5 +206,24 @@ public class LeaderboardService {
         int sessionScoreComputed = Math.max(sessionScore, 25); // If score below 25, then just return 25
 
         return currentScore == null ? sessionScoreComputed : currentScore + sessionScoreComputed;
+    }
+
+    private Comparator<LeaderboardDto> resolveSort(String sortBy, String direction) {
+        Comparator<LeaderboardDto> comparator = switch (sortBy) {
+            case "fullName" -> Comparator.comparing(LeaderboardDto::fullName, String.CASE_INSENSITIVE_ORDER);
+            case "score" -> Comparator.comparing(LeaderboardDto::score);
+            case "completionRate" -> Comparator.comparingDouble(LeaderboardDto::completionRate);
+            case "currentStreak" -> Comparator.comparingInt(LeaderboardDto::currentStreak);
+            case "longestStreak" -> Comparator.comparingInt(LeaderboardDto::longestStreak);
+            case "recentWinner" -> Comparator.comparing(LeaderboardDto::recentWinner);
+            default -> throw new IllegalArgumentException("Invalid sort field: " + sortBy);
+        };
+
+        if ("desc".equalsIgnoreCase(direction)) {
+            return comparator.reversed();
+        } else {
+            return comparator;
+        }
+
     }
 }
