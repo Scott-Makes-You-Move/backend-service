@@ -10,6 +10,7 @@ import nl.optifit.backendservice.model.Leaderboard;
 import nl.optifit.backendservice.model.Session;
 import nl.optifit.backendservice.model.SessionStatus;
 import nl.optifit.backendservice.repository.LeaderboardRepository;
+import org.jspecify.annotations.NonNull;
 import org.keycloak.admin.client.resource.UserResource;
 import org.keycloak.representations.idm.UserRepresentation;
 import org.springframework.data.domain.Page;
@@ -32,6 +33,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Function;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 import static nl.optifit.backendservice.model.SessionStatus.COMPLETED;
@@ -48,28 +50,17 @@ public class LeaderboardService {
         log.debug("Retrieving leaderboard with page '{}', size '{}', direction '{}', sortBy '{}'", page, size, direction, sortBy);
 
         List<UserRepresentation> users = keycloakService.findAllUsers().list();
+        List<String> userIds = users.stream().map(UserRepresentation::getId).toList();
 
-        Map<String, Leaderboard> leaderBoardByAccountId = leaderboardRepository.findAllByAccountIdIn(
-                        users.stream()
-                                .map(UserRepresentation::getId)
-                                .toList())
+        Map<String, Leaderboard> leaderBoardByAccountId = leaderboardRepository.findAllByAccountIdIn(userIds)
                 .stream()
                 .collect(Collectors.toMap(Leaderboard::getAccountId, Function.identity()));
 
-        return users.stream().map(user -> {
-                    Leaderboard leaderboard = leaderBoardByAccountId.get(user.getId());
-                    if (leaderboard == null) {
-                        return null;
-                    } else {
-                        return LeaderboardDto.fromLeaderboard(String.format("%s %s", user.getFirstName(), user.getLastName()), leaderboard);
-                    }
-                })
+        return users.stream()
+                .map(mapUserToLeaderboard(leaderBoardByAccountId))
                 .filter(Objects::nonNull)
                 .sorted(resolveSort(sortBy, direction))
-                .collect(Collectors.collectingAndThen(Collectors.toList(), leaderboardDtos -> {
-                    PageImpl<LeaderboardDto> leaderBoardDtoPage = new PageImpl<>(leaderboardDtos, PageRequest.of(page, size), leaderboardDtos.size());
-                    return PagedResponseDto.fromPage(leaderBoardDtoPage);
-                }));
+                .collect(collectAndMapToPagedResponse(page, size));
     }
 
     public LeaderboardDto findByRecentWinner() {
@@ -208,6 +199,17 @@ public class LeaderboardService {
         return currentScore == null ? sessionScoreComputed : currentScore + sessionScoreComputed;
     }
 
+    private static @NonNull Function<UserRepresentation, LeaderboardDto> mapUserToLeaderboard(Map<String, Leaderboard> leaderBoardByAccountId) {
+        return user -> {
+            Leaderboard leaderboard = leaderBoardByAccountId.get(user.getId());
+            if (leaderboard == null) {
+                return null;
+            } else {
+                return LeaderboardDto.fromLeaderboard(String.format("%s %s", user.getFirstName(), user.getLastName()), leaderboard);
+            }
+        };
+    }
+
     private Comparator<LeaderboardDto> resolveSort(String sortBy, String direction) {
         Comparator<LeaderboardDto> comparator = switch (sortBy) {
             case "fullName" -> Comparator.comparing(LeaderboardDto::fullName, String.CASE_INSENSITIVE_ORDER);
@@ -224,6 +226,12 @@ public class LeaderboardService {
         } else {
             return comparator;
         }
+    }
 
+    private static @NonNull Collector<LeaderboardDto, Object, PagedResponseDto<LeaderboardDto>> collectAndMapToPagedResponse(int page, int size) {
+        return Collectors.collectingAndThen(Collectors.toList(), leaderboardDtos -> {
+            PageImpl<LeaderboardDto> leaderBoardDtoPage = new PageImpl<>(leaderboardDtos, PageRequest.of(page, size), leaderboardDtos.size());
+            return PagedResponseDto.fromPage(leaderBoardDtoPage);
+        });
     }
 }
