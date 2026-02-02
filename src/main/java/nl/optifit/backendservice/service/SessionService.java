@@ -24,6 +24,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -45,6 +46,9 @@ import static java.time.format.DateTimeFormatter.ISO_LOCAL_DATE;
 @Service
 @Slf4j
 public class SessionService {
+
+    public static final String TIMEZONE_EUROPE_AMSTERDAM = "Europe/Amsterdam";
+
     private final LeaderboardService leaderboardService;
     private final SessionRepository sessionRepository;
     private final ExerciseVideoRepository exerciseVideoRepository;
@@ -119,7 +123,7 @@ public class SessionService {
     }
 
     public Optional<Session> createNewSession(Account account, ExerciseType exerciseType) {
-        ZonedDateTime now = ZonedDateTime.now(ZoneId.of("Europe/Amsterdam")).truncatedTo(ChronoUnit.MINUTES);
+        ZonedDateTime now = ZonedDateTime.now(ZoneId.of(TIMEZONE_EUROPE_AMSTERDAM)).truncatedTo(ChronoUnit.MINUTES);
 
         Optional<Mobility> latestMeasurementOptional = mobilityRepository.findTopByAccountIdOrderByMeasuredOnDesc(account.getId());
 
@@ -149,7 +153,7 @@ public class SessionService {
     }
 
     public void updateSession(Session latestSession) {
-        ZonedDateTime now = ZonedDateTime.now(ZoneId.of("Europe/Amsterdam")).truncatedTo(ChronoUnit.MINUTES);
+        ZonedDateTime now = ZonedDateTime.now(ZoneId.of(TIMEZONE_EUROPE_AMSTERDAM)).truncatedTo(ChronoUnit.MINUTES);
         ZonedDateTime lastSessionStart = latestSession.getSessionStart().truncatedTo(ChronoUnit.MINUTES);
 
         long differenceBetweenSessionStartAndNow = Duration.between(lastSessionStart, now).toMinutes();
@@ -183,9 +187,15 @@ public class SessionService {
                 .orElseThrow(() -> new NotFoundException(String.format("Could not find session '%s' for account '%s'", sessionId, accountId)));
     }
 
-    public void removeStaleSessions() {
-        ZonedDateTime yesterday = ZonedDateTime.now(ZoneId.of("Europe/Amsterdam")).minusDays(1);
+    public ResponseEntity<String> removeStaleSessions() {
+        ZonedDateTime yesterday = ZonedDateTime.now(ZoneId.of(TIMEZONE_EUROPE_AMSTERDAM)).minusDays(1);
         log.debug("Removing sessions older than {}", yesterday);
         sessionRepository.deleteSessionsOlderThan(yesterday);
+        return ResponseEntity.noContent().build();
+    }
+
+    public void deleteAll() {
+        log.debug("Deleting all sessions");
+        sessionRepository.deleteAll();
     }
 }

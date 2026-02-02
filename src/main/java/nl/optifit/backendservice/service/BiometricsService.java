@@ -41,4 +41,9 @@ public class BiometricsService {
     public Biometrics findMostRecentBiometricsForAccount(String accountId) {
         return biometricsRepository.findFirstByAccountIdOrderByMeasuredOnDesc(accountId);
     }
+
+    public void deleteAll() {
+        log.debug("Deleting all biometrics");
+        biometricsRepository.deleteAll();
+    }
 }

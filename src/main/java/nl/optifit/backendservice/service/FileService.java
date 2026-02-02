@@ -11,6 +11,7 @@ import org.springframework.ai.vectorstore.filter.Filter;
 import org.springframework.ai.vectorstore.filter.FilterExpressionBuilder;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -46,7 +47,7 @@ public class FileService {
         this.driveService = driveService;
     }
 
-    public void syncFiles() {
+    public ResponseEntity<String> syncFiles() {
         log.info("Syncing files");
         long startSyncTime = System.nanoTime();
 
@@ -59,8 +60,8 @@ public class FileService {
                             executor.submit(() -> addUserFilesToCosmos(userRepresentation)));
 
         }
-
         log.info("Finished syncing files in {} ms", (System.nanoTime() - startSyncTime) / 1000000);
+        return ResponseEntity.ok("Files synced successfully");
     }
 
     public List<Document> search(String accountId) {

@@ -28,9 +28,8 @@ public class FileController {
     private final FileService fileService;
 
     @PostMapping("/sync")
-    public ResponseEntity<Void> syncFiles() {
+    public ResponseEntity<String> syncFiles() {
         log.info("POST Sync Files REST API called");
-        fileService.syncFiles();
-        return ResponseEntity.ok().build();
+        return fileService.syncFiles();
     }
 }

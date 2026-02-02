@@ -37,4 +37,9 @@ public class MobilityService {
 
         return MobilityDto.fromMobility(savedMobility);
     }
+
+    public void deleteAll() {
+        log.debug("Deleting all mobilities");
+        mobilityRepository.deleteAll();
+    }
 }

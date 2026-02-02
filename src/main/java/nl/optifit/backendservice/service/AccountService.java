@@ -163,4 +163,9 @@ public class AccountService {
 
         return new UserHealthProfileDto(sex, age, recentBiometrics.getWeight(), recentBiometrics.getFat(), recentBiometrics.getVisceralFat());
     }
+
+    public void deleteAll() {
+        log.debug("Deleting all accounts");
+        accountRepository.deleteAll();
+    }
 }
