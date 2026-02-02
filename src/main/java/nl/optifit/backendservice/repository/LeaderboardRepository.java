@@ -13,4 +13,6 @@ public interface LeaderboardRepository extends JpaRepository<Leaderboard, UUID> 
     Optional<Leaderboard> findByAccountId(String accountId);
 
     Optional<Leaderboard> findByRecentWinnerTrue();
+
+    List<Leaderboard> findAllByAccountIdsIn(List<String> accountIds);
 }

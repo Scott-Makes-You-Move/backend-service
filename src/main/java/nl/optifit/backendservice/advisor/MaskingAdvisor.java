@@ -6,6 +6,7 @@ import nl.optifit.backendservice.utility.MaskingUtil;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.ai.chat.client.ChatClientRequest;
 import org.springframework.ai.chat.client.ChatClientResponse;
+import org.springframework.ai.chat.client.advisor.SimpleLoggerAdvisor;
 import org.springframework.ai.chat.client.advisor.api.CallAdvisor;
 import org.springframework.ai.chat.client.advisor.api.CallAdvisorChain;
 import org.springframework.ai.chat.messages.AssistantMessage;
@@ -19,8 +20,12 @@ import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
+/**
+ * TODO: Make this class more efficient/simple
+ */
 @Slf4j
 @RequiredArgsConstructor
 @Component
@@ -113,5 +118,23 @@ public class MaskingAdvisor implements CallAdvisor {
     @Override
     public int getOrder() {
         return 0;
+    }
+
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    public static final class Builder {
+
+        private int order = 0;
+
+        public Builder order(int order) {
+            this.order = order;
+            return this;
+        }
+
+        public MaskingAdvisor build() {
+            return new MaskingAdvisor();
+        }
     }
 }

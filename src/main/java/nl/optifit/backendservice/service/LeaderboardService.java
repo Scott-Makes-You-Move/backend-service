@@ -11,7 +11,9 @@ import nl.optifit.backendservice.model.Session;
 import nl.optifit.backendservice.model.SessionStatus;
 import nl.optifit.backendservice.repository.LeaderboardRepository;
 import org.keycloak.admin.client.resource.UserResource;
+import org.keycloak.representations.idm.UserRepresentation;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -25,9 +27,12 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static nl.optifit.backendservice.model.SessionStatus.COMPLETED;
 import static nl.optifit.backendservice.model.SessionStatus.OVERDUE;
@@ -41,17 +46,29 @@ public class LeaderboardService {
 
     public PagedResponseDto<LeaderboardDto> findAll(int page, int size, String direction, String sortBy) {
         log.debug("Retrieving leaderboard with page '{}', size '{}', direction '{}', sortBy '{}'", page, size, direction, sortBy);
-        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.fromString(direction), sortBy));
 
-        Page<LeaderboardDto> leaderboardDtoPage = leaderboardRepository.findAll(pageable)
-                .map(leaderboard -> {
-                    log.debug("Mapping leaderboard to leaderboardDto for account '{}'", leaderboard.getAccount().getId());
-                    UserResource user = keycloakService.findUserById(leaderboard.getAccount().getId()).orElseThrow(() -> new RuntimeException("User not found"));
-                    log.debug("Found user: {}", user.toRepresentation());
-                    return LeaderboardDto.fromLeaderboard(String.format("%s %s", user.toRepresentation().getFirstName(), user.toRepresentation().getLastName()), leaderboard);
-                });
+        List<UserRepresentation> users = keycloakService.findAllUsers().list();
 
-        return PagedResponseDto.fromPage(leaderboardDtoPage);
+        Map<String, Leaderboard> leaderBoardByAccountId = leaderboardRepository.findAllByAccountIdsIn(
+                        users.stream()
+                                .map(UserRepresentation::getId)
+                                .toList())
+                .stream()
+                .collect(Collectors.toMap(Leaderboard::getAccountId, Function.identity()));
+
+        return users.stream().map(user -> {
+                    Leaderboard leaderboard = leaderBoardByAccountId.get(user.getId());
+                    if (leaderboard == null) {
+                        return null;
+                    } else {
+                        return LeaderboardDto.fromLeaderboard(String.format("%s %s", user.getFirstName(), user.getLastName()), leaderboard);
+                    }
+                })
+                .filter(Objects::nonNull)
+                .collect(Collectors.collectingAndThen(Collectors.toList(), leaderboardDtos -> {
+                    PageImpl<LeaderboardDto> leaderBoardDtoPage = new PageImpl<>(leaderboardDtos, PageRequest.of(page, size), leaderboardDtos.size());
+                    return PagedResponseDto.fromPage(leaderBoardDtoPage);
+                }));
     }
 
     public LeaderboardDto findByRecentWinner() {

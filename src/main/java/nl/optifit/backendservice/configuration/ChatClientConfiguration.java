@@ -81,11 +81,10 @@ public class ChatClientConfiguration {
             advisors.add(multiSourceRagAdvisor);
         }
         if (maskingEnabled) {
-            advisors.add(new MaskingAdvisor());
+            advisors.add(MaskingAdvisor.builder().build());
         }
         if (loggingEnabled) {
-            SimpleLoggerAdvisor simpleLoggerAdvisor = SimpleLoggerAdvisor.builder().build();
-            advisors.add(simpleLoggerAdvisor);
+            advisors.add(SimpleLoggerAdvisor.builder().build());
         }
 
         return advisors;
