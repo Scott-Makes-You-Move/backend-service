@@ -44,6 +44,14 @@ public class LeaderboardService {
     private final KeycloakService keycloakService;
     private final LeaderboardRepository leaderboardRepository;
 
+    /**
+     * Retrieves all leaderboards.
+     * @param page
+     * @param size
+     * @param direction
+     * @param sortBy
+     * @return
+     */
     public PagedResponseDto<LeaderboardDto> findAll(int page, int size, String direction, String sortBy) {
         log.debug("Retrieving leaderboard with page '{}', size '{}', direction '{}', sortBy '{}'", page, size, direction, sortBy);
 
