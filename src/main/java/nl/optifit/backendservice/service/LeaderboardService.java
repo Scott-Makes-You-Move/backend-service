@@ -49,7 +49,7 @@ public class LeaderboardService {
 
         List<UserRepresentation> users = keycloakService.findAllUsers().list();
 
-        Map<String, Leaderboard> leaderBoardByAccountId = leaderboardRepository.findAllByAccountIdsIn(
+        Map<String, Leaderboard> leaderBoardByAccountId = leaderboardRepository.findAllByAccountIdIn(
                         users.stream()
                                 .map(UserRepresentation::getId)
                                 .toList())

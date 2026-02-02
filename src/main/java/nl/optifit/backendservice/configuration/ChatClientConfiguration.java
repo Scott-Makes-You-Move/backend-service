@@ -73,8 +73,7 @@ public class ChatClientConfiguration {
 
         if (chatMemoryEnabled) {
             MessageWindowChatMemory messageWindowChatMemory = MessageWindowChatMemory.builder().maxMessages(maxMessages).build();
-            MessageChatMemoryAdvisor messageChatMemoryAdvisor = MessageChatMemoryAdvisor.builder(messageWindowChatMemory).build();
-            advisors.add(messageChatMemoryAdvisor);
+            advisors.add(MessageChatMemoryAdvisor.builder(messageWindowChatMemory).build());
         }
         if (filesEnabled || chunksEnabled) {
             RetrievalAugmentationAdvisor multiSourceRagAdvisor = createMultiSourceRagAdvisor(filesVectorStore, chunksVectorStore);
