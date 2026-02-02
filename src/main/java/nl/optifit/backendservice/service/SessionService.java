@@ -156,16 +156,19 @@ public class SessionService {
         ZonedDateTime now = ZonedDateTime.now(ZoneId.of(TIMEZONE_EUROPE_AMSTERDAM)).truncatedTo(ChronoUnit.MINUTES);
         ZonedDateTime lastSessionStart = latestSession.getSessionStart().truncatedTo(ChronoUnit.MINUTES);
 
-        long differenceBetweenSessionStartAndNow = Duration.between(lastSessionStart, now).toMinutes();
+        if (latestSession.getSessionStatus().equals(SessionStatus.NEW)) {
+            long differenceBetweenSessionStartAndNow = Duration.between(lastSessionStart, now).toMinutes();
 
-        if (differenceBetweenSessionStartAndNow >= 60) {
-            log.warn("An hour has already passed after session start");
-            latestSession.setSessionStatus(SessionStatus.OVERDUE);
-            latestSession.setSessionExecutionTime(null);
-        } else {
-            latestSession.setSessionStatus(SessionStatus.COMPLETED);
-            latestSession.setSessionExecutionTime(now);
+            if (differenceBetweenSessionStartAndNow >= 60) {
+                log.warn("An hour has already passed after session start");
+                latestSession.setSessionStatus(SessionStatus.OVERDUE);
+                latestSession.setSessionExecutionTime(null);
+            } else {
+                latestSession.setSessionStatus(SessionStatus.COMPLETED);
+                latestSession.setSessionExecutionTime(now);
+            }
         }
+
         sessionRepository.save(latestSession);
     }
 
@@ -197,7 +200,7 @@ public class SessionService {
     public ResponseEntity<String> completeTodaySessions() {
         ZonedDateTime startToday = ZonedDateTime.now(ZoneId.of(TIMEZONE_EUROPE_AMSTERDAM)).withHour(0).withMinute(0).withSecond(0);
         ZonedDateTime endToday = ZonedDateTime.now(ZoneId.of(TIMEZONE_EUROPE_AMSTERDAM)).withHour(23).withMinute(59).withSecond(59);
-        sessionRepository.findAllBySessionStartBetween(startToday, endToday).forEach(this::updateSession);
+        sessionRepository.findAllBySessionStartBetween(startToday, endToday).forEach(leaderboardService::updateLeaderboard);
         return ResponseEntity.ok().build();
     }
 
