@@ -43,10 +43,13 @@ public class LeaderboardService {
         log.debug("Retrieving leaderboard with page '{}', size '{}', direction '{}', sortBy '{}'", page, size, direction, sortBy);
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.fromString(direction), sortBy));
 
-        Page<LeaderboardDto> leaderboardDtoPage = leaderboardRepository.findAll(pageable).map(leaderboard -> {
-            UserResource user = keycloakService.findUserById(leaderboard.getAccount().getId()).orElseThrow(() -> new RuntimeException("User not found"));
-            return LeaderboardDto.fromLeaderboard(String.format("%s %s", user.toRepresentation().getFirstName(), user.toRepresentation().getLastName()), leaderboard);
-        });
+        Page<LeaderboardDto> leaderboardDtoPage = leaderboardRepository.findAll(pageable)
+                .map(leaderboard -> {
+                    log.debug("Mapping leaderboard to leaderboardDto for account '{}'", leaderboard.getAccount().getId());
+                    UserResource user = keycloakService.findUserById(leaderboard.getAccount().getId()).orElseThrow(() -> new RuntimeException("User not found"));
+                    log.debug("Found user: {}", user.toRepresentation());
+                    return LeaderboardDto.fromLeaderboard(String.format("%s %s", user.toRepresentation().getFirstName(), user.toRepresentation().getLastName()), leaderboard);
+                });
 
         return PagedResponseDto.fromPage(leaderboardDtoPage);
     }

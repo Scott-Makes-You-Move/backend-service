@@ -31,7 +31,7 @@ public class GlobalExceptionHandler implements ProblemHandling {
     ResponseEntity<Problem> handleNotFoundException(
             final NotFoundException exception,
             final NativeWebRequest request) {
-        log.debug("Handling NotFoundException: {}", exception.getMessage());
+        log.debug("Handling NotFoundException: '{}'", exception.getMessage(), exception);
         return create(new HttpStatusAdapter(NOT_FOUND), exception, request);
     }
 
