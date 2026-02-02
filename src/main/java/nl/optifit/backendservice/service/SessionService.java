@@ -194,7 +194,7 @@ public class SessionService {
         return ResponseEntity.noContent().build();
     }
 
-    public ResponseEntity<String> completeTodaysSessions() {
+    public ResponseEntity<String> completeTodaySessions() {
         ZonedDateTime startToday = ZonedDateTime.now(ZoneId.of(TIMEZONE_EUROPE_AMSTERDAM)).withHour(0).withMinute(0).withSecond(0);
         ZonedDateTime endToday = ZonedDateTime.now(ZoneId.of(TIMEZONE_EUROPE_AMSTERDAM)).withHour(23).withMinute(59).withSecond(59);
         sessionRepository.findAllBySessionStartBetween(startToday, endToday).forEach(this::updateSession);
