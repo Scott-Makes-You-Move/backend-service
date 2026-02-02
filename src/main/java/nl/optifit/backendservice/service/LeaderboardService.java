@@ -209,8 +209,11 @@ public class LeaderboardService {
 
     private Comparator<LeaderboardDto> resolveSort(String sortBy, String direction) {
         Comparator<LeaderboardDto> comparator = switch (sortBy) {
-            case "fullName" -> Comparator.comparing(LeaderboardDto::fullName, String.CASE_INSENSITIVE_ORDER);
-            case "score" -> Comparator.comparing(LeaderboardDto::score);
+            case "score" -> Comparator.comparing(
+                    LeaderboardDto::score,
+                    Comparator.nullsLast(Integer::compareTo)
+            );
+            case "fullName" -> Comparator.comparing(LeaderboardDto::fullName);
             case "completionRate" -> Comparator.comparingDouble(LeaderboardDto::completionRate);
             case "currentStreak" -> Comparator.comparingInt(LeaderboardDto::currentStreak);
             case "longestStreak" -> Comparator.comparingInt(LeaderboardDto::longestStreak);
@@ -218,11 +221,7 @@ public class LeaderboardService {
             default -> throw new IllegalArgumentException("Invalid sort field: " + sortBy);
         };
 
-        if ("desc".equalsIgnoreCase(direction)) {
-            return comparator.reversed();
-        } else {
-            return comparator;
-        }
+        return "desc".equalsIgnoreCase(direction) ? comparator.reversed() : comparator;
     }
 
     private static @NonNull Collector<LeaderboardDto, Object, PagedResponseDto<LeaderboardDto>> collectAndMapToPagedResponse(int page, int size) {
