@@ -21,11 +21,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.List;
 
 import static nl.optifit.backendservice.model.ExerciseType.BACK;
 import static nl.optifit.backendservice.model.ExerciseType.HIP;
 import static nl.optifit.backendservice.model.ExerciseType.SHOULDER;
+import static nl.optifit.backendservice.service.SessionService.TIMEZONE_EUROPE_AMSTERDAM;
 
 @Hidden
 @Slf4j
@@ -53,6 +56,7 @@ public class ManagementController {
         return switch (job) {
             case "syncFiles" -> fileService.syncFiles();
             case "removeStaleSessions" -> sessionService.removeStaleSessions();
+            case "completeTodaysSessions" -> sessionService.completeTodaysSessions();
             default -> throw new IllegalArgumentException("Job '%s' not recognized".formatted(job));
         };
     }

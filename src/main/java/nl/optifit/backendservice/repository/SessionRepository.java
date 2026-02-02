@@ -21,6 +21,8 @@ public interface SessionRepository extends JpaRepository<Session, UUID>, JpaSpec
 
     Optional<Session> findByIdAndAccountId(UUID uuid, String accountId);
 
+    List<Session> findAllBySessionStartBetween(ZonedDateTime start, ZonedDateTime end);
+
     @Transactional
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("DELETE FROM Session s WHERE s.sessionStart < :cutoffDate")
