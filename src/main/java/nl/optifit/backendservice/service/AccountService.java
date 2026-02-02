@@ -47,17 +47,12 @@ public class AccountService {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.fromString(direction), sortBy));
 
         Page<Account> accounts = accountRepository.findAll(pageable);
-        log.debug("Retrieved {} accounts from database and {} pages", accounts.getTotalElements(), accounts.getTotalPages() );
 
         return accounts.stream()
-                .peek(account -> log.debug("Finding account in keycloak for id '{}'", account.getId()))
                 .map(account -> keycloakService.findUserById(account.getId()))
                 .filter(Optional::isPresent)
                 .map(Optional::get)
-                .peek(user -> log.debug("Found user. Trying to convert toRepresentation"))
-                .peek(user -> log.debug("Found user: {}", user.toRepresentation().getUsername()))
                 .map(UserResource::toRepresentation)
-                .peek(userRepresentation -> log.debug("Converted user to representation. Mapping to UserDto"))
                 .map(UserDto::fromUserRepresentation)
                 .collect(Collectors.collectingAndThen(Collectors.toList(), users ->
                         new PagedResponseDto<>(users, page, size, accounts.getTotalElements(), accounts.getTotalPages())));
@@ -107,7 +102,6 @@ public class AccountService {
         int minVisceralHealthy = 1;
 
         UserHealthProfileDto userHealthProfile = calculateUserHealthProfile(accountId);
-        log.debug("Calculated health profile: {}", userHealthProfile);
         double minBodyFat, maxBodyFat;
 
         switch (userHealthProfile.sex()) {
@@ -158,21 +152,14 @@ public class AccountService {
     }
 
     public UserHealthProfileDto calculateUserHealthProfile(String accountId) {
-        log.debug("Calculating health profile for account '{}'", accountId);
         UserResource userResource = keycloakService.findUserById(accountId).orElse(null);
-        log.debug("Found user resource: {}", userResource);
         String dateOfBirthString = userResource.toRepresentation().getAttributes().get("dob").stream().findFirst().orElseThrow();
-        log.debug("Found date of birth: {}", dateOfBirthString);
         String sex = userResource.toRepresentation().getAttributes().get("sex").stream().findFirst().orElseThrow();
-        log.debug("Found sex: {}", sex);
 
         LocalDate dateOfBirth = LocalDate.parse(dateOfBirthString, DATE_OF_BIRTH_FORMATTER);
-        log.debug("Parsed date of birth: {}", dateOfBirth);
         int age = Period.between(dateOfBirth, LocalDate.now()).getYears();
-        log.debug("Calculated age: {}", age);
 
         Biometrics recentBiometrics = biometricsService.findMostRecentBiometricsForAccount(accountId);
-        log.debug("Found most recent biometrics: {}", recentBiometrics);
 
         return new UserHealthProfileDto(sex, age, recentBiometrics.getWeight(), recentBiometrics.getFat(), recentBiometrics.getVisceralFat());
     }

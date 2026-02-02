@@ -58,7 +58,7 @@ public class GlobalExceptionHandler implements ProblemHandling {
     ResponseEntity<Problem> handleExceptions(
             final Exception exception,
             final NativeWebRequest request) {
-        log.debug("Handling Exception: {}", exception.getMessage());
+        log.debug("Handling Exception: {}", exception.getMessage(), exception);
         return create(new HttpStatusAdapter(INTERNAL_SERVER_ERROR), exception, request);
     }
 
