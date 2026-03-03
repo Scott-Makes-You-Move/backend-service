@@ -38,7 +38,7 @@ jobs:
             -Dspring.profiles.active=cloud,logging \
             -Dacr.loginServer=${ACR_LOGIN_SERVER} \
             -Dimage.tag=${IMAGE_TAG} \
-            jib:build
+            clean compile jib:build
 
       - name: Deploy container image to Azure Web App
         id: deploy-to-webapp
