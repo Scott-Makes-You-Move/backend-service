@@ -11,8 +11,8 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: ${AZURE_JWT_ISSUER_URI:http://localhost:9000/}
-          jwk-set-uri: ${AZURE_JWT_PROTOCOL_URI:http://localhost:9000/protocol}
+          issuer-uri: ${AZURE_JWT_ISSUER_URI:http://localhost:8080/}
+          jwk-set-uri: ${AZURE_JWT_PROTOCOL_URI:http://localhost:8080/protocol}
   ai:
     vectorstore:
       cosmosdb:

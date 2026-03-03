@@ -155,10 +155,10 @@ frontend:
     Add a Spring Boot Run Configuration and include the local,logging profiles. Or run the application using `mvn spring-boot:run -Dspring-boot.run.profiles=local,logging`
 
 ## API Documentation
-The application exposes an OpenAPI 3.0 specification for the APIs. Once the application is running, you can view the API documentation at: `http://localhost:9000/swagger-ui.html`. Otherwise, see Postman API documentation for all available endpoints and how to call them. 
+The application exposes an OpenAPI 3.0 specification for the APIs. Once the application is running, you can view the API documentation at: `http://localhost:8080/swagger-ui.html`. Otherwise, see Postman API documentation for all available endpoints and how to call them. 
 
 ## Bootstrapping Data
-There is an endpoint available for bootstrapping data at: `http://localhost:9000/api/v1/bootstrap`.
+There is an endpoint available for bootstrapping data at: `http://localhost:8080/api/v1/bootstrap`.
 
 ---
 Happy developing! 🚀
