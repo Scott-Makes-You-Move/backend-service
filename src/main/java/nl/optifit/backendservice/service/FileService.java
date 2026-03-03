@@ -60,7 +60,7 @@ public class FileService {
                             executor.submit(() -> addUserFilesToCosmos(userRepresentation)));
 
         }
-        log.info("Finished syncing files in {} ms", (System.nanoTime() - startSyncTime) / 1000000);
+        log.info("Finished syncing files in {} ms", (System.nanoTime() - startSyncTime) / 1_000_000);
         return ResponseEntity.ok("Files synced successfully");
     }
 
