@@ -307,6 +307,10 @@
                         </from>
                         <to>
                             <image>smymregistry.azurecr.io/${project.artifactId}:${project.version}</image>
+                            <auth>
+                                <username>${env.ACR_USERNAME}</username>
+                                <password>${env.ACR_PASSWORD}</password>
+                            </auth>
                         </to>
                         <container>
                             <ports>
