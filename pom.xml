@@ -11,7 +11,7 @@
     </parent>
     <groupId>nl.optifit</groupId>
     <artifactId>backend-service</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
+    <version>1.0.0</version>
     <packaging>jar</packaging>
     <name>backend-service</name>
     <description>backend-service</description>
@@ -297,8 +297,32 @@
                     </execution>
                 </executions>
             </plugin>
-        </plugins>
-    </build>
+            <plugin>
+                <groupId>com.google.cloud.tools</groupId>
+                <artifactId>jib-maven-plugin</artifactId>
+                <version>3.5.1</version>
+                    <configuration>
+                        <from>
+                            <image>eclipse-temurin:21-jre</image>
+                        </from>
+                        <to>
+                            <image>smymregistry.azurecr.io/${project.artifactId}:${project.version}</image>
+                        </to>
+                        <container>
+                            <ports>
+                                <port>8080</port>
+                            </ports>
+                            <creationTime>USE_CURRENT_TIMESTAMP</creationTime>
+                            <format>OCI</format>
+                            <jvmFlags>
+                                <jvmFlag>-XX:MaxRAMPercentage=75</jvmFlag>
+                                <jvmFlag>-Dfile.encoding=UTF-8</jvmFlag>
+                            </jvmFlags>
+                        </container>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </build>
 
     <profiles>
         <profile>
